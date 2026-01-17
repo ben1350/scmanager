@@ -24,20 +24,27 @@
                             <label for="batchCode">Batch Code</label>
                         </div>
                         <div class="input-field col s6">
-                            <input name="productionDate" id="productionDate" type="date">
+                            <i class="material-icons prefix">event</i>
+                            <input name="productionDate"
+                                   id="productionDate"
+                                   type="text"
+                                   class="datepicker"
+                                   >
                             <label for="productionDate" class="active">Production Date</label>
                         </div>
                     </div>
                     <div class="row">
-                        <div class="input-field col s8">
-                            <select name="finishedItemId" class="browser-default" required>
+                        <div class="input-field col s6">
+                            <i class="material-icons prefix">inventory_2</i>
+                            <select name="finishedItemId" id="finishedItemId" required>
                                 <option value="" disabled selected>Choose Finished Item</option>
                                 {#for item in items}
                                     <option value="{item.id}">{item.itemName}</option>
                                 {/for}
                             </select>
+                            <label>Finished Item</label>
                         </div>
-                        <div class="input-field col s4">
+                        <div class="input-field col s6">
                             <input name="outputQty" id="outputQty" type="number" step="0.01" required>
                             <label for="outputQty">Output Qty</label>
                         </div>

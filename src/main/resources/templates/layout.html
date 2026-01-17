@@ -58,19 +58,49 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    // 1. Initialize Dropdowns (Desktop)
-    var dropdownElems = document.querySelectorAll('.dropdown-trigger');
-    M.Dropdown.init(dropdownElems, {
-      hover: false,
-      coverTrigger: false
+  /**
+   * Encapsulates all Materialize component initializations.
+   * This ensures consistent styling for Selects, Modals, and Pickers.
+   */
+  function initMaterialize() {
+    // 1. Initialize Modals
+    var modals = document.querySelectorAll('.modal');
+    M.Modal.init(modals);
+
+    // 2. Initialize Materialize Selects (Crucial: replaces browser-default)
+    var selects = document.querySelectorAll('select');
+    M.FormSelect.init(selects);
+
+    // 3. Initialize Datepickers (The Calendar component)
+    var datepickers = document.querySelectorAll('.datepicker');
+    M.Datepicker.init(datepickers, {
+      format: 'yyyy-mm-dd',
+      autoClose: true,
+      container: 'body' // Prevents the calendar from being cut off by modal borders
     });
 
-    // 2. Initialize Sidenav (Mobile)
-    var sidenavElems = document.querySelectorAll('.sidenav');
-    M.Sidenav.init(sidenavElems, {
-      edge: 'left' // Menu slides in from the left
-    });
+    // 4. Initialize Dropdowns (Nav Menu)
+    var dropdowns = document.querySelectorAll('.dropdown-trigger');
+    M.Dropdown.init(dropdowns, { coverTrigger: false });
+
+    // 5. Initialize Sidenav (Mobile)
+    var sidenavs = document.querySelectorAll('.sidenav');
+    M.Sidenav.init(sidenavs);
+
+    // 6. Refresh Input Labels (Fixes overlapping text on dynamic loads)
+    M.updateTextFields();
+  }
+
+  // Run on initial page load
+  document.addEventListener('DOMContentLoaded', initMaterialize);
+
+  /**
+   * HTMX Integration:
+   * When HTMX swaps new HTML (like a new table row or a modal form),
+   * we must re-run the initialization to 'bind' the JS components.
+   */
+  document.body.addEventListener('htmx:afterSwap', function(evt) {
+    initMaterialize();
   });
 </script>
 </body>
