@@ -1,0 +1,14 @@
+{#for uom in uoms}
+  <tr id="uom-{uom.id}">
+  <td>{uom.id}</td>
+  <td>{uom.uomCode}</td>
+  <td>{uom.description}</td>
+  <td>
+  <form hx-post="/uoms/delete" hx-target="#uomTableBody" hx-swap="innerHTML" style="display:inline">
+    <input type="hidden" name="id" value="{uom.id}">
+    <button class="btn-small red" type="submit">Delete</button>
+  </form>
+  <a class="btn-small blue" hx-get="/uoms/edit/{uom.id}" hx-target="#uom-{uom.id}" hx-swap="outerHTML">Edit</a>
+  </td>
+  </tr>
+{/for}

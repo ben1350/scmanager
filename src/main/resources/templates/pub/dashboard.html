@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+{#include "/layout.html"}
+{#title}UOM Management{/title}
+
+{#body}
+
+
+
+  <h4 class="center-align">Dashboard</h4>
+
+  <!-- KPI Cards -->
+  <div class="row">
+    <div class="col s12 m6 l3">
+      <div class="card blue lighten-2 white-text center-align">
+        <div class="card-content">
+          <span class="card-title">Total Stock</span>
+          <h5>{totalStock}</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 m6 l3">
+      <div class="card red lighten-2 white-text center-align">
+        <div class="card-content">
+          <span class="card-title">Low Stock Items</span>
+          <h5>{lowStock}</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 m6 l3">
+      <div class="card green lighten-2 white-text center-align">
+        <div class="card-content">
+          <span class="card-title">Today's Sales</span>
+          <h5>{todaysSales}</h5>
+        </div>
+      </div>
+    </div>
+    <div class="col s12 m6 l3">
+      <div class="card orange lighten-2 white-text center-align">
+        <div class="card-content">
+          <span class="card-title">Pending Production</span>
+          <h5>{pendingProduction}</h5>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="section">
+    <h5>Quick Actions</h5>
+    <a class="waves-effect waves-light btn" href="/items/create">Add Item</a>
+    <a class="waves-effect waves-light btn" href="/sales/create">Create Invoice</a>
+    <a class="waves-effect waves-light btn" href="/production/create">Start Production</a>
+    <a class="waves-effect waves-light btn" href="/stock/opening">Record Stock</a>
+  </div>
+
+  <!-- Recent Stock Transactions -->
+  <div class="section">
+    <div class="card">
+      <div class="card-content">
+
+      <span class="card-title">
+        Recent Stock Transactions
+      </span>
+
+        <table class="highlight striped responsive-table">
+          <thead>
+          <tr>
+            <th>Date</th>
+            <th>Item</th>
+            <th>Type</th>
+            <th class="right-align">Quantity</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {#each recentTransactions}
+            <tr>
+            <td>{it.transactionDate}</td>
+
+            <td>{it.item.itemName}</td>
+
+            <td>
+              <span class="chip grey lighten-3 grey-text text-darken-3">
+                {it.transactionType}
+              </span>
+            </td>
+
+            <td class="right-align">
+            <strong>{it.quantity}</strong>
+            </td>
+            </tr>
+          {/each}
+          </tbody>
+        </table>
+
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Pending Production Batches -->
+  <div class="section">
+    <div class="card">
+      <div class="card-content">
+    <span class="card-title">
+      Pending Production Batches
+    </span>
+
+        <table class="highlight striped responsive-table">
+          <thead>
+          <tr>
+            <th>Batch Code</th>
+            <th>Finished Item</th>
+            <th class="right-align">Output Qty</th>
+            <th>Production Date</th>
+          </tr>
+          </thead>
+
+          <tbody>
+          {#each pendingBatches}
+            <tr>
+            <td>
+            <span class="chip blue lighten-4 blue-text text-darken-3">
+              {it.batchCode}
+            </span>
+            </td>
+
+            <td>{it.finishedItem.itemName}</td>
+
+            <td class="right-align">
+              <strong>{it.outputQty}</strong>
+            </td>
+
+            <td>{it.productionDate}</td>
+            </tr>
+          {/each}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+
+{/body}
+{/include}

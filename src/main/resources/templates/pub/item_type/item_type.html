@@ -1,0 +1,71 @@
+{#include "/layout.html"}
+    {#title}Item Type Management{/title}
+
+    {#body}
+        <h4>Item Type Management</h4>
+
+        <div class="row">
+            <form hx-post="/itemtypes/add"
+                  hx-target="#itemTypeTableBody"
+                  hx-on="htmx:after-request: if(event.detail.successful) this.reset()"
+                  hx-swap="innerHTML"
+                  class="col s12">
+                <div class="row">
+                    <div class="input-field col s10">
+                        <input name="itemTypeCode" type="text" required>
+                        <label>Item Type Code</label>
+                    </div>
+                    <div class="input-field col s2">
+                        <button class="btn waves-effect waves-light" type="submit">Add</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <table class="highlight striped responsive-table">
+            <thead>
+            <tr><th>ID</th><th>Item Type Code</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="itemTypeTableBody">
+            {#fragment id="rows"}
+                {#for it in itemTypes}
+                    {#fragment id="row_readonly"}
+                        <tr id="it-{it.id}">
+                        <td>{it.id}</td>
+                        <td>{it.itemTypeCode}</td>
+                        <td>
+                        <form hx-post="/itemtypes/delete" hx-target="#itemTypeTableBody" hx-swap="innerHTML" style="display:inline">
+                            <input type="hidden" name="id" value="{it.id}">
+                            <button class="btn-small red" type="submit">Delete</button>
+                        </form>
+                        <button class="btn-small blue" hx-get="/itemtypes/edit/{it.id}" hx-target="#it-{it.id}" hx-swap="outerHTML">
+                            Edit
+                        </button>
+                        </td>
+                        </tr>
+                    {/fragment}
+                {/for}
+            {/fragment}
+            </tbody>
+        </table>
+
+        {#let it=null}
+        {#fragment id="row_edit"}
+            {#if it}
+            <tr id="it-{it.id}">
+            <td>{it.id}</td>
+            <td colspan="2">
+            <form hx-post="/itemtypes/update/{it.id}" hx-target="#it-{it.id}" hx-swap="outerHTML" style="display:flex; gap:8px;">
+            <input name="itemTypeCode" value="{it.itemTypeCode}" required>
+            <button class="btn-small green" type="submit">Save</button>
+            <button class="btn-small grey" hx-get="/itemtypes/cancel/{it.id}" hx-target="#it-{it.id}" hx-swap="outerHTML" type="button">
+                Cancel
+            </button>
+            </form>
+            </td>
+            </tr>
+            {/if}
+        {/fragment}
+        {/let}
+    {/body}
+{/include}
