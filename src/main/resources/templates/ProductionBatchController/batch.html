@@ -1,0 +1,145 @@
+{#include "/layout.html"}
+    {#title}Production Batches{/title}
+
+    {#body}
+        <div>
+            <h4 class="header blue-grey-text text-darken-2"
+                style="display: flex; justify-content: space-between; align-items: center;">
+                Production Batches
+                <button class="btn waves-effect waves-light blue modal-trigger"
+                        data-target="addBatchModal">
+                    <i class="material-icons left">add</i>
+                    New Batch
+                </button>
+            </h4>
+
+            <!-- Add Batch Modal -->
+            <div id="addBatchModal" class="modal">
+                <form hx-post="{uri:ProductionBatchController.add()}"
+                      hx-target="#batchTableBody"
+                      hx-swap="innerHTML"
+                      hx-on="htmx:after-request: if(event.detail.successful) { M.Modal.getInstance(document.getElementById('addBatchModal')).close(); this.reset(); M.updateTextFields(); }">
+
+                        {#authenticityToken/}
+
+                    <div class="modal-content">
+                        <h5>Create Production Batch</h5>
+
+                        <div class="row">
+                            <div class="input-field col s6">
+                                <input name="batchCode" id="batchCode" type="text" required>
+                                <label for="batchCode">Batch Code</label>
+                            </div>
+
+                            <div class="input-field col s6">
+                                <i class="material-icons prefix">event</i>
+                                <input name="productionDate"
+                                       id="productionDate"
+                                       type="text"
+                                       class="datepicker"
+                                       required>
+                                <label for="productionDate" class="active">Production Date</label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="input-field col s6">
+                                <i class="material-icons prefix">inventory_2</i>
+                                <select name="finishedItemId" required>
+                                    <option value="" disabled selected>Choose Finished Item</option>
+                                    {#for item in items}
+                                        <option value="{item.id}">{item.itemName}</option>
+                                    {/for}
+                                </select>
+                                <label>Finished Item</label>
+                            </div>
+
+                            <div class="input-field col s6">
+                                <input name="outputQty" type="number" step="0.01" required>
+                                <label>Output Qty</label>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <textarea name="remarks"
+                                          class="materialize-textarea"></textarea>
+                                <label>Remarks</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="modal-close btn-flat">Cancel</button>
+                        <button type="submit"
+                                class="btn waves-effect waves-light green">
+                            Save Batch
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Batches Table -->
+            <table class="striped highlight responsive-table card">
+                <thead class="blue-grey darken-3 white-text">
+                <tr>
+                    <th style="padding-left: 20px;">Date</th>
+                    <th>Batch Code</th>
+                    <th>Finished Item</th>
+                    <th>Qty</th>
+                    <th>Remarks</th>
+                    <th class="right-align" style="padding-right: 20px;">Actions</th>
+                </tr>
+                </thead>
+
+                <tbody id="batchTableBody">
+                {#fragment id="rows"}
+                    {#for batch in batches}
+                        <tr id="batch-{batch.id}">
+                            <td style="padding-left: 20px;">
+                                {batch.productionDate}
+                            </td>
+                            <td>
+                                <strong>{batch.batchCode}</strong>
+                            </td>
+                            <td>{batch.finishedItem.itemName}</td>
+                            <td>{batch.outputQty}</td>
+                            <td>
+                                <small>{batch.remarks ?: ''}</small>
+                            </td>
+                            <td class="right-align" style="padding-right: 20px;">
+                                <form hx-post="{uri:ProductionBatchController.delete(batch.id)}"
+                                      hx-target="#batchTableBody"
+                                      hx-swap="innerHTML"
+                                      hx-confirm="Delete this batch?"
+                                      style="display:inline">
+                                        {#authenticityToken/}
+                                    <input type="hidden" name="id" value="{batch.id}">
+                                    <button class="btn-flat red-text waves-effect" type="submit">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {/for}
+                {/fragment}
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                M.Modal.init(document.querySelectorAll('.modal'));
+                M.FormSelect.init(document.querySelectorAll('select'));
+                M.Datepicker.init(document.querySelectorAll('.datepicker'), {
+                    format: 'yyyy-mm-dd'
+                });
+            });
+
+            document.body.addEventListener('htmx:afterOnLoad', function () {
+                M.updateTextFields();
+                M.FormSelect.init(document.querySelectorAll('select'));
+            });
+        </script>
+    {/body}
+{/include}

@@ -1,0 +1,127 @@
+{#include "/layout.html"}
+    {#title}Item Type Management{/title}
+
+    {#body}
+        <div>
+            <h4 class="header blue-grey-text text-darken-2">Item Type Management</h4>
+
+            <div class="card-panel">
+                <form hx-post="{uri:ItemTypeController.add()}"
+                      hx-target="#itemTypeTableBody"
+                      hx-swap="innerHTML"
+                      hx-on="htmx:after-request: if(event.detail.successful) { this.reset(); M.updateTextFields(); }">
+                        {#authenticityToken/}
+
+                    <div class="row" style="margin-bottom: 0;">
+                        <div class="input-field col s10">
+                            <input id="itemTypeCode"
+                                   name="itemTypeCode"
+                                   type="text"
+                                   class="validate"
+                                   required>
+                            <label for="itemTypeCode">Item Type Code</label>
+                        </div>
+                        <div class="input-field col s2">
+                            <button class="btn waves-effect waves-light" type="submit">
+                                Add <i class="material-icons right">add</i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <table class="striped highlight responsive-table card">
+                <thead class="blue-grey darken-3 white-text">
+                <tr>
+                    <th style="padding-left: 20px;">ID</th>
+                    <th>Item Type Code</th>
+                    <th class="right-align" style="padding-right: 20px;">Actions</th>
+                </tr>
+                </thead>
+
+                <tbody id="itemTypeTableBody">
+                {#fragment id="rows"}
+                    {#for it in itemTypes}
+                        {#fragment id="row_readonly"}
+                            <tr id="it-{it.id}">
+                                <td style="padding-left: 20px;">{it.id}</td>
+                                <td>
+                                    <span class="chip blue white-text">
+                                        {it.itemTypeCode}
+                                    </span>
+                                </td>
+                                <td class="right-align" style="padding-right: 20px;">
+                                    <button class="btn-flat waves-effect"
+                                            hx-get="{uri:ItemTypeController.edit(it.id)}"
+                                            hx-target="#it-{it.id}"
+                                            hx-swap="outerHTML">
+                                        <i class="material-icons">edit</i>
+                                    </button>
+
+                                    <form hx-post="{uri:ItemTypeController.delete(it.id)}"
+                                          hx-target="#itemTypeTableBody"
+                                          hx-swap="innerHTML"
+                                          style="display:inline">
+                                            {#authenticityToken/}
+                                        <input type="hidden" name="id" value="{it.id}">
+                                        <button class="btn-flat red-text waves-effect" type="submit">
+                                            <i class="material-icons">delete</i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {/fragment}
+                    {/for}
+                {/fragment}
+                </tbody>
+            </table>
+
+            {#if it}
+                {#fragment id="row_edit"}
+                    <tr id="it-{it.id}" class="yellow lighten-5">
+                        <td colspan="3">
+                            <form hx-post="{uri:ItemTypeController.update(it.id)}"
+                                  hx-target="#it-{it.id}"
+                                  hx-swap="outerHTML"
+                                  class="row"
+                                  style="margin-bottom: 0; display: flex; align-items: center;">
+                                    {#authenticityToken/}
+
+                                <div class="col s2">
+                                    <strong>#{it.id}</strong>
+                                </div>
+
+                                <div class="input-field col s6">
+                                    <input name="itemTypeCode"
+                                           value="{it.itemTypeCode}"
+                                           type="text"
+                                           class="validate"
+                                           required>
+                                </div>
+
+                                <div class="col s4 right-align">
+                                    <button type="submit" class="btn-small green waves-effect">
+                                        <i class="material-icons">check</i>
+                                    </button>
+                                    <button type="button"
+                                            class="btn-small red lighten-2 waves-effect"
+                                            hx-get="{uri:ItemTypeController.cancel(it.id)}"
+                                            hx-target="#it-{it.id}"
+                                            hx-swap="outerHTML">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                {/fragment}
+            {/if}
+        </div>
+
+        <script>
+            document.body.addEventListener('htmx:afterOnLoad', function () {
+                M.updateTextFields();
+            });
+        </script>
+    {/body}
+{/include}

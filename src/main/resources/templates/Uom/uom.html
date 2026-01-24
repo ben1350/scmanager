@@ -1,0 +1,98 @@
+{#include "/layout.html"}
+    {#title}UOM Management{/title}
+
+    {#body}
+        <div >
+            <h4 class="header blue-grey-text text-darken-2">UOM Management</h4>
+
+            <div class="card-panel">
+                <form hx-post="{uri:Uom.add()}" hx-target="#uomTableBody" hx-swap="innerHTML"
+                      hx-on="htmx:after-request: if(event.detail.successful) { this.reset(); M.updateTextFields(); }">
+                        {#authenticityToken/}
+                    <div class="row" style="margin-bottom: 0;">
+                        <div class="input-field col s4">
+                            <input id="uomCode" name="uomCode" type="text" class="validate" required>
+                            <label for="uomCode">Code</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input id="description" name="description" type="text" class="validate" required>
+                            <label for="description">Description</label>
+                        </div>
+                        <div class="input-field col s2">
+                            <button class="btn waves-effect waves-light" type="submit">
+                                Add <i class="material-icons right">add</i>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <table class="striped highlight responsive-table card">
+                <thead class="blue-grey darken-3 white-text">
+                <tr>
+                    <th style="padding-left: 20px;">ID</th>
+                    <th>Code</th>
+                    <th>Description</th>
+                    <th class="right-align" style="padding-right: 20px;">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="uomTableBody">
+                {#fragment id="rows"}
+                    {#for uom in uoms}
+                        {#fragment id="row_readonly"}
+                            <tr id="uom-{uom.id}">
+                                <td style="padding-left: 20px;">{uom.id}</td>
+                                <td><span class="chip blue white-text">{uom.uomCode}</span></td>
+                                <td>{uom.description}</td>
+                                <td class="right-align" style="padding-right: 20px;">
+                                    <button class="btn-flat waves-effect"
+                                            hx-get="{uri:Uom.edit(uom.id)}"
+                                            hx-target="#uom-{uom.id}" hx-swap="outerHTML">
+                                        <i class="material-icons">edit</i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {/fragment}
+                    {/for}
+                {/fragment}
+                </tbody>
+            </table>
+
+            {#if uom}
+                {#fragment id="row_edit"}
+                    <tr id="uom-{uom.id}" class="yellow lighten-5">
+                        <td colspan="4">
+                            <form hx-post="{uri:Uom.update(uom.id)}" hx-target="#uom-{uom.id}" hx-swap="outerHTML"
+                                  class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                                    {#authenticityToken/}
+                                <div class="col s1"><strong>#{uom.id}</strong></div>
+                                <div class="input-field col s3">
+                                    <input name="uomCode" value="{uom.uomCode}" type="text">
+                                </div>
+                                <div class="input-field col s5">
+                                    <input name="description" value="{uom.description}" type="text">
+                                </div>
+                                <div class="col s3 right-align">
+                                    <button type="submit" class="btn-small green waves-effect">
+                                        <i class="material-icons">check</i>
+                                    </button>
+                                    <button type="button" class="btn-small red lighten-2 waves-effect"
+                                            hx-get="{uri:Uom.cancel(uom.id)}"
+                                            hx-target="#uom-{uom.id}" hx-swap="outerHTML">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                {/fragment}
+            {/if}
+        </div>
+
+        <script>
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                M.updateTextFields();
+            });
+        </script>
+    {/body}
+{/include}

@@ -50,6 +50,13 @@
         </dependency>
 
         <dependency>
+            <groupId>io.quarkiverse.renarde</groupId>
+            <artifactId>quarkus-renarde</artifactId>
+            <version>3.1.4</version>
+        </dependency>
+
+
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-hibernate-orm-panache</artifactId>
         </dependency>
