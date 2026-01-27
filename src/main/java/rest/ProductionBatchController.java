@@ -6,12 +6,17 @@ import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import jakarta.transaction.Transactional;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Path("/production")
 public class ProductionBatchController extends HxController {
@@ -49,6 +54,31 @@ public class ProductionBatchController extends HxController {
         onlyHxRequest();
         ProductionBatch.deleteById(id);
         return render(page, true);
+    }
+
+    @POST
+    @Transactional
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
+    public TemplateInstance add(
+            @RestForm @NotBlank String batchCode,
+            @RestForm String productionDate,
+            @RestForm Long finishedItemId,
+            @RestForm BigDecimal outputQty,
+            @RestForm String remarks,
+            @RestForm Integer page
+    ) {
+        onlyHxRequest();
+
+        ProductionBatch batch = new ProductionBatch();
+        batch.batchCode = batchCode;
+        batch.productionDate = LocalDate.parse(productionDate);
+        batch.finishedItem = Item.findById(finishedItemId);
+        batch.outputQty = outputQty;
+        batch.remarks = remarks;
+        batch.persist();
+
+        // After adding, we return the fragment of the current page (or page 1)
+        return render(Optional.ofNullable(page).orElse(1), true);
     }
 
     // Add/Update logic omitted for brevity—they would also call render()

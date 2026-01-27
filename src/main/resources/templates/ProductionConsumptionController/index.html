@@ -1,0 +1,133 @@
+{#include "/layout.html"}
+    {#title}Production Consumption{/title}
+
+    {#body}
+        <div class="section">
+            <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                Production Consumption
+                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addConsumptionModal">
+                    <i class="material-icons left">add</i>Record Consumption
+                </button>
+            </h4>
+        </div>
+
+        <div id="addConsumptionModal" class="modal">
+            <form hx-post="{uri:ProductionConsumptionController.add()}"
+                  hx-target="#consumptionTableBody"
+                  hx-swap="innerHTML"
+                  hx-on::after-request="if(event.detail.successful) { 
+                      M.Modal.getInstance(document.getElementById('addConsumptionModal')).close(); 
+                      this.reset(); 
+                      M.updateTextFields();
+                      M.FormSelect.init(this.querySelectorAll('select'));
+                  }">
+                {#authenticityToken/}
+                <div class="modal-content">
+                    <h5>New Consumption Entry</h5>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <select name="batchId" required>
+                                <option value="" disabled selected>Select Production Batch</option>
+                                {#for b in batches}
+                                    <option value="{b.id}">{b.batchCode} ({b.productionDate})</option>
+                                {/for}
+                            </select>
+                            <label>Batch Code</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s8">
+                            <select name="rawItemId" required>
+                                <option value="" disabled selected>Select Raw Material</option>
+                                {#for item in rawItems}
+                                    <option value="{item.id}">{item.itemName}</option>
+                                {/for}
+                            </select>
+                            <label>Raw Item</label>
+                        </div>
+                        <div class="input-field col s4">
+                            <input name="consumedQty" type="number" step="0.01" required>
+                            <label>Consumed Qty</label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="page" value="{page}">
+                <div class="modal-footer">
+                    <button type="button" class="modal-close btn-flat">Cancel</button>
+                    <button type="submit" class="btn waves-effect waves-light green">Save Entry</button>
+                </div>
+            </form>
+        </div>
+
+        <table class="highlight striped card">
+            <thead>
+            <tr>
+                <th style="padding-left: 20px;">Batch</th>
+                <th>Raw Item</th>
+                <th>Consumed Qty</th>
+                <th class="right-align" style="padding-right: 20px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="consumptionTableBody">
+            {#fragment id="rows"}
+                {#for c in consumptions}
+                    <tr>
+                        <td style="padding-left: 20px;">{c.batch.batchCode}</td>
+                        <td>{c.rawItem.itemName}</td>
+                        <td>{c.consumedQty}</td>
+                        <td class="right-align" style="padding-right: 20px;">
+                            <form hx-post="{uri:ProductionConsumptionController.delete(c.id)}"
+                                  hx-target="#consumptionTableBody"
+                                  hx-confirm="Delete this entry?">
+                                {#authenticityToken/}
+                                <input type="hidden" name="page" value="{page}">
+                                <button class="btn-flat red-text waves-effect" type="submit">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {/for}
+
+                <tr>
+                    <td colspan="4" class="center-align">
+                        <ul class="pagination" style="margin: 20px 0;">
+                            <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
+                                <a {#if !page.isFirst} hx-get="{uri:ProductionConsumptionController.index()}?page={page.minus(1)}" hx-target="#consumptionTableBody" hx-push-url="true" {/if} style="cursor: pointer;">
+                                    <i class="material-icons">chevron_left</i>
+                                </a>
+                            </li>
+                            {#for i in totalPages.range}
+                                <li class="{page.is(i, 'active blue', 'waves-effect')}">
+                                    <a hx-get="{uri:ProductionConsumptionController.index()}?page={i}" hx-target="#consumptionTableBody" hx-push-url="true" style="cursor: pointer;">{i}</a>
+                                </li>
+                            {/for}
+                            <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
+                                <a {#if !page.isLast(totalPages)} hx-get="{uri:ProductionConsumptionController.index()}?page={page.plus(1)}" hx-target="#consumptionTableBody" hx-push-url="true" {/if} style="cursor: pointer;">
+                                    <i class="material-icons">chevron_right</i>
+                                </a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            {/fragment}
+            </tbody>
+        </table>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => initMaterialize(document));
+            
+            // Re-run for HTMX swaps
+            document.body.addEventListener('htmx:afterOnLoad', (event) => {
+                initMaterialize(document.getElementById('addConsumptionModal'));
+            });
+
+            function initMaterialize(ctx) {
+                if(!ctx) return;
+                M.Modal.init(document.querySelectorAll('.modal'));
+                M.FormSelect.init(ctx.querySelectorAll('select'));
+                M.updateTextFields();
+            }
+        </script>
+    {/body}
+{/include}

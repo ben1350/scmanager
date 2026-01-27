@@ -1,0 +1,162 @@
+{#include "/layout.html"}
+    {#title}Item Management{/title}
+
+    {#body}
+        <div class="section">
+            <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                Items (Raw & Finished)
+                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addItemModal">
+                    <i class="material-icons left">add</i>New Item
+                </button>
+            </h4>
+        </div>
+
+        <div id="addItemModal" class="modal">
+            <form hx-post="{uri:ItemController.add()}"
+                  hx-target="#itemTableBody"
+                  hx-swap="innerHTML"
+                  hx-on::after-request="if(event.detail.successful) {
+                      M.Modal.getInstance(document.getElementById('addItemModal')).close();
+                      this.reset();
+                      M.updateTextFields();
+                      M.FormSelect.init(this.querySelectorAll('select'));
+                  }">
+                {#authenticityToken/}
+                <div class="modal-content">
+                    <h5>Create New Item</h5>
+                    <div class="row">
+                        <div class="input-field col s4">
+                            <input name="itemCode" id="itemCode" type="text" required>
+                            <label for="itemCode">Item Code</label>
+                        </div>
+                        <div class="input-field col s8">
+                            <input name="itemName" id="itemName" type="text" required>
+                            <label for="itemName">Item Name</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <select name="itemTypeId" required>
+                                <option value="" disabled selected>Choose Type</option>
+                                {#for type in itemTypes}
+                                    <option value="{type.id}">{type.itemTypeCode}</option>
+                                {/for}
+                            </select>
+                            <label>Item Type</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <select name="uomId" required>
+                                <option value="" disabled selected>Choose UOM</option>
+                                {#for u in uoms}
+                                    <option value="{u.id}">{u.uomCode} - {u.description}</option>
+                                {/for}
+                            </select>
+                            <label>Unit of Measure</label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="page" value="{page}">
+                <div class="modal-footer">
+                    <button type="button" class="modal-close btn-flat">Cancel</button>
+                    <button type="submit" class="btn waves-effect waves-light green">Save Item</button>
+                </div>
+            </form>
+        </div>
+
+        <table class="highlight striped card">
+            <thead>
+            <tr>
+                <th style="padding-left: 20px;">Code</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>UOM</th>
+                <th class="center-align">Status</th>
+                <th class="right-align" style="padding-right: 20px;">Actions</th>
+            </tr>
+            </thead>
+            <tbody id="itemTableBody">
+            {#fragment id="rows"}
+                {#for item in items}
+                    <tr>
+                        <td style="padding-left: 20px;"><strong>{item.itemCode}</strong></td>
+                        <td>{item.itemName}</td>
+                        <td><span class="chip">{item.itemType.itemTypeCode}</span></td>
+                        <td>{item.uom.uomCode}</td>
+                        <td class="center-align">
+                            {#if item.activeFlag}
+                                <i class="material-icons green-text">check_circle</i>
+                            {#else}
+                                <i class="material-icons red-text">cancel</i>
+                            {/if}
+                        </td>
+                        <td class="right-align" style="padding-right: 20px;">
+                            <form hx-post="{uri:ItemController.delete(item.id)}"
+                                  hx-target="#itemTableBody"
+                                  hx-confirm="Delete {item.itemName}?">
+                                {#authenticityToken/}
+                                <input type="hidden" name="page" value="{page}">
+                                <button class="btn-flat red-text waves-effect" type="submit">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                {/for}
+
+                <tr>
+                    <td colspan="6" class="center-align">
+                        <ul class="pagination" style="margin-top: 20px; margin-bottom: 20px;">
+                            <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
+                                <a {#if !page.isFirst}
+                                   hx-get="{uri:ItemController.index()}?page={page.minus(1)}"
+                                   hx-target="#itemTableBody"
+                                   hx-push-url="true"
+                                   {/if} style="cursor: pointer;">
+                                    <i class="material-icons">chevron_left</i>
+                                </a>
+                            </li>
+
+                            {#for i in totalPages.range}
+                                <li class="{page.is(i, 'active blue', 'waves-effect')}">
+                                    <a hx-get="{uri:ItemController.index()}?page={i}"
+                                       hx-target="#itemTableBody"
+                                       hx-push-url="true"
+                                       style="cursor: pointer;">{i}</a>
+                                </li>
+                            {/for}
+
+                            <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
+                                <a {#if !page.isLast(totalPages)}
+                                   hx-get="{uri:ItemController.index()}?page={page.plus(1)}"
+                                   hx-target="#itemTableBody"
+                                   hx-push-url="true"
+                                   {/if} style="cursor: pointer;">
+                                    <i class="material-icons">chevron_right</i>
+                                </a>
+                            </li>
+                        </ul>
+                    </td>
+                </tr>
+            {/fragment}
+            </tbody>
+        </table>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                initMaterialize(document);
+            });
+
+            document.body.addEventListener('htmx:afterOnLoad', function(event) {
+                // Target the modal or new rows specifically if needed
+                initMaterialize(document.getElementById('addItemModal'));
+            });
+
+            function initMaterialize(container) {
+                if(!container) return;
+                M.Modal.init(document.querySelectorAll('.modal'));
+                M.FormSelect.init(container.querySelectorAll('select'));
+                M.updateTextFields();
+            }
+        </script>
+    {/body}
+{/include}
