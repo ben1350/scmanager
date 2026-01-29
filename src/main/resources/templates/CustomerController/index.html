@@ -1,0 +1,93 @@
+{#include "/layout.html"}
+    {#title}Customer Management{/title}
+
+    {#body}
+        <div class="section">
+            <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                Customers
+                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addCustomerModal">
+                    <i class="material-icons left">add</i>New Customer
+                </button>
+            </h4>
+        </div>
+
+        <div id="addCustomerModal" class="modal">
+            <form hx-post="{uri:CustomerController.add()}"
+                  hx-target="#customerTableBody"
+                  hx-on::after-request="if(event.detail.successful) {
+                      M.Modal.getInstance(this.closest('.modal')).close();
+                      this.reset();
+                      M.updateTextFields();
+                  }">
+                    {#authenticityToken/}
+                <div class="modal-content">
+                    <h5>Create New Customer</h5>
+                    <div class="row">
+                        <div class="input-field col s4">
+                            <input name="customerCode" type="text" required>
+                            <label>Code</label>
+                        </div>
+                        <div class="input-field col s8">
+                            <input name="name" type="text" required>
+                            <label>Name</label>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <input name="address" type="text">
+                            <label>Address</label>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="page" value="{page}">
+                <div class="modal-footer">
+                    <button type="submit" class="btn green waves-effect">Save Customer</button>
+                </div>
+            </form>
+        </div>
+
+        <table class="highlight card">
+            <thead>
+            <tr>
+                <th width="40"></th>
+                <th>Code</th>
+                <th>Name</th>
+            </tr>
+            </thead>
+            <tbody id="customerTableBody">
+            {#fragment id="rows"}
+                {#for customer in customers}
+                    <tr style="cursor: pointer;"
+                        hx-get="{uri:CustomerController.getBranches(customer.id)}"
+                        hx-target="#detail-{customer.id}">
+                        <td><i class="material-icons tiny">expand_more</i></td>
+                        <td>{customer.customerCode}</td>
+                        <td><strong>{customer.name}</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" style="padding: 0;">
+                            <div id="detail-{customer.id}"></div>
+                        </td>
+                    </tr>
+                {/for}
+                <tr>
+                    <td colspan="3" class="center-align">
+                        <ul class="pagination">
+                            {#for i in totalPages.range}
+                                <li class="{page == i ? 'active blue' : 'waves-effect'}">
+                                    <a hx-get="{uri:CustomerController.index()}?page={i}" hx-target="#customerTableBody">{i}</a>
+                                </li>
+                            {/for}
+                        </ul>
+                    </td>
+                </tr>
+            {/fragment}
+            </tbody>
+        </table>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => M.Modal.init(document.querySelectorAll('.modal')));
+            document.body.addEventListener('htmx:afterOnLoad', () => M.updateTextFields());
+        </script>
+    {/body}
+{/include}
