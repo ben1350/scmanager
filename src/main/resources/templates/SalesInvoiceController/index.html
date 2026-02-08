@@ -1,0 +1,102 @@
+{#include "/layout.html"}
+    {#title}Sales Invoices{/title}
+
+    {#body}
+        <div class="section">
+            <h4 style="display: flex; justify-content: space-between; align-items: center;">
+                Sales Invoices
+                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addInvoiceModal">
+                    <i class="material-icons left">add</i>New Invoice
+                </button>
+            </h4>
+        </div>
+
+        <div id="addInvoiceModal" class="modal">
+            <form hx-post="{uri:SalesInvoiceController.add()}" hx-target="#invoiceTableBody"
+                  hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(this.closest('.modal')).close(); this.reset(); }">
+                {#authenticityToken/}
+                <div class="modal-content">
+                    <h5>Create Sales Invoice</h5>
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input name="invoiceNo" type="text" required>
+                            <label>Invoice No</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input name="invoiceDate" type="date" value="{now.format('yyyy-MM-dd')}" required>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="input-field col s12">
+                            <select name="branchId" class="browser-default">
+                                <option value="" disabled selected>Select Branch (Customer)</option>
+                                {#for branch in branches}
+                                    <option value="{branch.id}">{branch.customer.name} - {branch.branchName}</option>
+                                {/for}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn green">Save Invoice</button>
+                </div>
+            </form>
+        </div>
+
+        <table class="highlight card">
+            <thead>
+                <tr>
+                    <th width="40"></th>
+                    <th>Invoice No</th>
+                    <th>Date</th>
+                    <th>Branch / Customer</th>
+                    <th class="right-align">Total Amount</th>
+                </tr>
+            </thead>
+            <tbody id="invoiceTableBody">
+            {#fragment id="rows"}
+                {#for inv in invoices}
+                    <tr style="cursor: pointer;"
+                        hx-get="{uri:SalesInvoiceController.getItems(inv.id)}"
+                        hx-target="#items-{inv.id}"
+
+                       >
+                        <td><i class="material-icons tiny">expand_more</i></td>
+                        <td>{inv.invoiceNo}</td>
+                        <td>{inv.invoiceDate}</td>
+                        <td>{inv.customerBranch.customer.name} ({inv.customerBranch.branchName})</td>
+                        <td class="right-align"><strong>{inv.totalAmount ?: 0}</strong></td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" style="padding: 0;">
+                            <div id="items-{inv.id}">
+
+                            </div>
+                        </td>
+                    </tr>
+                {/for}
+                <tr>
+                    <td colspan="5" class="center-align">
+                        <ul class="pagination">
+                            {#for i in totalPages.range}
+                                <li class="{page == i ? 'active blue' : 'waves-effect'}">
+                                    <a hx-get="{uri:SalesInvoiceController.index()}?page={i}" hx-target="#invoiceTableBody">{i}</a>
+                                </li>
+                            {/for}
+                        </ul>
+                    </td>
+                </tr>
+            {/fragment}
+            </tbody>
+        </table>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => M.Modal.init(document.querySelectorAll('.modal')));
+            document.body.addEventListener('htmx:afterOnLoad', () => {
+                M.updateTextFields();
+                // If you use browser-default select, you don't need FormSelect.init
+                // But if you use Materialize Select, initialize it here:
+                // M.FormSelect.init(document.querySelectorAll('select'));
+            });
+        </script>
+    {/body}
+{/include}
