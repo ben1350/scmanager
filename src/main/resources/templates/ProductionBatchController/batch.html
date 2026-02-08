@@ -2,36 +2,124 @@
     {#title}Production Batches{/title}
 
     {#body}
-        <div class="section">
-            <h4 style="display: flex; justify-content: space-between; align-items: center;">
-                Production Batches
-                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addBatchModal">
-                    <i class="material-icons left">add</i>New Batch
-                </button>
-            </h4>
+        <div class="container" style="margin-top: 2rem; width: 90%; max-width: 1200px;">
+            <div class="row">
+                <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Production Batches</h4>
+                        <p class="grey-text" style="margin: 5px 0 0 0;">Monitor manufacturing output and batch tracking</p>
+                    </div>
+                    <button class="btn-floating btn-large waves-effect waves-light blue darken-2 modal-trigger z-depth-3"
+                            data-target="addBatchModal">
+                        <i class="material-icons">add</i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="batchListContainer">
+                {#fragment id="rows"}
+                    <div id="batchContainer">
+                        {#for batch in batches}
+                            <div class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                                <div class="card-content" style="padding: 1.5rem;">
+                                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                                        <div class="col s2">
+                                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Production Date</span>
+                                            <span style="font-weight: 500;">{batch.productionDate}</span>
+                                        </div>
+
+                                        <div class="col s3">
+                                            <span class="blue-text text-darken-2" style="font-weight: 700; font-size: 1.1rem;">{batch.batchCode}</span>
+                                            <p class="grey-text truncate" style="font-size: 0.85rem;">{batch.remarks ?: 'No remarks'}</p>
+                                        </div>
+
+                                        <div class="col s3">
+                                            <span class="chip blue lighten-5 blue-text" style="font-weight: 500;">
+                                                {batch.finishedItem.itemName}
+                                            </span>
+                                        </div>
+
+                                        <div class="col s2 center-align">
+                                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Output Qty</span>
+                                            <span style="font-size: 1.2rem; font-weight: 600;">{batch.outputQty}</span>
+                                        </div>
+
+                                        <div class="col s2 right-align">
+                                            <form hx-post="{uri:ProductionBatchController.delete(batch.id)}"
+                                                  hx-target="#batchListContainer"
+                                                  hx-confirm="Delete this batch?">
+                                                {#authenticityToken/}
+                                                <input type="hidden" name="page" value="{page}">
+                                                <button class="btn-flat red-text waves-effect waves-circle" type="submit">
+                                                    <i class="material-icons">delete_outline</i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {/for}
+                    </div>
+
+                    <div class="row" style="margin-top: 2rem;">
+                        <div class="col s12 center-align">
+                            <ul class="pagination custom-pagination">
+                                <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
+                                    <a {#if !page.isFirst}
+                                       hx-get="{uri:ProductionBatchController.batch()}?page={page.minus(1)}"
+                                       hx-target="#batchListContainer"
+                                       {/if} style="cursor: pointer;">
+                                        <i class="material-icons">chevron_left</i>
+                                    </a>
+                                </li>
+
+                                {#for i in totalPages.range}
+                                    <li class="{page.is(i, 'active blue darken-2', 'waves-effect')}">
+                                        <a hx-get="{uri:ProductionBatchController.batch()}?page={i}"
+                                           hx-target="#batchListContainer"
+                                           style="cursor: pointer;">{i}</a>
+                                    </li>
+                                {/for}
+
+                                <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
+                                    <a {#if !page.isLast(totalPages)}
+                                       hx-get="{uri:ProductionBatchController.batch()}?page={page.plus(1)}"
+                                       hx-target="#batchListContainer"
+                                       {/if} style="cursor: pointer;">
+                                        <i class="material-icons">chevron_right</i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                {/fragment}
+            </div>
         </div>
 
-        <div id="addBatchModal" class="modal">
+        <div id="addBatchModal" class="modal modal-fixed-footer" style="border-radius: 16px; max-width: 600px;">
             <form hx-post="{uri:ProductionBatchController.add()}"
-                  hx-target="#batchTableBody"
+                  hx-target="#batchListContainer"
                   hx-swap="innerHTML"
                   hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(document.getElementById('addBatchModal')).close(); this.reset(); }">
                 {#authenticityToken/}
-                <div class="modal-content">
-                    <h5>Create Production Batch</h5>
-                    <div class="row">
+                <div class="modal-content" style="padding: 2.5rem;">
+                    <h4 class="blue-text text-darken-2" style="font-weight: 300;">New Production Batch</h4>
+
+                    <div class="row" style="margin-top: 2rem;">
                         <div class="input-field col s6">
+                            <i class="material-icons prefix">tag</i>
                             <input name="batchCode" id="batchCode" type="text" required>
                             <label for="batchCode">Batch Code</label>
                         </div>
                         <div class="input-field col s6">
                             <i class="material-icons prefix">event</i>
-                            <input name="productionDate" id="productionDate" type="text" class="datepicker">
+                            <input name="productionDate" id="productionDate" type="text" class="datepicker" >
                             <label for="productionDate" class="active">Production Date</label>
                         </div>
                     </div>
+
                     <div class="row">
-                        <div class="input-field col s6">
+                        <div class="input-field col s8">
                             <i class="material-icons prefix">inventory_2</i>
                             <select name="finishedItemId" id="finishedItemId" required>
                                 <option value="" disabled selected>Choose Finished Item</option>
@@ -41,111 +129,53 @@
                             </select>
                             <label>Finished Item</label>
                         </div>
-                        <div class="input-field col s6">
+                        <div class="input-field col s4">
                             <input name="outputQty" id="outputQty" type="number" step="0.01" required>
-                            <label for="outputQty">Output Qty</label>
+                            <label for="outputQty">Output Quantity</label>
                         </div>
                     </div>
+
                     <div class="row">
                         <div class="input-field col s12">
+                            <i class="material-icons prefix">notes</i>
                             <textarea name="remarks" id="remarks" class="materialize-textarea"></textarea>
-                            <label for="remarks">Remarks</label>
+                            <label for="remarks">Batch Remarks</label>
                         </div>
                     </div>
                 </div>
-                <input type="hidden" name="page" value="{page}">
-                <div class="modal-footer">
-                    <button type="button" class="modal-close btn-flat">Cancel</button>
-                    <button type="submit" class="btn waves-effect waves-light green">Save Batch</button>
+                <div class="modal-footer" style="background: #fcfcfc; padding: 0 2.5rem 2.5rem 0; border: none; height: 100px;">
+                    <a href="#!" class="modal-close waves-effect btn-flat" style="margin-right: 1rem;">Cancel</a>
+                    <button type="submit" class="btn-large blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px;">
+                        Save Batch
+                    </button>
                 </div>
             </form>
         </div>
 
-        <table class="highlight striped card">
-            <thead>
-            <tr>
-                <th style="padding-left: 20px;">Date</th>
-                <th>Batch Code</th>
-                <th>Finished Item</th>
-                <th>Qty</th>
-                <th>Remarks</th>
-                <th class="right-align" style="padding-right: 20px;">Actions</th>
-            </tr>
-            </thead>
-            <tbody id="batchTableBody">
-            {#fragment id="rows"}
-                {#for batch in batches}
-                    <tr>
-                        <td style="padding-left: 20px;">{batch.productionDate}</td>
-                        <td><strong>{batch.batchCode}</strong></td>
-                        <td>{batch.finishedItem.itemName}</td>
-                        <td>{batch.outputQty}</td>
-                        <td><small>{batch.remarks ?: ''}</small></td>
-                        <td class="right-align" style="padding-right: 20px;">
-                            <form hx-post="{uri:ProductionBatchController.delete(batch.id)}"
-                                  hx-target="#batchTableBody"
-                                  hx-confirm="Delete this batch?">
-                                {#authenticityToken/}
-                                <input type="hidden" name="page" value="{page}">
-                                <button class="btn-flat red-text waves-effect" type="submit">
-                                    <i class="material-icons">delete</i>
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                {/for}
-
-                <tr>
-                    <td colspan="6" class="center-align">
-                        <ul class="pagination" style="margin-top: 20px; margin-bottom: 20px;">
-                            <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
-                                <a {#if !page.isFirst}
-                                   hx-get="{uri:ProductionBatchController.batch()}?page={page.minus(1)}"
-                                   hx-target="#batchTableBody"
-                                   hx-push-url="true"
-                                   {/if} style="cursor: pointer;">
-                                    <i class="material-icons">chevron_left</i>
-                                </a>
-                            </li>
-
-                            {#for i in totalPages.range}
-                                <li class="{page.is(i, 'active blue', 'waves-effect')}">
-                                    <a hx-get="{uri:ProductionBatchController.batch()}?page={i}"
-                                       hx-target="#batchTableBody"
-                                       hx-push-url="true"
-                                       style="cursor: pointer;">{i}</a>
-                                </li>
-                            {/for}
-
-                            <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
-                                <a {#if !page.isLast(totalPages)}
-                                   hx-get="{uri:ProductionBatchController.batch()}?page={page.plus(1)}"
-                                   hx-target="#batchTableBody"
-                                   hx-push-url="true"
-                                   {/if} style="cursor: pointer;">
-                                    <i class="material-icons">chevron_right</i>
-                                </a>
-                            </li>
-                        </ul>
-                    </td>
-                </tr>
-            {/fragment}
-            </tbody>
-        </table>
+        <style>
+            .br-12 { border-radius: 12px; }
+            .custom-pagination li.active a { color: white !important; }
+            .modal-fixed-footer { height: 80% !important; }
+            .input-field .prefix { color: #9e9e9e; font-size: 1.5rem; }
+        </style>
 
         <script>
-            document.addEventListener('DOMContentLoaded', function() {
+            function initUI() {
                 M.Modal.init(document.querySelectorAll('.modal'));
                 M.FormSelect.init(document.querySelectorAll('select'));
+                M.updateTextFields();
                 M.Datepicker.init(document.querySelectorAll('.datepicker'), {
                     format: 'yyyy-mm-dd',
-                    autoClose: true
+                    autoClose: true,
+                    container: document.body
                 });
-            });
+            }
 
-            // Re-initialize Materialize components after HTMX updates the table
-            document.body.addEventListener('htmx:afterOnLoad', function() {
-                M.FormSelect.init(document.querySelectorAll('select'));
+            document.addEventListener('DOMContentLoaded', initUI);
+
+            // Re-initialize after HTMX updates
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                initUI();
             });
         </script>
     {/body}
