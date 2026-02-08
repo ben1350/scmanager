@@ -65,7 +65,8 @@
                         <td>{inv.invoiceNo}</td>
                         <td>{inv.invoiceDate}</td>
                         <td>{inv.customerBranch.customer.name} ({inv.customerBranch.branchName})</td>
-                        <td class="right-align"><strong>{inv.totalAmount ?: 0}</strong></td>
+                        <td id="total-amount-{inv.id}" id="total-amount-{inv.id}"
+                            class="right-align"><strong>{inv.totalAmount ?: 0}</strong></td>
                     </tr>
                     <tr>
                         <td colspan="5" style="padding: 0;">

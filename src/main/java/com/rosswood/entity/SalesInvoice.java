@@ -41,6 +41,10 @@ public class SalesInvoice extends AuditableEntity {
     public void addItem(SalesInvoiceItem item) {
         items.add(item);
         item.invoice = this;
+        if (this.totalAmount == null){
+            this.totalAmount =BigDecimal.ZERO;
+        }
+        this.totalAmount = this.totalAmount.add(item.lineTotal);
     }
 
 

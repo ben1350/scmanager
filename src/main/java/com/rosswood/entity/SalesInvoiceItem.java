@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 @Table(name = "sales_invoice_item")
 public class SalesInvoiceItem extends AuditableEntity {
 
-    @ManyToOne(optional = false)
+    @ManyToOne(optional = false,fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id")
     public SalesInvoice invoice;
 

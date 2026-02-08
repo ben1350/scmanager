@@ -1,6 +1,6 @@
 {@com.rosswood.entity.SalesInvoice invoice}
 
-<div class="grey lighten-4" style="padding: 15px; border-left: 4px solid #ff9800; margin: 5px 10px;">
+<div class="grey lighten-4" id="items-table-wrapper-{invoice.id}" style="padding: 15px; border-left: 4px solid #ff9800; margin: 5px 10px;">
     <h6 style="margin-top:0">Items for Invoice: <strong>{invoice.invoiceNo}</strong></h6>
     <table class="white bordered striped">
         <thead>
@@ -22,7 +22,9 @@
         {/for}
         <tr class="blue-grey lighten-5">
             <td colspan="4">
-                <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}" hx-target="closest div">
+                <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}"
+                      hx-target="#items-table-wrapper-{invoice.id}"
+                      hx-swap="outerHTML">
                         {#authenticityToken/}
                     <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
                         <div class="col s4">
@@ -51,6 +53,16 @@
         </tbody>
     </table>
 </div>
+
+<table style="display:none;">
+    <tr id="total-amount-{invoice.id}" hx-swap-oob="true">
+        <td class="right-align">
+            <strong>{invoice.totalAmount ?: 0}</strong>
+        </td>
+    </tr>
+</table>
+
+
 <script>
     // Initial load
     document.addEventListener('DOMContentLoaded', function() {
