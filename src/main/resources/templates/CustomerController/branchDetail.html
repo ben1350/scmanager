@@ -1,45 +1,48 @@
 {@com.rosswood.entity.Customer customer}
 
-<div class="grey lighten-4" style="padding: 15px; border-left: 4px solid #2196F3; margin: 5px 10px;">
-  <h6 style="margin-top:0">Branches for <strong>{customer.name}</strong></h6>
-  <table class="white bordered striped">
-    <thead>
-    <tr class="grey-text">
-      <th>Branch Name</th>
-      <th>Address</th>
-      <th width="100">Action</th>
-    </tr>
-    </thead>
-    <tbody>
-    {#for b in customer.branches}
-      <tr>
-        <td>{b.branchName}</td>
-        <td>{b.branchAddress}</td>
-        <td><i class="material-icons tiny green-text">check_circle</i></td>
-      </tr>
-    {/for}
-    <tr>
-      <td colspan="3">
-        <form hx-post="{uri:CustomerController.addBranch(customer.id)}"
-              hx-target="closest div">
-            {#authenticityToken/}
+<div class="branch-detail-pane" style="padding: 2rem; animation: fadeIn 0.4s ease-out;">
+  <div class="row">
+    <div class="col s12">
+      <h6 class="grey-text uppercase" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 700; margin-bottom: 1.5rem;">
+        BRANCH LOCATIONS ({customer.branches.size()})
+      </h6>
 
-          <table style="width:100%">
-            <tr>
-              <td><input name="branchName" placeholder="Branch Name" required style="height: 2rem;"></td>
-              <td><input name="branchAddress" placeholder="Address" style="height: 2rem;"></td>
-              <td>
-                <button class="btn-small blue waves-effect">
-                  <i class="material-icons">add</i>
-                </button>
-              </td>
-            </tr>
-          </table>
+      <ul class="collection no-border" style="border: none; background: transparent;">
+        {#for b in customer.branches}
+          <li class="collection-item avatar" style="background: transparent; border-bottom: 1px solid #e0e0e0;">
+            <i class="material-icons circle green lighten-4 green-text">location_city</i>
+            <div class="row" style="margin-bottom: 0;">
+              <div class="col s12">
+                <span class="title" style="font-weight: 600;">{b.branchName}</span>
+                <p class="grey-text" style="font-size: 0.85rem;">{b.branchAddress ?: 'No address provided'}</p>
+              </div>
+            </div>
+          </li>
+        {/for}
+      </ul>
+    </div>
+  </div>
 
-        </form>
-      </td>
-    </tr>
-
-    </tbody>
-  </table>
+  <div class="add-branch-bar white z-depth-1" style="border-radius: 50px; padding: 0.5rem 1.5rem; margin-top: 1rem; border: 1px solid #eee;">
+    <form hx-post="{uri:CustomerController.addBranch(customer.id)}"
+          hx-target="#detail-{customer.id}"
+          hx-swap="innerHTML">
+        {#authenticityToken/}
+      <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+        <div class="col s5">
+          <input name="branchName" placeholder="New Branch Name" required
+                 style="border: none; border-bottom: 1px solid #eee; height: 2.5rem; margin-bottom: 0;">
+        </div>
+        <div class="col s5">
+          <input name="branchAddress" placeholder="Branch Address"
+                 style="border: none; border-bottom: 1px solid #eee; height: 2.5rem; margin-bottom: 0;">
+        </div>
+        <div class="col s2 right-align">
+          <button class="btn-floating waves-effect waves-light blue darken-2">
+            <i class="material-icons">add</i>
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
