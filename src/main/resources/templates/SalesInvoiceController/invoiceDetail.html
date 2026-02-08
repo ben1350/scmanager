@@ -1,79 +1,69 @@
 {@com.rosswood.entity.SalesInvoice invoice}
+{@java.util.List<com.rosswood.entity.Item> availableItems}
 
-<div class="grey lighten-4" id="items-table-wrapper-{invoice.id}" style="padding: 15px; border-left: 4px solid #ff9800; margin: 5px 10px;">
-    <h6 style="margin-top:0">Items for Invoice: <strong>{invoice.invoiceNo}</strong></h6>
-    <table class="white bordered striped">
-        <thead>
-        <tr class="grey-text">
-            <th>Item</th>
-            <th class="right-align">Qty</th>
-            <th class="right-align">Unit Price</th>
-            <th class="right-align">Line Total</th>
-        </tr>
-        </thead>
-        <tbody>
-        {#for item in invoice.items}
-            <tr>
-                <td>{item.item.itemName}</td>
-                <td class="right-align">{item.quantity}</td>
-                <td class="right-align">{item.unitPrice}</td>
-                <td class="right-align">{item.lineTotal}</td>
-            </tr>
-        {/for}
-        <tr class="blue-grey lighten-5">
-            <td colspan="4">
-                <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}"
-                      hx-target="#items-table-wrapper-{invoice.id}"
-                      hx-swap="outerHTML">
-                        {#authenticityToken/}
-                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                        <div class="col s4">
-                            <select name="itemId" required>
-                                <option value="" disabled selected>Choose Item</option>
-                                {#for item in availableItems}
-                                    <option value="{item.id}">{item.itemCode} - {item.itemName}</option>
-                                {/for}
-                            </select>
+<div class="item-detail-pane" style="padding: 2rem; border-top: 1px solid #eee; animation: fadeIn 0.4s ease-out;">
+    <div class="row">
+        <div class="col s12">
+            <h6 class="grey-text uppercase" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 700; margin-bottom: 1.5rem;">LINE ITEMS</h6>
+
+            <ul class="collection no-border" style="border: none;">
+                {#for item in invoice.items}
+                    <li class="collection-item avatar" style="background: transparent; border-bottom: 1px solid #f0f0f0;">
+                        <i class="material-icons circle grey lighten-3 grey-text">inventory_2</i>
+                        <div class="row" style="margin-bottom: 0;">
+                            <div class="col s6">
+                                <span class="title" style="font-weight: 600;">{item.item.itemName}</span>
+                                <p class="grey-text" style="font-size: 0.85rem;">Qty: {item.quantity} × ${item.unitPrice}</p>
+                            </div>
+                            <div class="col s6 right-align">
+                                <span style="font-weight: 700; font-size: 1rem;">${item.lineTotal}</span>
+                            </div>
                         </div>
-                        <div class="col s2">
-                            <input name="quantity" type="number" step="0.01" placeholder="Qty" required style="height: 2rem;">
-                        </div>
-                        <div class="col s3">
-                            <input name="unitPrice" type="number" step="0.01" placeholder="Price" required style="height: 2rem;">
-                        </div>
-                        <div class="col s3">
-                            <button class="btn-small orange waves-effect">
-                                <i class="material-icons">add_shopping_cart</i>
-                            </button>
-                        </div>
+                    </li>
+                {/for}
+            </ul>
+        </div>
+    </div>
+
+    <div class="add-item-bar white z-depth-1" style="border-radius: 50px; padding: 0.5rem 1.5rem; margin-top: 1rem;">
+        <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}"
+              hx-target="#items-{invoice.id}"
+              hx-swap="innerHTML">
+                {#authenticityToken/}
+            <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                <div class="col s5">
+                    <div class="input-field inline" style="width: 100%; margin: 0;">
+                        <select name="itemId" class="custom-select-minimal">
+                            <option value="" disabled selected>Select Item...</option>
+                            {#for item in availableItems}
+                                <option value="{item.id}">{item.itemName}</option>
+                            {/for}
+                        </select>
                     </div>
-                </form>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+                </div>
+                <div class="col s2">
+                    <input name="quantity" type="number" step="0.01" placeholder="Qty" style="border: none; border-bottom: 1px solid #eee; height: 2rem;">
+                </div>
+                <div class="col s3">
+                    <input name="unitPrice" type="number" step="0.01" placeholder="Price" style="border: none; border-bottom: 1px solid #eee; height: 2rem;">
+                </div>
+                <div class="col s2 right-align">
+                    <button class="btn-floating waves-effect waves-light blue darken-2">
+                        <i class="material-icons">add</i>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
 </div>
 
-<table style="display:none;">
-    <tr id="total-amount-{invoice.id}" hx-swap-oob="true">
-        <td class="right-align">
-            <strong>{invoice.totalAmount ?: 0}</strong>
-        </td>
-    </tr>
-</table>
+<div id="total-amount-container-{invoice.id}" hx-swap-oob="true" class="col s4 right-align">
+    <span class="grey-text" style="font-size: 0.8rem; display: block;">Total Amount</span>
+    <span class="blue-text text-darken-2" style="font-size: 1.4rem; font-weight: 700;">
+        ${invoice.totalAmount ?: 0}
+    </span>
+</div>
 
-
-<script>
-    // Initial load
-    document.addEventListener('DOMContentLoaded', function() {
-        M.FormSelect.init(document.querySelectorAll('select'));
-    });
-
-    // Handle HTMX updates
-    document.body.addEventListener('htmx:afterProcessNode', function(evt) {
-        const newSelects = evt.detail.elt.querySelectorAll('select');
-        if (newSelects.length > 0) {
-            M.FormSelect.init(newSelects);
-        }
-    });
-</script>
+<style>
+    .custom-select-minimal { border: none; background: transparent; color: #555; outline: none; width: 100%; }
+</style>

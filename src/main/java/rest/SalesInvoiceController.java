@@ -80,7 +80,7 @@ public class SalesInvoiceController extends HxController {
     @Path("/{id}/items")
     @Transactional
     public TemplateInstance addInvoiceItem(
-            @RestPath Long id,
+            @RestPath Long id, @RestForm @NotNull Long itemId,
             @RestForm @NotNull Long quantity,
             @RestForm @NotNull Long unitPrice
     ) {
@@ -88,11 +88,12 @@ public class SalesInvoiceController extends HxController {
 
         SalesInvoice salesInvoice = SalesInvoice.findById(id);
         var salesInvoiceItem = new SalesInvoiceItem();
-        salesInvoiceItem.item = Item.findById(id);
+        salesInvoiceItem.item = Item.findById(itemId);
         salesInvoiceItem.quantity = BigDecimal.valueOf(quantity);
         salesInvoiceItem.unitPrice = BigDecimal.valueOf(unitPrice);
         salesInvoiceItem.lineTotal = BigDecimal.valueOf(quantity *(unitPrice));
         salesInvoice.addItem(salesInvoiceItem);
+        salesInvoiceItem.invoice=salesInvoice;
         salesInvoice.persist();
 
         return Templates.invoiceDetail(salesInvoice,Item.listAll());

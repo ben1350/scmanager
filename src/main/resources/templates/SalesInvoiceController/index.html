@@ -1,103 +1,142 @@
 {#include "/layout.html"}
-    {#title}Sales Invoices{/title}
+{#title}Sales Dashboard{/title}
 
-    {#body}
-        <div class="section">
-            <h4 style="display: flex; justify-content: space-between; align-items: center;">
-                Sales Invoices
-                <button class="btn waves-effect waves-light blue modal-trigger" data-target="addInvoiceModal">
-                    <i class="material-icons left">add</i>New Invoice
-                </button>
-            </h4>
+{#body}
+<div style="margin-top: 2rem;">
+    <div class="row">
+        <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h4 class="grey-text text-darken-3" style="font-weight: 300;">Sales Overview</h4>
+            <button class="btn-floating btn-large waves-effect waves-light gradient-45deg-light-blue-cyan modal-trigger z-depth-3" data-target="addInvoiceModal">
+                <i class="material-icons">add</i>
+            </button>
         </div>
+    </div>
 
-        <div id="addInvoiceModal" class="modal">
-            <form hx-post="{uri:SalesInvoiceController.add()}" hx-target="#invoiceTableBody"
-                  hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(this.closest('.modal')).close(); this.reset(); }">
-                {#authenticityToken/}
-                <div class="modal-content">
-                    <h5>Create Sales Invoice</h5>
-                    <div class="row">
-                        <div class="input-field col s6">
-                            <input name="invoiceNo" type="text" required>
-                            <label>Invoice No</label>
+    <div id="invoiceListContainer">
+        {#fragment id="rows"}
+        <div id="invoiceContainer">
+            {#for inv in invoices}
+            <div class="card hoverable br-10 overflow-hidden" style="border-radius: 12px; margin-bottom: 1.5rem;">
+                <div class="card-content"
+                     hx-get="{uri:SalesInvoiceController.getItems(inv.id)}"
+                     hx-target="#items-{inv.id}"
+                     hx-trigger="click"
+                     style="cursor: pointer; padding: 1.5rem;">
+
+                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                        <div class="col s1 center-align">
+                            <i class="material-icons blue-text text-lighten-2">receipt</i>
                         </div>
-                        <div class="input-field col s6">
-                            <input name="invoiceDate" type="date" value="{now.format('yyyy-MM-dd')}" required>
+                        <div class="col s3">
+                            <span class="grey-text text-darken-4" style="font-weight: 600; font-size: 1.1rem;">{inv.invoiceNo}</span>
+                            <p class="grey-text" style="font-size: 0.85rem;">{inv.invoiceDate}</p>
                         </div>
-                    </div>
-                    <div class="row">
-                        <div class="input-field col s12">
-                            <select name="branchId" class="browser-default">
-                                <option value="" disabled selected>Select Branch (Customer)</option>
-                                {#for branch in branches}
-                                    <option value="{branch.id}">{branch.customer.name} - {branch.branchName}</option>
-                                {/for}
-                            </select>
+                        <div class="col s4">
+                                            <span class="chip blue lighten-5 blue-text" style="font-weight: 500;">
+                                                {inv.customerBranch.customer.name}
+                                            </span>
+                        </div>
+                        <div class="col s4 right-align" id="total-amount-container-{inv.id}">
+                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Total Amount</span>
+                            <span class="blue-text text-darken-2" style="font-size: 1.4rem; font-weight: 700;">
+                                                ${inv.totalAmount ?: 0}
+                                            </span>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn green">Save Invoice</button>
+                <div id="items-{inv.id}" class="card-reveal-custom grey lighten-5">
                 </div>
-            </form>
+            </div>
+            {/for}
         </div>
 
-        <table class="highlight card">
-            <thead>
-                <tr>
-                    <th width="40"></th>
-                    <th>Invoice No</th>
-                    <th>Date</th>
-                    <th>Branch / Customer</th>
-                    <th class="right-align">Total Amount</th>
-                </tr>
-            </thead>
-            <tbody id="invoiceTableBody">
-            {#fragment id="rows"}
-                {#for inv in invoices}
-                    <tr style="cursor: pointer;"
-                        hx-get="{uri:SalesInvoiceController.getItems(inv.id)}"
-                        hx-target="#items-{inv.id}"
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination custom-pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={page - 1}" hx-target="#invoiceListContainer">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
 
-                       >
-                        <td><i class="material-icons tiny">expand_more</i></td>
-                        <td>{inv.invoiceNo}</td>
-                        <td>{inv.invoiceDate}</td>
-                        <td>{inv.customerBranch.customer.name} ({inv.customerBranch.branchName})</td>
-                        <td id="total-amount-{inv.id}" id="total-amount-{inv.id}"
-                            class="right-align"><strong>{inv.totalAmount ?: 0}</strong></td>
-                    </tr>
-                    <tr>
-                        <td colspan="5" style="padding: 0;">
-                            <div id="items-{inv.id}">
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active gradient-45deg-light-blue-cyan' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={i}" hx-target="#invoiceListContainer">{i}</a>
+                    </li>
+                    {/for}
 
-                            </div>
-                        </td>
-                    </tr>
-                {/for}
-                <tr>
-                    <td colspan="5" class="center-align">
-                        <ul class="pagination">
-                            {#for i in totalPages.range}
-                                <li class="{page == i ? 'active blue' : 'waves-effect'}">
-                                    <a hx-get="{uri:SalesInvoiceController.index()}?page={i}" hx-target="#invoiceTableBody">{i}</a>
-                                </li>
-                            {/for}
-                        </ul>
-                    </td>
-                </tr>
-            {/fragment}
-            </tbody>
-        </table>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => M.Modal.init(document.querySelectorAll('.modal')));
-            document.body.addEventListener('htmx:afterOnLoad', () => {
-                M.updateTextFields();
-                // If you use browser-default select, you don't need FormSelect.init
-                // But if you use Materialize Select, initialize it here:
-                // M.FormSelect.init(document.querySelectorAll('select'));
-            });
-        </script>
-    {/body}
-{/include}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={page + 1}" hx-target="#invoiceListContainer">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {/fragment}
+    </div>
+</div>
+
+<div id="addInvoiceModal" class="modal modal-fixed-footer" style="border-radius: 15px; max-width: 500px;">
+    <form hx-post="{uri:SalesInvoiceController.add()}"
+          hx-target="#invoiceListContainer"
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(this.closest('.modal')).close(); this.reset(); }">
+        {#authenticityToken/}
+        <div class="modal-content" style="padding: 2rem;">
+            <h4 class="blue-text text-darken-2" style="font-weight: 300; margin-bottom: 2rem;">New Sales Invoice</h4>
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">tag</i>
+                    <input name="invoiceNo" id="inv_no" type="text" class="validate" required>
+                    <label for="inv_no">Invoice Number</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">calendar_today</i>
+                    <input name="invoiceDate" id="inv_date" type="date" value="{now.format('yyyy-MM-dd')}" required>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">business</i>
+                    <select name="branchId" required>
+                        <option value="" disabled selected>Choose destination branch</option>
+                        {#for branch in branches}
+                        <option value="{branch.id}">{branch.customer.name} — {branch.branchName}</option>
+                        {/for}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="padding: 0 2rem 2rem 0; height: 80px; border-top: none;">
+            <a href="#!" class="modal-close waves-effect waves-grey btn-flat">Cancel</a>
+            <button type="submit" class="btn blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px;">
+                Create Invoice
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .br-10 { border-radius: 10px; }
+    .gradient-45deg-light-blue-cyan { background: linear-gradient(45deg, #0288d1 0%, #26c6da 100%); }
+    .custom-pagination li.active a { color: white; }
+    .custom-pagination li a { font-weight: 500; }
+</style>
+
+<script>
+    function initMaterialize() {
+        M.Modal.init(document.querySelectorAll('.modal'));
+        M.FormSelect.init(document.querySelectorAll('select'));
+        M.updateTextFields();
+    }
+    document.addEventListener('DOMContentLoaded', initMaterialize);
+    document.body.addEventListener('htmx:afterOnLoad', initMaterialize);
+</script>
+{/body}
+{#/include}
