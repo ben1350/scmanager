@@ -10,6 +10,8 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "production_batch")
@@ -28,8 +30,15 @@ public class ProductionBatch extends AuditableEntity {
     @Column(name = "output_qty", nullable = false, precision = 12, scale = 2)
     public BigDecimal outputQty;
 
+    @Column(name="remarks")
     public String remarks;
+
+    @Column(name="status")
+    public String status="OPEN";
 
     @Column(name = "created_at")
     public LocalDateTime createdAt = LocalDateTime.now();
+
+    @OneToMany(mappedBy = "batch", cascade = CascadeType.ALL, orphanRemoval = true,fetch = FetchType.EAGER)
+    public List<ProductionConsumption> consumptions = new ArrayList<>();
 }

@@ -1,7 +1,10 @@
 package rest;
 
+import com.rosswood.entity.Customer;
 import com.rosswood.entity.Item;
 import com.rosswood.entity.ProductionBatch;
+import com.rosswood.entity.ProductionConsumption;
+import com.rosswood.interceptor.UpdatesStock;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -21,79 +24,104 @@ import java.util.Optional;
 @Path("/production")
 public class ProductionBatchController extends HxController {
 
-    private static final int PAGE_SIZE = 10;
+    private static final int PAGE_SIZE = 5;
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance batch(
-                List<ProductionBatch> batches,
-                List<Item> items,
-                int page,
-                int totalPages
-        );
-
-        public static native TemplateInstance batch$rows(
-                List<ProductionBatch> batches,
-                int page,
-                int totalPages
-        );
+        public static native TemplateInstance batch(List<ProductionBatch> batches, List<Item> items, int page, int totalPages);
+        public static native TemplateInstance batch$rows(List<ProductionBatch> batches, int page, int totalPages);
+        public static native TemplateInstance batchFormFragment(List<Item> items);
+        public static native TemplateInstance consumptionDetail(ProductionBatch batch, List<Item> rawItems);
     }
 
     @GET
     public TemplateInstance batch(@RestQuery Integer page) {
-        int currentPage = (page == null || page < 1) ? 1 : page;
-        if (page==null){
-            return render(currentPage,false);
-        }else return render(currentPage,true);
-
+        int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
+        return render(currentPage, isHxRequest());
     }
 
-    @POST
-    @Transactional
-    public TemplateInstance delete(@RestPath Long id, @RestForm Integer page) {
+    @GET
+    @Path("/new-form")
+    public TemplateInstance getFormFragment() {
         onlyHxRequest();
-        ProductionBatch.deleteById(id);
-        return render(page, true);
+        return Templates.batchFormFragment(Item.listAll());
+    }
+
+    @GET
+    @Path("/{id}/consumption")
+    public TemplateInstance getConsumption(@RestPath Long id) {
+        onlyHxRequest();
+        ProductionBatch batch = ProductionBatch.findById(id);
+        return Templates.consumptionDetail(batch, Item.listAll());
     }
 
     @POST
     @Transactional
-    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public TemplateInstance add(
             @RestForm @NotBlank String batchCode,
             @RestForm String productionDate,
             @RestForm Long finishedItemId,
             @RestForm BigDecimal outputQty,
-            @RestForm String remarks,
-            @RestForm Integer page
+            @RestQuery Integer page
     ) {
         onlyHxRequest();
-
         ProductionBatch batch = new ProductionBatch();
-        batch.batchCode = batchCode;
+
+        long count = ProductionBatch.count() + 1;
+        batch.batchCode = "PRD-" + String.format("%05d", count);
         batch.productionDate = LocalDate.parse(productionDate);
         batch.finishedItem = Item.findById(finishedItemId);
         batch.outputQty = outputQty;
-        batch.remarks = remarks;
         batch.persist();
 
-        // After adding, we return the fragment of the current page (or page 1)
         return render(Optional.ofNullable(page).orElse(1), true);
     }
 
-    // Add/Update logic omitted for brevity—they would also call render()
+    @POST
+    @Path("/{id}/delete")
+    @Transactional
+    public TemplateInstance delete(@RestPath Long id, @RestQuery Integer page) {
+        onlyHxRequest();
+        ProductionBatch.deleteById(id);
+        return render(Optional.ofNullable(page).orElse(1), true);
+    }
 
-    private TemplateInstance render(Integer page, boolean fragmentOnly) {
+    @UpdatesStock
+    protected void saveAndTriggerStock(ProductionBatch batch) {
+        batch.persist();
+    }
+
+    private TemplateInstance render(int page, boolean fragmentOnly) {
         long totalCount = ProductionBatch.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
-        int currentPage = Math.min(page == null ? 1 : page, totalPages);
-
         List<ProductionBatch> batches = ProductionBatch.find("order by productionDate desc")
-                .page(currentPage - 1, PAGE_SIZE).list();
+                .page(page - 1, PAGE_SIZE).list();
 
-        if (isHxRequest()) {
-            return Templates.batch$rows(batches, currentPage, totalPages);
-        }
-        return Templates.batch(batches, Item.listAll(), currentPage, totalPages);
+        return fragmentOnly
+                ? Templates.batch$rows(batches, page, totalPages)
+                : Templates.batch(batches, Item.listAll(), page, totalPages);
+    }
+
+    @POST
+    @Path("/{id}/finish")
+    @Transactional
+    public TemplateInstance finishBatch(@RestPath Long id, @RestQuery Integer page) {
+        onlyHxRequest();
+
+        ProductionBatch batch = ProductionBatch.findById(id);
+        if (batch == null) throw new NotFoundException();
+
+        // Set status to Finished
+        batch.status = "FINISHED";
+        batch.persist();
+
+        // Return the updated rows fragment
+        return render(Optional.ofNullable(page).orElse(1), true);
     }
 }
+
+
+/*
+
+TODO ALERTS RE - ORDER PROCUREMENT
+ */

@@ -2,15 +2,17 @@
 {#title}Customer Dashboard{/title}
 
 {#body}
-<div class="container" style="margin-top: 2rem; width: 90%; max-width: 1200px;">
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1300px;">
     <div class="row">
         <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
             <div>
                 <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Customers</h4>
-                <p class="grey-text" style="margin: 5px 0 0 0;">Manage your client base and branch locations</p>
+                <p class="grey-text" style="margin: 5px 0 0 0;">Manage client base and branch networks</p>
             </div>
-            <button class="btn-floating btn-large waves-effect waves-light blue darken-2 modal-trigger z-depth-3"
-                    data-target="addCustomerModal">
+            <button class="btn-floating btn-large waves-effect waves-light blue darken-2 z-depth-3"
+                    hx-get="{uri:CustomerController.getFormFragment()}"
+                    hx-target="#insertion-point"
+                    hx-swap="innerHTML">
                 <i class="material-icons">add</i>
             </button>
         </div>
@@ -18,40 +20,46 @@
 
     <div id="customerListContainer">
         {#fragment id="rows"}
+        <div id="insertion-point"></div>
+
         <div id="customerContainer">
             {#for customer in customers}
-            <div class="card hoverable br-12 overflow-hidden" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+            <div id="card-{customer.id}"
+                 class="card customer-card"
+                 style="border-radius: 16px; margin-bottom: 1.5rem; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+
                 <div class="card-content"
                      hx-get="{uri:CustomerController.getBranches(customer.id)}"
                      hx-target="#detail-{customer.id}"
                      hx-trigger="click"
-                     style="cursor: pointer; padding: 1.5rem;">
+                     onclick="toggleCardActive(this)"
+                     style="cursor: pointer; padding: 1.8rem;">
 
                     <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
                         <div class="col s1 center-align">
-                            <i class="material-icons blue-text text-lighten-3">business_center</i>
+                            <i class="material-icons blue-text text-lighten-3" style="font-size: 2rem;">business</i>
                         </div>
                         <div class="col s3">
-                            <span class="grey-text text-darken-4" style="font-weight: 600; font-size: 1.1rem;">{customer.name}</span>
-                            <p class="grey-text" style="font-size: 0.85rem;">Code: {customer.customerCode}</p>
+                            <span class="grey-text text-darken-4" style="font-weight: 700; font-size: 1.15rem;">{customer.name}</span>
+                            <p class="grey-text" style="font-size: 0.85rem; margin-top: 4px; font-weight: 500;">{customer.customerCode}</p>
                         </div>
                         <div class="col s6">
-                                            <span class="grey-text text-darken-1" style="font-size: 0.9rem;">
-                                                <i class="material-icons tiny" style="vertical-align: middle;">location_on</i> {customer.address ?: 'No primary address'}
-                                            </span>
+                            <span class="grey-text text-darken-1" style="font-size: 0.95rem;">
+                                <i class="material-icons tiny" style="vertical-align: middle; margin-right: 4px;">location_on</i>
+                                {customer.address ?: 'No address registered'}
+                            </span>
                         </div>
                         <div class="col s2 right-align">
-                            <i class="material-icons grey-text text-lighten-1">keyboard_arrow_down</i>
+                            <i class="material-icons arrow-icon grey-text text-lighten-2">keyboard_arrow_down</i>
                         </div>
                     </div>
                 </div>
-                <div id="detail-{customer.id}" class="card-reveal-custom grey lighten-5">
-                </div>
+                <div id="detail-{customer.id}" class="card-reveal-custom"></div>
             </div>
             {/for}
         </div>
 
-        <div class="row" style="margin-top: 2rem;">
+        <div class="row" style="margin-top: 3rem;">
             <div class="col s12 center-align">
                 <ul class="pagination custom-pagination">
                     <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
@@ -76,53 +84,53 @@
     </div>
 </div>
 
-<div id="addCustomerModal" class="modal modal-fixed-footer" style="border-radius: 16px; max-width: 550px;">
-    <form hx-post="{uri:CustomerController.add()}" hx-target="#customerListContainer"
-          hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(this.closest('.modal')).close(); this.reset(); }">
-        {#authenticityToken/}
-        <div class="modal-content" style="padding: 2.5rem;">
-            <h4 class="blue-text text-darken-2" style="font-weight: 300;">New Customer</h4>
-            <div class="row" style="margin-top: 2rem;">
-                <div class="input-field col s4">
-                    <i class="material-icons prefix text-lighten-2">fingerprint</i>
-                    <input name="customerCode" id="cust_code" type="text" required>
-                    <label for="cust_code">Code</label>
-                </div>
-                <div class="input-field col s8">
-                    <i class="material-icons prefix">person</i>
-                    <input name="name" id="cust_name" type="text" required>
-                    <label for="cust_name">Company Name</label>
-                </div>
-            </div>
-            <div class="row">
-                <div class="input-field col s12">
-                    <i class="material-icons prefix">map</i>
-                    <input name="address" id="cust_addr" type="text">
-                    <label for="cust_addr">Primary Address</label>
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer" style="background: #fcfcfc; padding: 0 2.5rem 2.5rem 0; border: none; height: 100px;">
-            <button type="submit" class="btn-large blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px;">
-                Save Customer
-            </button>
-        </div>
-    </form>
-</div>
-
 <style>
-    .custom-pagination li.active a { color: white !important; }
-    .card-reveal-custom { animation: fadeIn 0.3s ease-out; border-top: 1px solid #f0f0f0; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    /* REMOVE EDGES & ADD SHADOW HOVER */
+    .customer-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+        transform: translateY(-2px);
+    }
+
+    /* THE YELLOW ACTIVE STATE */
+    .customer-card.active-card {
+        background-color: #fffde7 !important; /* Soft Yellow */
+        box-shadow: 0 12px 30px rgba(253, 216, 53, 0.2) !important;
+        transform: scale(1.01);
+    }
+
+    .customer-card.active-card .arrow-icon {
+        transform: rotate(180deg);
+        color: #fbc02d !important; /* Golden Yellow arrow */
+    }
+
+    .custom-pagination li.active a { color: white !important; border-radius: 8px; }
+    .card-reveal-custom { animation: fadeIn 0.4s ease-out; }
+    .inline-form-card { animation: slideDown 0.3s ease-out; border: 2px dashed #f44336 !important; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <script>
-    function initUI() {
-        M.Modal.init(document.querySelectorAll('.modal'));
-        M.updateTextFields();
+    function toggleCardActive(element) {
+        const card = element.closest('.customer-card');
+        const wasActive = card.classList.contains('active-card');
+
+        document.querySelectorAll('.customer-card').forEach(c => {
+            c.classList.remove('active-card');
+            if(c !== card) {
+                const detailId = c.id.replace('card-', 'detail-');
+                document.getElementById(detailId).innerHTML = '';
+            }
+        });
+
+        if (!wasActive) {
+            card.classList.add('active-card');
+        } else {
+            const detailId = card.id.replace('card-', 'detail-');
+            document.getElementById(detailId).innerHTML = '';
+        }
     }
-    document.addEventListener('DOMContentLoaded', initUI);
-    document.body.addEventListener('htmx:afterOnLoad', initUI);
 </script>
 {/body}
 {/include}

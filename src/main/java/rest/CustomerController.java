@@ -23,18 +23,26 @@ public class CustomerController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        // Main view and row fragment
         public static native TemplateInstance index(List<Customer> customers, int page, int totalPages);
         public static native TemplateInstance index$rows(List<Customer> customers, int page, int totalPages);
-
-        // Standalone template for branch details (separate file: branchDetail.html)
         public static native TemplateInstance branchDetail(Customer customer);
+        public static native TemplateInstance customerFormFragment();
     }
 
     @GET
     public TemplateInstance index(@RestQuery Integer page) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
         return render(currentPage, isHxRequest());
+    }
+
+    /**
+     * Serves the empty form row. Target: #insertion-point
+     */
+    @GET
+    @Path("/new-form-fragment")
+    public TemplateInstance getFormFragment() {
+        onlyHxRequest();
+        return Templates.customerFormFragment();
     }
 
     @POST
@@ -51,13 +59,15 @@ public class CustomerController extends HxController {
         onlyHxRequest();
 
         Customer customer = new Customer();
-        customer.customerCode = customerCode;
+        long count = Customer.count() + 1;
+        customer.customerCode = "ROSS-" + String.format("%05d", count);
         customer.name = name;
         customer.address = address;
         customer.email = email;
         customer.phone = phone;
         customer.persist();
 
+        // Refresh only the rows fragment; #insertion-point will naturally be empty again
         return render(Optional.ofNullable(page).orElse(1), true);
     }
 
