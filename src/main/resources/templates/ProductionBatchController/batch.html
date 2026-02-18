@@ -39,18 +39,32 @@
 
                     <div style="flex-grow: 2;">
                         <div style="font-weight: 600; color: #455a64;">{batch.finishedItem.itemName}</div>
-                        <div class="blue-text" style="font-weight: 700;">{batch.outputQty} units</div>
+
+                        <div id="qty-display-{batch.id}"
+                                {#if batch.status != 'FINISHED'}
+                             hx-get="{uri:ProductionBatchController.editQty(batch.id)}"
+                             hx-target="this"
+                             hx-trigger="dblclick"
+                             title="Double click to edit quantity"
+                             style="cursor: pointer;"
+                                {/if}
+                             class="blue-text" style="font-weight: 700;">
+                            {batch.outputQty} {batch.finishedItem.uom.uomCode}
+                        </div>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 15px;">
                         {#if batch.status != 'FINISHED'}
-                        <button hx-post="{uri:ProductionBatchController.finishBatch(batch.id)}?page={page}"
-                                hx-target="#batchListContainer"
-                                hx-confirm="Finalize this batch? This will adjust inventory levels."
-                                class="btn-small blue-grey darken-3 waves-effect waves-light"
-                                style="border-radius: 6px; text-transform: none;">
-                            Finish Batch
-                        </button>
+                        <form hx-post="{uri:ProductionBatchController.finishBatch(batch.id)}?page={page}"
+                              hx-target="#batchListContainer"
+                              hx-confirm="Finalize this batch? This will adjust inventory levels.">
+                            {#authenticityToken/}
+                            <button type="submit"
+                                    class="btn-small blue-grey darken-3 waves-effect waves-light"
+                                    style="border-radius: 6px; text-transform: none;">
+                                Finish Batch
+                            </button>
+                        </form>
                         {#else}
                         <span class="chip green lighten-5 green-text text-darken-3" style="font-weight: 700;">COMPLETED</span>
                         {/if}

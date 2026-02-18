@@ -32,6 +32,7 @@ public class ProductionBatchController extends HxController {
         public static native TemplateInstance batch$rows(List<ProductionBatch> batches, int page, int totalPages);
         public static native TemplateInstance batchFormFragment(List<Item> items);
         public static native TemplateInstance consumptionDetail(ProductionBatch batch, List<Item> rawItems);
+        public static native TemplateInstance editQtyForm(ProductionBatch batch);
     }
 
     @GET
@@ -101,6 +102,34 @@ public class ProductionBatchController extends HxController {
                 ? Templates.batch$rows(batches, page, totalPages)
                 : Templates.batch(batches, Item.listAll(), page, totalPages);
     }
+
+    @GET
+    @Path("/{id}/edit-qty")
+    public TemplateInstance editQty(@RestPath Long id) {
+        onlyHxRequest();
+        ProductionBatch batch = ProductionBatch.findById(id);
+        return Templates.editQtyForm(batch); // We will define this template below
+    }
+
+    @POST
+    @Path("/{id}/update-qty")
+    @Transactional
+    public TemplateInstance updateQty(
+            @RestPath Long id,
+            @RestForm BigDecimal outputQty,
+            @RestQuery Integer page
+    ) {
+        onlyHxRequest();
+        ProductionBatch batch = ProductionBatch.findById(id);
+        if (batch != null && !"FINISHED".equals(batch.status)) {
+            batch.outputQty = outputQty;
+            batch.persist();
+        }
+        // Return the updated rows to refresh the UI
+        return render(Optional.ofNullable(page).orElse(1), true);
+    }
+
+
 
     @POST
     @Path("/{id}/finish")

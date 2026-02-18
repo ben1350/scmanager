@@ -42,7 +42,9 @@ public class ProductionConsumptionController extends HxController {
         onlyHxRequest();
         ProductionConsumption c = ProductionConsumption.findById(id);
         ProductionBatch batch = c.batch;
+        batch.consumptions.remove(c);
         c.delete();
+        ProductionConsumption.flush();
         return ProductionBatchController.Templates.consumptionDetail(batch, Item.listAll());
     }
 }
