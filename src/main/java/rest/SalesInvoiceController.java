@@ -23,11 +23,21 @@ public class SalesInvoiceController extends HxController {
 
     private static final int PAGE_SIZE = 10;
 
-    @CheckedTemplate // Add this
+    @GET
+    @Path("/form-fragment")
+    public TemplateInstance getFormFragment() {
+        onlyHxRequest();
+        // Return the dashed-border form fragment with branch list
+        return Templates.invoiceFormFragment(CustomerBranch.listAll());
+    }
+
+    // Ensure your Templates class is updated
+    @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages,String now);
+        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages, String now);
         public static native TemplateInstance index$rows(List<SalesInvoice> invoices, int page, int totalPages);
-        public static native TemplateInstance invoiceDetail(SalesInvoice invoice,List<Item> availableItems);
+        public static native TemplateInstance invoiceFormFragment(List<CustomerBranch> branches); // NEW
+        public static native TemplateInstance invoiceDetail(SalesInvoice invoice, List<Item> availableItems);
     }
 
     @GET
@@ -44,6 +54,7 @@ public class SalesInvoiceController extends HxController {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public TemplateInstance add(
             @RestForm @NotBlank String invoiceNo,
+            @RestForm String vatInvoiceNo,
             @RestForm Long branchId,
             @RestForm String invoiceDate,
             @RestForm String remarks,
@@ -52,7 +63,10 @@ public class SalesInvoiceController extends HxController {
         onlyHxRequest();
 
         SalesInvoice invoice = new SalesInvoice();
-        invoice.invoiceNo = invoiceNo;
+        invoice.vatInvoiceNo = vatInvoiceNo;
+        // Generate the Rosswood Invoice Number (e.g., INV-2023-001)
+        long count = SalesInvoice.count();
+        invoice.invoiceNo = "RW-INV-" + String.format("%05d", count + 1);
         invoice.customerBranch = CustomerBranch.findById(branchId);
         invoice.invoiceDate = LocalDate.parse(invoiceDate);
         invoice.remarks = remarks;

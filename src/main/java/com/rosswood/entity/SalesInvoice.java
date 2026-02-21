@@ -12,8 +12,11 @@ import java.util.List;
 @Table(name = "sales_invoice")
 public class SalesInvoice extends AuditableEntity {
 
-    @Column(name = "invoice_no", unique = true, nullable = false)
+    @Column(name = "rosswood_invoice_no", unique = true, nullable = false)
     public String invoiceNo;
+
+    @Column(name="vat_invoice_no", nullable=true)
+    public String vatInvoiceNo;
 
     // Change this from Customer to CustomerBranch
     @ManyToOne(optional = false)

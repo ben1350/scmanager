@@ -1,69 +1,44 @@
 {@com.rosswood.entity.SalesInvoice invoice}
-{@java.util.List<com.rosswood.entity.Item> availableItems}
+<div class="invoice-detail-pane" style="padding: 1.5rem 2.5rem 2.5rem 2.5rem; border-top: 1px solid rgba(0,0,0,0.05);">
+    <h6 style="color: #9e9e9e; font-size: 0.7rem; letter-spacing: 1.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 1.2rem;">Line Items</h6>
 
-<div class="item-detail-pane" style="padding: 2rem; border-top: 1px solid #eee; animation: fadeIn 0.4s ease-out;">
-    <div class="row">
-        <div class="col s12">
-            <h6 class="grey-text uppercase" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 700; margin-bottom: 1.5rem;">LINE ITEMS</h6>
-
-            <ul class="collection no-border" style="border: none;">
-                {#for item in invoice.items}
-                    <li class="collection-item avatar" style="background: transparent; border-bottom: 1px solid #f0f0f0;">
-                        <i class="material-icons circle grey lighten-3 grey-text">inventory_2</i>
-                        <div class="row" style="margin-bottom: 0;">
-                            <div class="col s6">
-                                <span class="title" style="font-weight: 600;">{item.item.itemName}</span>
-                                <p class="grey-text" style="font-size: 0.85rem;">Qty: {item.quantity} × ${item.unitPrice}</p>
-                            </div>
-                            <div class="col s6 right-align">
-                                <span style="font-weight: 700; font-size: 1rem;">${item.lineTotal}</span>
-                            </div>
-                        </div>
-                    </li>
-                {/for}
-            </ul>
-        </div>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+        {#for item in invoice.items}
+            <div style="background: white; border-radius: 12px; padding: 1rem; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                <div style="background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; margin-right: 12px;">
+                    <i class="material-icons" style="font-size: 1.2rem;">shopping_bag</i>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 700; color: #333; font-size: 0.9rem;">{item.item.itemName}</div>
+                    <div style="color: #757575; font-size: 0.8rem;">{item.quantity} x GHS {item.unitPrice}</div>
+                </div>
+                <div style="font-weight: 800; color: #1e88e5;">GHS {item.lineTotal}</div>
+            </div>
+        {/for}
     </div>
 
-    <div class="add-item-bar white z-depth-1" style="border-radius: 50px; padding: 0.5rem 1.5rem; margin-top: 1rem;">
-        <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}"
-              hx-target="#items-{invoice.id}"
-              hx-swap="innerHTML">
+    <div style="margin-top: 2rem; background: #fafafa; padding: 1.2rem; border-radius: 12px; border: 1px dashed #e0e0e0;">
+        <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}" hx-target="#detail-{invoice.id}">
                 {#authenticityToken/}
-            <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                <div class="col s5">
-                    <div class="input-field inline" style="width: 100%; margin: 0;">
-                        <select name="itemId" class="custom-select-minimal">
-                            <option value="" disabled selected>Select Item...</option>
-                            {#for item in availableItems}
-                                <option value="{item.id}">{item.itemName}</option>
-                            {/for}
-                        </select>
-                    </div>
-                </div>
-                <div class="col s2">
-                    <input name="quantity" type="number" step="0.01" placeholder="Qty" style="border: none; border-bottom: 1px solid #eee; height: 2rem;">
-                </div>
-                <div class="col s3">
-                    <input name="unitPrice" type="number" step="0.01" placeholder="Price" style="border: none; border-bottom: 1px solid #eee; height: 2rem;">
-                </div>
-                <div class="col s2 right-align">
-                    <button class="btn-floating waves-effect waves-light blue darken-2">
-                        <i class="material-icons">add</i>
-                    </button>
-                </div>
+            <div style="display: flex; gap: 12px; align-items: center; background: white; padding: 8px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+                <select name="itemId"  style="border: none; flex: 2; height: 35px; padding-left: 15px; font-weight: 600;">
+                    <option value="" disabled selected>Select Product</option>
+                    {#for ai in availableItems}
+                        <option value="{ai.id}">{ai.itemName}</option>
+                    {/for}
+                </select>
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+                <input name="quantity" type="number" step="0.01" placeholder="Qty" required style="border: none !important; box-shadow: none !important; flex: 1; margin: 0; height: 35px;">
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+                <input name="unitPrice" type="number" step="0.01" placeholder="Price" required style="border: none !important; box-shadow: none !important; flex: 1; margin: 0; height: 35px;">
+                <button type="submit" class="btn blue darken-2" style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add Item</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="total-amount-container-{invoice.id}" hx-swap-oob="true" class="col s4 right-align">
-    <span class="grey-text" style="font-size: 0.8rem; display: block;">Total Amount</span>
-    <span class="blue-text text-darken-2" style="font-size: 1.4rem; font-weight: 700;">
-        ${invoice.totalAmount ?: 0}
-    </span>
+<div style="display: none;">
+    <div id="total-{invoice.id}" hx-swap-oob="true" style="font-weight: 800; color: #1e88e5; font-size: 1.1rem;">
+        GHS {invoice.totalAmount}
+    </div>
 </div>
-
-<style>
-    .custom-select-minimal { border: none; background: transparent; color: #555; outline: none; width: 100%; }
-</style>
