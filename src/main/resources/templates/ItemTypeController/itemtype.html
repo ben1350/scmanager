@@ -1,144 +1,57 @@
 {#include "/layout.html"}
-    {#title}Item Type Management{/title}
+{#body}
+<div class="container" style="margin-top: 2rem; max-width: 800px;">
+    <h4 class="blue-text text-darken-4" style="font-weight: 800;">Item Types</h4>
 
-    {#body}
-        <div class="container" style="margin-top: 2rem; width: 90%; max-width: 1000px;">
-            <div class="row">
-                <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
-                    <div>
-                        <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Item Types</h4>
-                        <p class="grey-text" style="margin: 5px 0 0 0;">Categorize your inventory items and materials</p>
-                    </div>
-                    <button class="btn-floating btn-large waves-effect waves-light blue darken-2 modal-trigger z-depth-3"
-                            data-target="addItemTypeModal">
-                        <i class="material-icons">add</i>
-                    </button>
-                </div>
+    <div class="card" style="border-radius: 50px; padding: 5px 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem;">
+        <form hx-post="{uri:ItemTypeController.add()}" hx-target="#type-list-body">
+            {#authenticityToken/}
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="material-icons blue-text">label</i>
+                <input name="itemTypeCode" type="text" placeholder="Add New Type (e.g. RAW_MATERIAL)" required style="border: none !important; flex-grow: 1; margin: 0; height: 45px;">
+                <button type="submit" class="btn blue darken-2" style="border-radius: 50px;">Add</button>
             </div>
+        </form>
+    </div>
 
-            <div id="itemTypeTableBody">
+    <div class="card" style="border-radius: 16px; overflow: hidden;">
+        <table class="highlight">
+            <tbody id="type-list-body">
                 {#fragment id="rows"}
-                    <div id="typeContainer">
-                        {#for it in itemTypes}
-                            {#fragment id="row_readonly"}
-                                <div id="it-{it.id}" class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
-                                    <div class="card-content" style="padding: 1rem 1.5rem;">
-                                        <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                                            <div class="col s2">
-                                                <span class="grey-text" style="font-size: 0.75rem; display: block;">Type ID</span>
-                                                <span class="grey-text text-darken-2" style="font-weight: 500;">#{it.id}</span>
-                                            </div>
-
-                                            <div class="col s6">
-                                                <span class="chip blue lighten-5 blue-text" style="font-weight: 700; border-radius: 4px; padding: 0 15px;">
-                                                    {it.itemTypeCode}
-                                                </span>
-                                            </div>
-
-                                            <div class="col s4 right-align">
-                                                <button class="btn-flat waves-effect blue-text text-darken-2"
-                                                        hx-get="{uri:ItemTypeController.edit(it.id)}"
-                                                        hx-target="#it-{it.id}"
-                                                        hx-swap="outerHTML">
-                                                    <i class="material-icons">edit</i>
-                                                </button>
-
-                                                <form hx-post="{uri:ItemTypeController.delete(it.id)}"
-                                                      hx-target="#itemTypeTableBody"
-                                                      hx-swap="innerHTML"
-                                                      style="display:inline">
-                                                        {#authenticityToken/}
-                                                    <input type="hidden" name="id" value="{it.id}">
-                                                    <button class="btn-flat red-text waves-effect" type="submit"
-                                                            hx-confirm="Delete this item type?">
-                                                        <i class="material-icons">delete_outline</i>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            {/fragment}
-                        {/for}
-                    </div>
+                    {#for it in itemTypes}
+                        {#include itemtype$row_readonly it=it /}
+                    {/for}
                 {/fragment}
-            </div>
-        </div>
+            </tbody>
+        </table>
+    </div>
+</div>
 
-        <div id="addItemTypeModal" class="modal" style="border-radius: 16px; max-width: 450px;">
-            <form hx-post="{uri:ItemTypeController.add()}"
-                  hx-target="#itemTypeTableBody"
-                  hx-swap="innerHTML"
-                  hx-on="htmx:after-request: if(event.detail.successful) { M.Modal.getInstance(this.closest('.modal')).close(); this.reset(); }">
-                    {#authenticityToken/}
-                <div class="modal-content" style="padding: 2rem;">
-                    <h5 class="blue-text text-darken-2" style="font-weight: 300;">Create Item Type</h5>
-                    <div class="row" style="margin-top: 2rem;">
-                        <div class="input-field col s12">
-                            <i class="material-icons prefix">category</i>
-                            <input id="itemTypeCode" name="itemTypeCode" type="text" class="validate" required>
-                            <label for="itemTypeCode">Item Type Code (e.g., RAW, FIN)</label>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer" style="padding: 0 2rem 2rem 0; border: none; height: 80px;">
-                    <button type="submit" class="btn blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px; padding: 0 2rem;">
-                        Save Type
-                    </button>
-                </div>
+{#fragment id="row_readonly"}
+    {@com.rosswood.entity.ItemType it}
+    <tr id="type-row-{it.id}">
+        <td style="padding-left: 2rem; font-weight: 700;">{it.itemTypeCode}</td>
+        <td class="right-align">
+            <button hx-get="{uri:ItemTypeController.edit(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML" class="btn-flat grey-text"><i class="material-icons">edit</i></button>
+            <button hx-post="{uri:ItemTypeController.delete(it.id)}" hx-target="#type-list-body" class="btn-flat red-text text-lighten-4"><i class="material-icons">delete</i></button>
+        </td>
+    </tr>
+{/fragment}
+
+{#fragment id="row_edit"}
+    {@com.rosswood.entity.ItemType it}
+    <tr id="type-row-{it.id}" class="blue lighten-5">
+        <td>
+            <form id="edit-{it.id}" hx-post="{uri:ItemTypeController.update(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML">
+                {#authenticityToken/}
+                <input name="itemTypeCode" value="{it.itemTypeCode}" style="margin:0;">
             </form>
-        </div>
-
-        {#if it}
-            {#fragment id="row_edit"}
-                <div id="it-{it.id}" class="card blue lighten-5" style="border-radius: 12px; margin-bottom: 1rem; border: 1px solid #bbdefb;">
-                    <div class="card-content" style="padding: 1rem 1.5rem;">
-                        <form hx-post="{uri:ItemTypeController.update(it.id)}"
-                              hx-target="#it-{it.id}"
-                              hx-swap="outerHTML">
-                                {#authenticityToken/}
-                            <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                                <div class="col s2">
-                                    <span class="grey-text" style="font-size: 0.75rem; display: block;">Editing</span>
-                                    <span class="blue-text" style="font-weight: 700;">#{it.id}</span>
-                                </div>
-                                <div class="input-field col s6" style="margin: 0;">
-                                    <input name="itemTypeCode" value="{it.itemTypeCode}" type="text" required autofocus>
-                                </div>
-                                <div class="col s4 right-align">
-                                    <button type="submit" class="btn-floating btn-small green waves-effect z-depth-1">
-                                        <i class="material-icons">check</i>
-                                    </button>
-                                    <button type="button"
-                                            class="btn-floating btn-small red lighten-2 waves-effect z-depth-1"
-                                            hx-get="{uri:ItemTypeController.cancel(it.id)}"
-                                            hx-target="#it-{it.id}"
-                                            hx-swap="outerHTML"
-                                            style="margin-left: 8px;">
-                                        <i class="material-icons">close</i>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            {/fragment}
-        {/if}
-
-        <style>
-            .br-12 { border-radius: 12px; }
-            .input-field .prefix { color: #9e9e9e; }
-            @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
-            #typeContainer > div { animation: fadeIn 0.3s ease-out; }
-        </style>
-
-        <script>
-            function initUI() {
-                M.Modal.init(document.querySelectorAll('.modal'));
-                M.updateTextFields();
-            }
-            document.addEventListener('DOMContentLoaded', initUI);
-            document.body.addEventListener('htmx:afterOnLoad', initUI);
-        </script>
-    {/body}
+        </td>
+        <td class="right-align">
+            <button form="edit-{it.id}" class="btn-small green">Save</button>
+            <button hx-get="{uri:ItemTypeController.cancel(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML" class="btn-flat">Cancel</button>
+        </td>
+    </tr>
+{/fragment}
+{/body}
 {/include}

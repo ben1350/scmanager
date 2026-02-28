@@ -3,6 +3,8 @@ package rest;
 import com.rosswood.entity.Item;
 import com.rosswood.entity.ItemType;
 import com.rosswood.entity.UnitOfMeasure;
+import com.rosswood.entity.ItemUom;
+import com.rosswood.entity.ItemUomConversion;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -14,6 +16,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,28 +25,26 @@ public class ItemController extends HxController {
 
     private static final int PAGE_SIZE = 10;
 
-    @CheckedTemplate
+    @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance index(
-                List<Item> items,
-                List<ItemType> itemTypes,
-                List<UnitOfMeasure> uoms,
-                int page,
-                int totalPages
-        );
-
-        public static native TemplateInstance index$rows(
-                List<Item> items,
-                int page,
-                int totalPages
-        );
+        public static native TemplateInstance index(List<Item> items, List<ItemType> itemTypes, List<UnitOfMeasure> uoms, int page, int totalPages);
+        public static native TemplateInstance index$rows(List<Item> items, int page, int totalPages);
+        public static native TemplateInstance itemFormFragment(List<ItemType> itemTypes, List<UnitOfMeasure> uoms, int page);
+        // Updated to include both global uoms (for selection) and item-specific itemUoms (for display/conversions)
+        public static native TemplateInstance itemDetailPane(Item item, List<UnitOfMeasure> uoms, List<ItemUom> itemUoms, List<ItemUomConversion> itemConversions);
     }
 
     @GET
-    @Path("")
     public TemplateInstance index(@RestQuery Integer page) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
         return render(currentPage, isHxRequest());
+    }
+
+    @GET
+    @Path("/form-fragment")
+    public TemplateInstance getFormFragment(@RestQuery Integer page) {
+        onlyHxRequest();
+        return Templates.itemFormFragment(ItemType.listAll(), UnitOfMeasure.listAll(), page != null ? page : 1);
     }
 
     @POST
@@ -59,7 +60,7 @@ public class ItemController extends HxController {
         onlyHxRequest();
 
         Item item = new Item();
-        item.itemCode = itemCode;
+        item.itemCode = itemCode.toUpperCase().trim();
         item.itemName = itemName;
         item.itemType = ItemType.findById(itemTypeId);
         item.uom = UnitOfMeasure.findById(uomId);
@@ -69,13 +70,67 @@ public class ItemController extends HxController {
         return render(Optional.ofNullable(page).orElse(1), true);
     }
 
-    @POST
-    @Path("/delete/{id}")
-    @Transactional
-    public TemplateInstance delete(@RestPath Long id, @RestForm Integer page) {
+    @GET
+    @Path("/{id}/details")
+    public TemplateInstance getDetails(@RestPath Long id) {
         onlyHxRequest();
-        Item.deleteById(id);
-        return render(Optional.ofNullable(page).filter(p -> p >= 1).orElse(1), true);
+        Item item = Item.findById(id);
+        return renderDetailPane(item);
+    }
+
+    @POST
+    @Path("/{id}/uom")
+    @Transactional
+    public TemplateInstance addItemUom(
+            @RestPath Long id,
+            @RestForm Long uomId
+    ) {
+        onlyHxRequest();
+        Item item = Item.findById(id);
+        UnitOfMeasure uom = UnitOfMeasure.findById(uomId);
+
+        // Check if UOM already exists for this item to prevent duplicates
+        long exists = ItemUom.count("item = ?1 and uomCode = ?2", item, uom.uomCode);
+        if (exists == 0 && !item.uom.uomCode.equals(uom.uomCode)) {
+            ItemUom itemUom = new ItemUom();
+            itemUom.item = item;
+            itemUom.uomCode = uom.uomCode;
+            itemUom.persist();
+        }
+
+        return renderDetailPane(item);
+    }
+
+    @POST
+    @Path("/{id}/conversion")
+    @Transactional
+    public TemplateInstance addConversion(
+            @RestPath Long id,
+            @RestForm String fromUom,
+            @RestForm String toUom,
+            @RestForm BigDecimal factor
+    ) {
+        onlyHxRequest();
+        Item item = Item.findById(id);
+
+        ItemUomConversion conversion = new ItemUomConversion();
+        conversion.item = item;
+        conversion.fromUom = fromUom.toUpperCase().trim();
+        conversion.toUom = toUom.toUpperCase().trim();
+        conversion.conversionFactor = factor;
+        conversion.persist();
+
+        return renderDetailPane(item);
+    }
+
+    /**
+     * Helper to render the detail pane with all necessary data lists
+     */
+    private TemplateInstance renderDetailPane(Item item) {
+        List<UnitOfMeasure> allUoms = UnitOfMeasure.listAll();
+        List<ItemUom> itemUoms = ItemUom.find("item", item).list();
+        List<ItemUomConversion> convs = ItemUomConversion.find("item", item).list();
+        return Templates.itemDetailPane(item, allUoms, itemUoms, convs);
     }
 
     private TemplateInstance render(int page, boolean fragmentOnly) {
