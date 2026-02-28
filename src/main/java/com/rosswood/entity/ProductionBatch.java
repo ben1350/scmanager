@@ -27,7 +27,7 @@ public class ProductionBatch extends AuditableEntity {
     @JoinColumn(name = "finished_item_id")
     public Item finishedItem;
 
-    @Column(name = "output_qty", nullable = false, precision = 12, scale = 2)
+    @Column(name = "output_qty", nullable = true, precision = 12, scale = 2)
     public BigDecimal outputQty;
 
     @Column(name="remarks")

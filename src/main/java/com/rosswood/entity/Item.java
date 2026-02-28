@@ -20,7 +20,7 @@ public class Item extends AuditableEntity {
     public String itemName;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "item_type")
+    @JoinColumn(name = "item_type_id")
     public ItemType itemType;
 
     @ManyToOne(optional = false)
