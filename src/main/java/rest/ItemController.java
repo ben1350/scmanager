@@ -67,6 +67,13 @@ public class ItemController extends HxController {
         item.activeFlag = true;
         item.persist();
 
+        ItemUom itemUom= new ItemUom();
+        itemUom.item = item;
+        itemUom.isBase = true;
+        itemUom.uomCode = item.uom.uomCode;
+        itemUom.persist();
+
+
         return render(Optional.ofNullable(page).orElse(1), true);
     }
 

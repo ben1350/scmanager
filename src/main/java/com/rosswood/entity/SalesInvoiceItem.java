@@ -13,6 +13,10 @@ public class SalesInvoiceItem extends AuditableEntity {
     public SalesInvoice invoice;
 
     @ManyToOne(optional = false)
+    @JoinColumn(name = "uom_id")
+    public ItemUom uom; // Added to track which UOM was used for this sale
+
+    @ManyToOne(optional = false)
     @JoinColumn(name = "item_id")
     public Item item;
 
