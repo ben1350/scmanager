@@ -25,8 +25,8 @@
 
                 <div style="padding: 1.8rem; display: flex; align-items: center; cursor: pointer;"
                      onclick="toggleInvoiceActive(this)"
-                     hx-get="{uri:SalesInvoiceController.getItems(inv.id)}"
-                     hx-target="#detail-{inv.id}">
+                     data-url="{uri:SalesInvoiceController.getItems(inv.id)}"
+                     data-target="#detail-{inv.id}">
 
                     <div style="flex: 0 0 60px;">
                         <div style="width: 45px; height: 45px; background: #e3f2fd; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
@@ -38,7 +38,7 @@
                         <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
                             <span style="font-weight: 800; font-size: 1.1rem; color: #2c3e50;">{inv.invoiceNo}</span>
                             {#if inv.vatInvoiceNo}
-                                <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; border: 1px solid #c8e6c9; text-transform: uppercase;">
+                            <span style="background: #e8f5e9; color: #2e7d32; padding: 2px 10px; border-radius: 4px; font-size: 0.7rem; font-weight: 800; border: 1px solid #c8e6c9; text-transform: uppercase;">
                                     VAT: {inv.vatInvoiceNo}
                                 </span>
                             {/if}
@@ -57,6 +57,28 @@
             </div>
             {/for}
         </div>
+
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={page - 1}" hx-target="#invoiceListContainer">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={i}" hx-target="#invoiceListContainer">{i}</a>
+                    </li>
+                    {/for}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:SalesInvoiceController.index()}?page={page + 1}" hx-target="#invoiceListContainer">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
         {/fragment}
     </div>
 </div>
@@ -72,16 +94,28 @@
     function toggleInvoiceActive(btn) {
         const card = btn.closest('.invoice-card');
         const wasActive = card.classList.contains('active-card');
+        const detailPane = document.getElementById(card.id.replace('card-', 'detail-'));
 
+        // Collapse all other cards
         document.querySelectorAll('.invoice-card').forEach(c => {
             c.classList.remove('active-card');
             if (c !== card) {
                 const det = document.getElementById(c.id.replace('card-', 'detail-'));
-                if(det) det.innerHTML = '';
+                if (det) det.innerHTML = '';
             }
         });
 
-        if (!wasActive) card.classList.add('active-card');
+        if (wasActive) {
+            // Already open — collapse it, do NOT fire htmx
+            if (detailPane) detailPane.innerHTML = '';
+        } else {
+            // Opening — add active class and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', btn.dataset.url, {
+                target: btn.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
     }
 </script>
 {/body}

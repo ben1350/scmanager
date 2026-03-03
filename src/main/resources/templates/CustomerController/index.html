@@ -29,10 +29,9 @@
                  style="border-radius: 16px; margin-bottom: 1.5rem; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
 
                 <div class="card-content"
-                     hx-get="{uri:CustomerController.getBranches(customer.id)}"
-                     hx-target="#detail-{customer.id}"
-                     hx-trigger="click"
                      onclick="toggleCardActive(this)"
+                     data-url="{uri:CustomerController.getBranches(customer.id)}"
+                     data-target="#detail-{customer.id}"
                      style="cursor: pointer; padding: 1.8rem;">
 
                     <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
@@ -115,20 +114,27 @@
     function toggleCardActive(element) {
         const card = element.closest('.customer-card');
         const wasActive = card.classList.contains('active-card');
+        const detailId = card.id.replace('card-', 'detail-');
+        const detailPane = document.getElementById(detailId);
 
+        // Collapse all other cards
         document.querySelectorAll('.customer-card').forEach(c => {
             c.classList.remove('active-card');
-            if(c !== card) {
-                const detailId = c.id.replace('card-', 'detail-');
-                document.getElementById(detailId).innerHTML = '';
+            if (c !== card) {
+                document.getElementById(c.id.replace('card-', 'detail-')).innerHTML = '';
             }
         });
 
-        if (!wasActive) {
-            card.classList.add('active-card');
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            detailPane.innerHTML = '';
         } else {
-            const detailId = card.id.replace('card-', 'detail-');
-            document.getElementById(detailId).innerHTML = '';
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', element.dataset.url, {
+                target: element.dataset.target,
+                swap: 'innerHTML'
+            });
         }
     }
 </script>

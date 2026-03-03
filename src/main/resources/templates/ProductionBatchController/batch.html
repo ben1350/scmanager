@@ -24,9 +24,9 @@
                  style="background: white; border-radius: 16px; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden;">
 
                 <div style="padding: 1.8rem; display: flex; align-items: center; gap: 2rem; cursor: pointer;"
-                     hx-get="{uri:ProductionBatchController.getConsumption(batch.id)}"
-                     hx-target="#detail-{batch.id}"
-                     onclick="toggleActive(this)">
+                     onclick="toggleActive(this)"
+                     data-url="{uri:ProductionBatchController.getConsumption(batch.id)}"
+                     data-target="#detail-{batch.id}">
 
                     <div style="background: {batch.status == 'FINISHED' ? '#e8f5e9' : '#e3f2fd'}; color: {batch.status == 'FINISHED' ? '#2e7d32' : '#1976d2'}; padding: 12px; border-radius: 12px;">
                         <i class="material-icons">{batch.status == 'FINISHED' ? 'check_circle' : 'layers'}</i>
@@ -57,7 +57,8 @@
                         {#if batch.status != 'FINISHED'}
                         <form hx-post="{uri:ProductionBatchController.finishBatch(batch.id)}?page={page}"
                               hx-target="#batchListContainer"
-                              hx-confirm="Finalize this batch? This will adjust inventory levels.">
+                              hx-confirm="Finalize this batch? This will adjust inventory levels."
+                              onclick="event.stopPropagation()">
                             {#authenticityToken/}
                             <button type="submit"
                                     class="btn-small blue-grey darken-3 waves-effect waves-light"
@@ -69,7 +70,7 @@
                         <span class="chip green lighten-5 green-text text-darken-3" style="font-weight: 700;">COMPLETED</span>
                         {/if}
 
-                        <form hx-post="{uri:ProductionBatchController.delete(batch.id)}?page={page}" hx-target="#batchListContainer" hx-confirm="Delete?">
+                        <form hx-post="{uri:ProductionBatchController.delete(batch.id)}?page={page}" hx-target="#batchListContainer" hx-confirm="Delete?" onclick="event.stopPropagation()">
                             {#authenticityToken/}
                             <button class="btn-flat grey-text text-lighten-1" type="submit">
                                 <i class="material-icons">delete_outline</i>
@@ -115,15 +116,28 @@
     function toggleActive(btn) {
         const card = btn.closest('.batch-card');
         const wasActive = card.classList.contains('active-card');
+        const detailPane = document.getElementById(card.id.replace('card-', 'detail-'));
+
+        // Collapse all other cards
         document.querySelectorAll('.batch-card').forEach(c => {
             c.classList.remove('active-card');
             if (c !== card) {
                 const det = document.getElementById(c.id.replace('card-', 'detail-'));
-                if(det) det.innerHTML = '';
+                if (det) det.innerHTML = '';
             }
         });
-        if (!wasActive) card.classList.add('active-card');
-        else document.getElementById(card.id.replace('card-', 'detail-')).innerHTML = '';
+
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            if (detailPane) detailPane.innerHTML = '';
+        } else {
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', btn.dataset.url, {
+                target: btn.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
     }
 </script>
 {/body}

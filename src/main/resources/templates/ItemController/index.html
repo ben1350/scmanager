@@ -25,9 +25,9 @@
                  style="background: white; border-radius: 16px; margin-bottom: 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden;">
 
                 <div style="padding: 1.5rem 2rem; display: flex; align-items: center; cursor: pointer;"
-                     hx-get="{uri:ItemController.getDetails(item.id)}"
-                     hx-target="#detail-{item.id}"
-                     onclick="toggleItemActive(this)">
+                     onclick="toggleItemActive(this)"
+                     data-url="{uri:ItemController.getDetails(item.id)}"
+                     data-target="#detail-{item.id}">
 
                     <div style="background: #e1f5fe; color: #0288d1; padding: 10px; border-radius: 12px; margin-right: 20px;">
                         <i class="material-icons">inventory_2</i>
@@ -78,13 +78,29 @@
 <script>
     function toggleItemActive(el) {
         const card = el.closest('.item-card');
-        const isActive = card.classList.contains('active-card');
+        const wasActive = card.classList.contains('active-card');
+        const detailPane = card.querySelector('.detail-slot');
+
+        // Collapse all other cards
         document.querySelectorAll('.item-card').forEach(c => {
             c.classList.remove('active-card');
-            const slot = c.querySelector('.detail-slot');
-            if(slot && c !== card) slot.innerHTML = '';
+            if (c !== card) {
+                const slot = c.querySelector('.detail-slot');
+                if (slot) slot.innerHTML = '';
+            }
         });
-        if(!isActive) card.classList.add('active-card');
+
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            if (detailPane) detailPane.innerHTML = '';
+        } else {
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', el.dataset.url, {
+                target: el.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
     }
 </script>
 <style>
