@@ -3,121 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rosswood</title>
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <title>Rosswood — Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
     <style>
-        * { box-sizing: border-box; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #e3f2fd;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             min-height: 100vh;
+            background: #f1f5f9;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 1.5rem;
         }
 
-        /* Wrap Renarde's injected content in a Materialize card */
-        body > form,
-        body > div {
-            background: white;
-            border-radius: 16px;
-            padding: 2.5rem 2rem;
+        /* ── Outer shell ── */
+        .shell {
             width: 100%;
-            max-width: 420px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 900px;
+            min-height: 560px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.15);
         }
 
-        h2 {
-            font-size: 1.4rem;
-            font-weight: 700;
-            color: #1a237e;
-            text-align: center;
-            margin-bottom: 1.5rem;
+        /* ── Left panel ── */
+        .left {
+            background: #0f172a;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
         }
-
-        /* Materialize-style input fields */
-        label {
-            color: #1565c0 !important;
-            font-size: 0.85rem !important;
-            font-weight: 500;
+        .left::before {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(37,99,235,0.3) 0%, transparent 65%);
+            top: -100px; right: -100px;
         }
-
-        input[type="text"],
-        input[type="password"] {
-            border-bottom: 2px solid #90caf9 !important;
-            box-shadow: none !important;
-            font-family: 'Inter', sans-serif;
-            font-size: 1rem;
-            color: #1a237e;
-            width: 100%;
-            padding: 8px 0;
-            margin-bottom: 1rem;
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid #90caf9;
-            outline: none;
-            transition: border-color 0.2s;
-            display: block;
+        .left::after {
+            content: '';
+            position: absolute;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(99,102,241,0.2) 0%, transparent 65%);
+            bottom: -80px; left: -60px;
         }
-
-        input[type="text"]:focus,
-        input[type="password"]:focus {
-            border-bottom: 2px solid #1565c0 !important;
+        .left-logo {
+            display: flex; align-items: center; gap: 10px;
+            position: relative; z-index: 1;
         }
+        .left-logo-box {
+            width: 40px; height: 40px;
+            background: #2563eb;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .left-logo-box i { color: white; font-size: 1.3rem; }
+        .left-logo-name { color: white; font-size: 1.1rem; font-weight: 700; }
 
-        input[type="submit"],
-        button[type="submit"] {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            margin-top: 1.5rem;
-            background-color: #1565c0;
+        .left-body { position: relative; z-index: 1; }
+        .left-body h2 {
             color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            font-family: 'Inter', sans-serif;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
-            box-shadow: 0 4px 12px rgba(21,101,192,0.4);
-            transition: background-color 0.2s, box-shadow 0.2s;
-        }
-
-        input[type="submit"]:hover,
-        button[type="submit"]:hover {
-            background-color: #0d47a1;
-            box-shadow: 0 6px 16px rgba(21,101,192,0.5);
-        }
-
-        .error, .alert, p.error {
-            background: #ffebee;
-            border-left: 4px solid #e53935;
-            border-radius: 4px;
-            padding: 10px 14px;
-            color: #c62828;
-            font-size: 0.875rem;
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1.25;
             margin-bottom: 1rem;
+            letter-spacing: -0.5px;
+        }
+        .left-body h2 span { color: #60a5fa; }
+        .left-body p {
+            color: rgba(255,255,255,0.4);
+            font-size: 0.875rem;
+            line-height: 1.75;
+        }
+        .left-tags {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            margin-top: 1.8rem;
+            position: relative; z-index: 1;
+        }
+        .tag {
+            padding: 5px 14px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 50px;
+            color: rgba(255,255,255,0.45);
+            font-size: 0.72rem; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.05em;
+        }
+
+        /* ── Right panel ── */
+        .right {
+            background: white;
+            padding: 3rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ── Renarde card overrides ── */
+        .card {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            border-radius: 0 !important;
+        }
+        .card-body { padding: 0 !important; }
+
+        .card-title, h5.card-title {
+            font-size: 1.6rem !important;
+            font-weight: 800 !important;
+            color: #0f172a !important;
+            margin-bottom: 0.3rem !important;
+            letter-spacing: -0.4px !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+        }
+
+        /* Subtitle under heading */
+        .card-title::after {
+            content: 'Enter your credentials to continue';
+            display: block;
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: #94a3b8;
+            margin-top: 4px;
+            margin-bottom: 1.8rem;
+            letter-spacing: 0;
+        }
+
+        .border-warning { border: none !important; }
+
+        /* Field labels */
+        label.form-label {
+            display: block !important;
+            font-size: 0.72rem !important;
+            font-weight: 700 !important;
+            color: #475569 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 0.07em !important;
+            margin-bottom: 7px !important;
+        }
+
+        /* Inputs */
+        input.form-control {
+            display: block !important;
+            width: 100% !important;
+            padding: 11px 14px !important;
+            border: 1.5px solid #e2e8f0 !important;
+            border-bottom: 1.5px solid #e2e8f0 !important;
+            border-radius: 10px !important;
+            font-size: 0.9rem !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            color: #0f172a !important;
+            background: #f8fafc !important;
+            outline: none !important;
+            box-shadow: none !important;
+            height: auto !important;
+            margin: 0 !important;
+            transition: border-color 0.2s, box-shadow 0.2s, background 0.2s !important;
+        }
+        input.form-control:focus {
+            border-color: #2563eb !important;
+            border-bottom-color: #2563eb !important;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
+            background: white !important;
+        }
+        /* Hide is-invalid red borders */
+        input.form-control.is-invalid {
+            border-color: #e2e8f0 !important;
+            border-bottom-color: #e2e8f0 !important;
+            box-shadow: none !important;
+            background-image: none !important;
+        }
+        /* Hide "Error: Required" messages */
+        .invalid-feedback { display: none !important; }
+
+        .mb-3 { margin-bottom: 1.1rem !important; }
+
+        /* Login button */
+        button.btn.btn-primary {
+            display: block !important;
+            width: 100% !important;
+            padding: 13px 20px !important;
+            background: #2563eb !important;
+            color: white !important;
+            border: none !important;
+            border-radius: 10px !important;
+            font-size: 0.85rem !important;
+            font-weight: 700 !important;
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            text-align: center !important;
+            cursor: pointer !important;
+            letter-spacing: 0.06em !important;
+            text-transform: uppercase !important;
+            box-shadow: 0 4px 16px rgba(37,99,235,0.35) !important;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s !important;
+            margin-top: 1.4rem !important;
+        }
+        button.btn.btn-primary:hover {
+            background: #1d4ed8 !important;
+            transform: translateY(-1px) !important;
+            box-shadow: 0 6px 20px rgba(37,99,235,0.45) !important;
+        }
+        button.btn.btn-primary:active {
+            transform: translateY(0) !important;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 0.72rem;
+            margin-top: 2rem;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+        }
+
+        @media (max-width: 720px) {
+            .shell { grid-template-columns: 1fr; max-width: 420px; }
+            .left { display: none; }
         }
     </style>
 </head>
 <body>
+<div class="shell">
 
-<div>
-    <!-- Logo header -->
-    <div style="text-align:center; margin-bottom: 1.5rem;">
-        <div style="width:56px;height:56px;background:#1565c0;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(21,101,192,0.4);">
-            <i class="material-icons white-text" style="font-size:1.8rem;">inventory_2</i>
+    <!-- Left branding -->
+    <div class="left">
+        <div class="left-logo">
+            <div class="left-logo-box">
+                <i class="material-icons-round">inventory_2</i>
+            </div>
+            <span class="left-logo-name">Rosswood</span>
         </div>
-        <p style="color:#546e7a;font-size:0.85rem;margin-top:8px;margin-bottom:0;">Rosswood Management System</p>
+        <div class="left-body">
+            <h2>Supply chain,<br><span>simplified.</span></h2>
+            <p>One platform for inventory,<br>production, and sales.</p>
+            <div class="left-tags">
+                <span class="tag">Inventory</span>
+                <span class="tag">Production</span>
+                <span class="tag">Sales</span>
+                <span class="tag">Customers</span>
+            </div>
+        </div>
+        <div style="color:rgba(255,255,255,0.2);font-size:0.7rem;position:relative;z-index:1;">© DataChefs · All rights reserved</div>
     </div>
 
-    {#insert /}
-</div>
+    <!-- Right login form -->
+    <div class="right">
+        {#insert /}
+    </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</div>
 </body>
 </html>

@@ -3,201 +3,328 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{#insert title}Inventory System{/insert}</title>
+  <title>{#insert title}Rosswood{/insert}</title>
 
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
-
   <script src="https://unpkg.com/htmx.org@1.9.2"></script>
 
   <style>
     :root {
-      --primary-color: #1e293b; /* Slate 800 */
-      --accent-color: #3b82f6;  /* Blue 500 */
-      --bg-light: #f8fafc;     /* Slate 50 */
-      --text-main: #334155;    /* Slate 700 */
+      --nav-dark: #0f172a;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --bg: #f1f5f9;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --surface: #ffffff;
     }
+
+    * { box-sizing: border-box; }
 
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-main);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
     }
 
-    /* Modern Navbar */
+    /* ── Navbar ── */
     nav {
-      background-color: white !important;
-      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
-      height: 70px;
-      line-height: 70px;
+      background-color: var(--nav-dark) !important;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.2) !important;
+      height: 64px !important;
+      line-height: 64px !important;
     }
 
     nav .brand-logo {
-      color: var(--primary-color) !important;
-      font-weight: 700;
-      letter-spacing: -0.5px;
+      color: white !important;
+      font-weight: 800 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      letter-spacing: -0.3px;
+      display: flex !important;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon-wrap {
+      width: 34px;
+      height: 34px;
+      background: var(--accent);
+      border-radius: 9px;
       display: flex;
       align-items: center;
+      justify-content: center;
+    }
+    .brand-icon-wrap i { font-size: 1.1rem; color: white; line-height: 1; }
+
+    /* Nav links */
+    nav ul li a {
+      color: rgba(255,255,255,0.7) !important;
+      font-weight: 500 !important;
+      font-size: 0.84rem !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      padding: 0 14px !important;
+      transition: color 0.15s !important;
+    }
+    nav ul li a:hover {
+      background-color: rgba(255,255,255,0.08) !important;
+      color: white !important;
     }
 
-    nav ul a {
-      color: var(--text-main) !important;
-      font-weight: 500;
-      transition: color 0.2s ease;
+    /* Active nav item */
+    nav ul li.active a {
+      color: white !important;
+      background: rgba(37,99,235,0.4) !important;
+      border-radius: 7px;
     }
 
-    nav ul a:hover {
-      background-color: transparent !important;
-      color: var(--accent-color) !important;
-    }
-
-    /* Dropdown Styling */
+    /* Dropdown */
     .dropdown-content {
+      background: var(--surface) !important;
       border-radius: 12px !important;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
-      border: 1px solid #e2e8f0;
-      min-width: 200px !important;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.12) !important;
+      border: 1px solid var(--border) !important;
+      min-width: 210px !important;
+      overflow: hidden;
+      padding: 6px !important;
+      top: 54px !important;
     }
-
     .dropdown-content li a {
-      padding: 14px 20px !important;
-      font-size: 14px !important;
+      color: var(--text) !important;
+      font-size: 0.83rem !important;
+      font-weight: 500 !important;
+      padding: 10px 14px !important;
+      border-radius: 8px !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 10px !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+    }
+    .dropdown-content li a:hover {
+      background: var(--bg) !important;
+      color: var(--accent) !important;
+    }
+    .dropdown-content li a i {
+      font-size: 1rem !important;
+      color: var(--accent) !important;
+    }
+    .dropdown-content li.divider {
+      background: var(--border) !important;
+      margin: 4px 0 !important;
     }
 
-    /* Global Transitions for HTMX */
-    .htmx-swapping {
-      opacity: 0;
-      transition: opacity 0.2s ease-out;
+    /* Sign out button */
+    .signout-btn {
+      background: rgba(239,68,68,0.12) !important;
+      border: 1px solid rgba(239,68,68,0.2) !important;
+      border-radius: 8px !important;
+      color: #fca5a5 !important;
+      font-size: 0.78rem !important;
+      font-weight: 600 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      padding: 6px 14px !important;
+      cursor: pointer !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      transition: background 0.15s !important;
+      line-height: 1 !important;
+      height: auto !important;
+    }
+    .signout-btn:hover {
+      background: rgba(239,68,68,0.22) !important;
+      color: #fca5a5 !important;
+    }
+    .signout-btn i { font-size: 0.95rem !important; }
+
+    /* User chip */
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 12px 4px 4px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50px;
+    }
+    .user-avatar {
+      width: 28px; height: 28px;
+      background: var(--accent);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .user-avatar i { color: white; font-size: 0.95rem; line-height: 1; }
+    .user-name { color: rgba(255,255,255,0.75); font-size: 0.78rem; font-weight: 600; }
+
+    /* Sidenav */
+    .sidenav {
+      background: var(--nav-dark) !important;
+      width: 270px !important;
+    }
+    .sidenav .sidenav-header {
+      padding: 1.2rem 1.5rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      display: flex; align-items: center; gap: 10px;
+    }
+    .sidenav li a {
+      color: rgba(255,255,255,0.65) !important;
+      font-size: 0.85rem !important;
+      font-weight: 500 !important;
+      font-family: 'Plus Jakarta Sans', sans-serif !important;
+      display: flex !important;
+      align-items: center !important;
+      gap: 12px !important;
+      padding: 0 1.5rem !important;
+      height: 48px !important;
+      line-height: 48px !important;
+      transition: background 0.15s, color 0.15s !important;
+    }
+    .sidenav li a:hover {
+      background: rgba(255,255,255,0.06) !important;
+      color: white !important;
+    }
+    .sidenav li a i {
+      color: var(--accent) !important;
+      font-size: 1.1rem !important;
+      width: 20px !important;
+    }
+    .sidenav li.divider {
+      background: rgba(255,255,255,0.07) !important;
+      margin: 4px 0 !important;
+    }
+    .sidenav .section-label {
+      padding: 12px 1.5rem 4px;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.25);
     }
 
-    /* Container Spacing */
+    /* Main content */
     .main-content {
       padding-top: 2rem;
       padding-bottom: 5rem;
     }
 
-    /* Reusable utility classes for cards you use in index files */
+    /* HTMX */
+    .htmx-swapping { opacity: 0; transition: opacity 0.15s ease-out; }
+    .htmx-settling { opacity: 1; }
+
+    /* Utilities */
     .br-12 { border-radius: 12px !important; }
-    .z-soft { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1) !important; }
+    .z-soft { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07) !important; }
   </style>
 </head>
 <body>
 
 {#insert navbar}
+  <!-- Dropdown -->
   <ul id="dropdown-setup" class="dropdown-content">
-    <li><a href="/uom" class="blue-text"><i class="material-icons tiny">straighten</i> UOM</a></li>
-    <li><a href="/itemtype" class="blue-text"><i class="material-icons tiny">category</i> Item Types</a></li>
+    <li><a href="/uom"><i class="material-icons">straighten</i> Units of Measure</a></li>
+    <li><a href="/itemtype"><i class="material-icons">category</i> Item Types</a></li>
     <li class="divider"></li>
-    <li><a href="/categories" class="blue-text"><i class="material-icons tiny">label</i> Categories</a></li>
+    <li><a href="/admin/users"><i class="material-icons">manage_accounts</i> Users</a></li>
   </ul>
 
   <div class="navbar-fixed">
     <nav>
       <div class="nav-wrapper container">
         <a href="/" class="brand-logo">
-          <i class="material-icons blue-text text-darken-2" style="margin-right: 10px; font-size: 32px;">inventory_2</i>
+          <div class="brand-icon-wrap">
+            <i class="material-icons">inventory_2</i>
+          </div>
           <span class="hide-on-small-only">Rosswood</span>
         </a>
 
-        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons grey-text">menu</i></a>
+        <a href="#" data-target="mobile-sidenav" class="sidenav-trigger">
+          <i class="material-icons" style="color:rgba(255,255,255,0.7);">menu</i>
+        </a>
 
-        <ul id="nav-mobile" class="right hide-on-med-and-down">
-          <li><a href="/d">Dashboard</a></li>
-          <li><a href="/items">Items</a></li>
-          <li><a href="/production/batch">Production</a></li>
-          <li><a href="/invoices/index">Sales</a></li>
-          <li><a href="/customers/index">Customers</a></li>
+        <ul class="right hide-on-med-and-down" style="display:flex;align-items:center;gap:4px;">
+          <li><a href="/d"><i class="material-icons left" style="font-size:1rem;">dashboard</i>Dashboard</a></li>
+          <li><a href="/items"><i class="material-icons left" style="font-size:1rem;">inventory_2</i>Items</a></li>
+          <li><a href="/production/batch"><i class="material-icons left" style="font-size:1rem;">precision_manufacturing</i>Production</a></li>
+          <li><a href="/invoices"><i class="material-icons left" style="font-size:1rem;">receipt_long</i>Sales</a></li>
+          <li><a href="/customers"><i class="material-icons left" style="font-size:1rem;">group</i>Customers</a></li>
           <li>
             <a class="dropdown-trigger" href="#!" data-target="dropdown-setup">
-              Setup <i class="material-icons right">expand_more</i>
+              <i class="material-icons left" style="font-size:1rem;">tune</i>Setup
+              <i class="material-icons right" style="font-size:1rem;">expand_more</i>
             </a>
+          </li>
+          <li style="display:flex;align-items:center;padding:0 8px;">
+            <div class="user-chip">
+              <div class="user-avatar"><i class="material-icons">person</i></div>
+              <span class="user-name">Admin</span>
+            </div>
+          </li>
+          <li style="display:flex;align-items:center;padding:0 4px;">
+            <form action="/login/logout" method="POST" style="margin:0;">
+                {#authenticityToken/}
+              <button type="submit" class="signout-btn">
+                <i class="material-icons">logout</i> Sign out
+              </button>
+            </form>
           </li>
         </ul>
       </div>
     </nav>
   </div>
 
-  <ul class="sidenav" id="mobile-demo">
-    <li class="blue darken-4" style="padding: 20px; color: white;">
-      <h5>Rosswood</h5>
+  <!-- Mobile sidenav -->
+  <ul class="sidenav" id="mobile-sidenav">
+    <li>
+      <div class="sidenav-header">
+        <div class="brand-icon-wrap"><i class="material-icons">inventory_2</i></div>
+        <span style="color:white;font-weight:800;font-size:1rem;">Rosswood</span>
+      </div>
     </li>
+    <li class="section-label">Main</li>
     <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
-    <li><a href="/items"><i class="material-icons">inventory</i>Items</a></li>
-    <li><a href="/production/batch"><i class="material-icons">factory</i>Production</a></li>
-    <li><a href="/invoices/index"><i class="material-icons">receipt</i>Sales</a></li>
-    <li><a href="/customers/index"><i class="material-icons">people</i>Customers</a></li>
+    <li><a href="/items"><i class="material-icons">inventory_2</i>Items</a></li>
+    <li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>
+    <li><a href="/invoices"><i class="material-icons">receipt_long</i>Sales</a></li>
+    <li><a href="/customers"><i class="material-icons">group</i>Customers</a></li>
     <li class="divider"></li>
-    <li><a href="/uoms">UOM Setup</a></li>
-    <li><a href="/itemtype">Type Setup</a></li>
+    <li class="section-label">Setup</li>
+    <li><a href="/uom"><i class="material-icons">straighten</i>Units of Measure</a></li>
+    <li><a href="/itemtype"><i class="material-icons">category</i>Item Types</a></li>
+    <li><a href="/admin/users"><i class="material-icons">manage_accounts</i>Users</a></li>
+    <li class="divider"></li>
+    <li>
+      <form action="/login/logout" method="POST" style="padding:12px 1.5rem;">
+          {#authenticityToken/}
+        <button type="submit" class="signout-btn" style="width:100%;justify-content:center;">
+          <i class="material-icons">logout</i> Sign Out
+        </button>
+      </form>
+    </li>
   </ul>
-
 {/insert}
 
 <main class="main-content container">
   {#insert body}No content available{/insert}
 </main>
 
-<footer style="text-align: center; padding: 20px; color: #94a3b8; font-size: 13px;">
-  &copy;  DataChefs. All rights reserved.
-</footer>
-
 <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-
 <script>
-  /**
-   * Universal UI Initializer
-   */
-  function initNexusUI() {
-    // 1. Modals
-    M.Modal.init(document.querySelectorAll('.modal'), {
-      onOpenStart: function() {
-        // Smoothly center modals if needed
-      }
-    });
-
-    // 2. Selects
+  function initUI() {
+    M.Modal.init(document.querySelectorAll('.modal'));
     M.FormSelect.init(document.querySelectorAll('select'));
-
-    // 3. Datepickers
     M.Datepicker.init(document.querySelectorAll('.datepicker'), {
-      format: 'yyyy-mm-dd',
-      autoClose: true,
-      container: 'body',
-      showClearBtn: true
+      format: 'yyyy-mm-dd', autoClose: true, container: 'body', showClearBtn: true
     });
-
-    // 4. Dropdowns
     M.Dropdown.init(document.querySelectorAll('.dropdown-trigger'), {
-      coverTrigger: false,
-      constrainWidth: false
+      coverTrigger: false, constrainWidth: false
     });
-
-    // 5. Sidenav
     M.Sidenav.init(document.querySelectorAll('.sidenav'));
-
-    // 6. Labels
     M.updateTextFields();
   }
-
-  // Initial Load
-  document.addEventListener('DOMContentLoaded', initNexusUI);
-
-  /**
-   * HTMX Integration:
-   * Re-run UI initializations whenever HTMX swaps content.
-   */
-  document.body.addEventListener('htmx:afterOnLoad', function(evt) {
-    initNexusUI();
-    console.log('UI Components Re-initialized after HTMX swap');
-  });
-
-  // Specifically handle form resets on successful HTMX requests
-  document.body.addEventListener('htmx:beforeSwap', function(evt) {
-    if (evt.detail.xhr.status === 200 && evt.detail.requestConfig.verb === 'post') {
-      // Success! You can trigger sounds or toasts here
-    }
-  });
+  document.addEventListener('DOMContentLoaded', initUI);
+  document.body.addEventListener('htmx:afterOnLoad', initUI);
 </script>
 </body>
 </html>
