@@ -84,52 +84,55 @@
 </head>
 <body>
 
-<ul id="dropdown-setup" class="dropdown-content">
-  <li><a href="/uom" class="blue-text"><i class="material-icons tiny">straighten</i> UOM</a></li>
-  <li><a href="/itemtype" class="blue-text"><i class="material-icons tiny">category</i> Item Types</a></li>
-  <li class="divider"></li>
-  <li><a href="/categories" class="blue-text"><i class="material-icons tiny">label</i> Categories</a></li>
-</ul>
+{#insert navbar}
+  <ul id="dropdown-setup" class="dropdown-content">
+    <li><a href="/uom" class="blue-text"><i class="material-icons tiny">straighten</i> UOM</a></li>
+    <li><a href="/itemtype" class="blue-text"><i class="material-icons tiny">category</i> Item Types</a></li>
+    <li class="divider"></li>
+    <li><a href="/categories" class="blue-text"><i class="material-icons tiny">label</i> Categories</a></li>
+  </ul>
 
-<div class="navbar-fixed">
-  <nav>
-    <div class="nav-wrapper container">
-      <a href="/" class="brand-logo">
-        <i class="material-icons blue-text text-darken-2" style="margin-right: 10px; font-size: 32px;">inventory_2</i>
-        <span class="hide-on-small-only">Rosswood</span>
-      </a>
+  <div class="navbar-fixed">
+    <nav>
+      <div class="nav-wrapper container">
+        <a href="/" class="brand-logo">
+          <i class="material-icons blue-text text-darken-2" style="margin-right: 10px; font-size: 32px;">inventory_2</i>
+          <span class="hide-on-small-only">Rosswood</span>
+        </a>
 
-      <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons grey-text">menu</i></a>
+        <a href="#" data-target="mobile-demo" class="sidenav-trigger"><i class="material-icons grey-text">menu</i></a>
 
-      <ul id="nav-mobile" class="right hide-on-med-and-down">
-        <li><a href="/d">Dashboard</a></li>
-        <li><a href="/items">Items</a></li>
-        <li><a href="/production/batch">Production</a></li>
-        <li><a href="/invoices/index">Sales</a></li>
-        <li><a href="/customers/index">Customers</a></li>
-        <li>
-          <a class="dropdown-trigger" href="#!" data-target="dropdown-setup">
-            Setup <i class="material-icons right">expand_more</i>
-          </a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-</div>
+        <ul id="nav-mobile" class="right hide-on-med-and-down">
+          <li><a href="/d">Dashboard</a></li>
+          <li><a href="/items">Items</a></li>
+          <li><a href="/production/batch">Production</a></li>
+          <li><a href="/invoices/index">Sales</a></li>
+          <li><a href="/customers/index">Customers</a></li>
+          <li>
+            <a class="dropdown-trigger" href="#!" data-target="dropdown-setup">
+              Setup <i class="material-icons right">expand_more</i>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </div>
 
-<ul class="sidenav" id="mobile-demo">
-  <li class="blue darken-4" style="padding: 20px; color: white;">
-    <h5>Rosswood</h5>
-  </li>
-  <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
-  <li><a href="/items"><i class="material-icons">inventory</i>Items</a></li>
-  <li><a href="/production/batch"><i class="material-icons">factory</i>Production</a></li>
-  <li><a href="/invoices/index"><i class="material-icons">receipt</i>Sales</a></li>
-  <li><a href="/customers/index"><i class="material-icons">people</i>Customers</a></li>
-  <li class="divider"></li>
-  <li><a href="/uoms">UOM Setup</a></li>
-  <li><a href="/itemtype">Type Setup</a></li>
-</ul>
+  <ul class="sidenav" id="mobile-demo">
+    <li class="blue darken-4" style="padding: 20px; color: white;">
+      <h5>Rosswood</h5>
+    </li>
+    <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
+    <li><a href="/items"><i class="material-icons">inventory</i>Items</a></li>
+    <li><a href="/production/batch"><i class="material-icons">factory</i>Production</a></li>
+    <li><a href="/invoices/index"><i class="material-icons">receipt</i>Sales</a></li>
+    <li><a href="/customers/index"><i class="material-icons">people</i>Customers</a></li>
+    <li class="divider"></li>
+    <li><a href="/uoms">UOM Setup</a></li>
+    <li><a href="/itemtype">Type Setup</a></li>
+  </ul>
+
+{/insert}
 
 <main class="main-content container">
   {#insert body}No content available{/insert}

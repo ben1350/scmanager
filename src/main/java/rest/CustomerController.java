@@ -5,6 +5,7 @@ import com.rosswood.entity.CustomerBranch;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.Authenticated;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Path("/customers")
+@Authenticated
 public class CustomerController extends HxController {
 
     private static final int PAGE_SIZE = 10;
