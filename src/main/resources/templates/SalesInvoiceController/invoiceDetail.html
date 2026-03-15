@@ -12,14 +12,29 @@
                 <div style="flex-grow: 1;">
                     <div style="font-weight: 700; color: #333; font-size: 0.9rem;">{item.item.itemName}</div>
                     <div style="color: #757575; font-size: 0.8rem;">
-                        {item.quantity} {item.uom.uomCode} x GHS {item.unitPrice}
+                        {item.quantity} {item.uom.uomCode} &times; GHS {item.unitPriceExVat}
                     </div>
+                    {#if item.vatRate != null && item.vatRate > 0}
+                        <div style="color: #9e9e9e; font-size: 0.75rem;">
+                            VAT ({item.vatRate}%): GHS {item.vatAmount}
+                        </div>
+                    {/if}
+                    {#if item.batchCode != null}
+                        <div style="color: #90a4ae; font-size: 0.72rem; margin-top: 2px;">
+                            Batch: {item.batchCode}
+                        </div>
+                    {/if}
                 </div>
-                <div style="font-weight: 800; color: #1e88e5;">GHS {item.lineTotal}</div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 800; color: #1e88e5;">GHS {item.lineTotalIncVat}</div>
+                    <div style="font-size: 0.72rem; color: #9e9e9e;">ex-VAT: {item.lineTotal}</div>
+                </div>
             </div>
         {/for}
     </div>
 
+    <!-- Add line item form -->
+    {#if invoice.status.name() == 'DRAFT'}
     <div style="margin-top: 2rem; background: #fafafa; padding: 1.2rem; border-radius: 12px; border: 1px dashed #e0e0e0;">
         <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}" hx-target="#detail-{invoice.id}">
                 {#authenticityToken/}
@@ -46,18 +61,51 @@
 
                 <div style="width: 1px; height: 20px; background: #eee;"></div>
 
-                <input name="quantity" type="number" step="0.01" placeholder="Qty" required style="border: none !important; box-shadow: none !important; flex: 0.6; margin: 0; height: 35px;">
-                <div style="width: 1px; height: 20px; background: #eee;"></div>
-                <input name="unitPrice" type="number" step="0.01" placeholder="Price" required style="border: none !important; box-shadow: none !important; flex: 0.8; margin: 0; height: 35px;">
+                <input name="quantity" type="number" step="0.01" placeholder="Qty" required
+                       style="border: none !important; box-shadow: none !important; flex: 0.6; margin: 0; height: 35px;">
 
-                <button type="submit" hx-disabled-elt="this" class="btn blue darken-2" style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add</button>
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="unitPriceExVat" type="number" step="0.01" placeholder="Price (ex-VAT)" required
+                       style="border: none !important; box-shadow: none !important; flex: 0.8; margin: 0; height: 35px;">
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="vatRate" type="number" step="0.01" placeholder="VAT %" value="20"
+                       style="border: none !important; box-shadow: none !important; flex: 0.5; margin: 0; height: 35px;">
+
+                <button type="submit" hx-disabled-elt="this" class="btn blue darken-2"
+                        style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add</button>
             </div>
         </form>
     </div>
+    {#else}
+    <div style="margin-top: 1.5rem; padding: 0.8rem 1rem; background: rgba(0,0,0,0.03); border-radius: 10px; text-align: center;" class="grey-text">
+        <i class="material-icons" style="vertical-align: middle; font-size: 1.1rem; margin-right: 6px;">lock</i>
+        Line items are locked — invoice status is {invoice.status.name()}.
+    </div>
+    {/if}
+
+    <!-- Totals summary -->
+    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+        <div style="background: white; border-radius: 12px; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 240px;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #757575; margin-bottom: 6px;">
+                <span>Subtotal (ex-VAT)</span>
+                <span>GHS {invoice.totalAmountExVat}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #757575; margin-bottom: 8px;">
+                <span>VAT</span>
+                <span>GHS {invoice.vatAmount}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: #1e88e5; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+                <span>Total</span>
+                <span id="total-inline-{invoice.id}">GHS {invoice.totalAmount}</span>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div style="display: none;">
-    <div id="total-{invoice.id}" hx-swap-oob="true" style="font-weight: 800; color: #1e88e5; font-size: 1.1rem;">
-        GHS {invoice.totalAmount}
-    </div>
+<!-- OOB swap to update the total in the invoice card header -->
+<div id="total-{invoice.id}" hx-swap-oob="true" style="font-weight: 800; color: #1e88e5; font-size: 1.1rem;">
+    GHS {invoice.totalAmount}
 </div>

@@ -10,19 +10,21 @@
         </div>
       </div>
 
+      <!-- KPI Cards -->
       <div class="row">
+
         <div class="col s12 m6 l3">
           <div class="card br-12 z-soft hoverable">
             <div class="card-content" style="padding: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Total Stock</span>
-                  <h4 style="margin: 0.5rem 0; font-weight: 700; color: #1e293b;">{totalStock}</h4>
+                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Total Stock</span>
+                  <h4 style="margin:0.5rem 0;font-weight:700;color:#1e293b;">{totalStock}</h4>
                 </div>
-                <i class="material-icons blue-text text-lighten-3" style="font-size: 2.5rem;">inventory_2</i>
+                <i class="material-icons blue-text text-lighten-3" style="font-size:2.5rem;">inventory_2</i>
               </div>
-              <div class="progress blue lighten-4" style="height: 4px; margin-top: 1rem;">
-                <div class="determinate blue" style="width: 70%"></div>
+              <div class="progress blue lighten-4" style="height:4px;margin-top:1rem;">
+                <div class="determinate blue" style="width:70%"></div>
               </div>
             </div>
           </div>
@@ -30,78 +32,108 @@
 
         <div class="col s12 m6 l3">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="card-content" style="padding:1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Low Stock</span>
-                  <h4 style="margin: 0.5rem 0; font-weight: 700; color: #e11d48;">{lowStock}</h4>
+                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Low Stock Items</span>
+                  <h4 style="margin:0.5rem 0;font-weight:700;color:#e11d48;">{lowStock}</h4>
                 </div>
-                <i class="material-icons red-text text-lighten-3" style="font-size: 2.5rem;">error_outline</i>
+                <i class="material-icons red-text text-lighten-3" style="font-size:2.5rem;">error_outline</i>
               </div>
-              <p class="red-text text-darken-1" style="font-size: 0.8rem; margin: 0;">Requires attention</p>
+              <p class="red-text text-darken-1" style="font-size:0.8rem;margin:0;">Requires attention</p>
             </div>
           </div>
         </div>
 
         <div class="col s12 m6 l3">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="card-content" style="padding:1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Today's Sales</span>
-                  <h4 style="margin: 0.5rem 0; font-weight: 700; color: #059669;">{todaysSales}</h4>
+                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Today's Sales</span>
+                  <h4 style="margin:0.5rem 0;font-weight:700;color:#059669;">{todaysSales}</h4>
                 </div>
-                <i class="material-icons green-text text-lighten-3" style="font-size: 2.5rem;">payments</i>
+                <i class="material-icons green-text text-lighten-3" style="font-size:2.5rem;">payments</i>
               </div>
-              <p class="green-text" style="font-size: 0.8rem; margin: 0;">↑ 12% from yesterday</p>
+              <p class="green-text" style="font-size:0.8rem;margin:0;">Units dispatched today</p>
             </div>
           </div>
         </div>
 
         <div class="col s12 m6 l3">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div class="card-content" style="padding:1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Pending Mfg</span>
-                  <h4 style="margin: 0.5rem 0; font-weight: 700; color: #d97706;">{pendingProduction}</h4>
+                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Open Batches</span>
+                  <h4 style="margin:0.5rem 0;font-weight:700;color:#d97706;">{pendingProduction}</h4>
                 </div>
-                <i class="material-icons orange-text text-lighten-3" style="font-size: 2.5rem;">precision_manufacturing</i>
+                <i class="material-icons orange-text text-lighten-3" style="font-size:2.5rem;">precision_manufacturing</i>
               </div>
-              <p class="grey-text" style="font-size: 0.8rem; margin: 0;">Active batches</p>
+              <p class="grey-text" style="font-size:0.8rem;margin:0;">Active production runs</p>
             </div>
           </div>
         </div>
+
       </div>
 
+      <!-- Expiry alert banner — only show if there are expiring batches -->
+      {#if expiringCount > 0}
+        <div class="row">
+          <div class="col s12">
+            <div class="card br-12" style="background:#fff7ed;border-left:4px solid #f59e0b;margin-bottom:0;">
+              <div class="card-content" style="padding:1rem 1.5rem;display:flex;align-items:center;gap:12px;">
+                <i class="material-icons" style="color:#f59e0b;">warning_amber</i>
+                <span style="font-weight:600;color:#92400e;">
+                {expiringCount} batch(es) expiring within 7 days — review stock write-offs
+              </span>
+                <a href="/production/batch" class="btn-flat orange-text" style="margin-left:auto;font-weight:600;">View →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
+
       <div class="row">
+
+        <!-- Recent Activity -->
         <div class="col s12 l7">
           <div class="card br-12 z-soft">
             <div class="card-content">
-                    <span class="card-title" style="font-weight: 600; font-size: 1.1rem; display: flex; align-items: center;">
-                        <i class="material-icons blue-text" style="margin-right: 10px;">history</i> Recent Activity
-                    </span>
-              <table class="highlight responsive-table" style="margin-top: 1.5rem;">
+              <span class="card-title" style="font-weight:600;font-size:1.1rem;display:flex;align-items:center;">
+                <i class="material-icons blue-text" style="margin-right:10px;">history</i> Recent Activity
+              </span>
+              <table class="highlight responsive-table" style="margin-top:1.5rem;">
                 <thead>
                 <tr class="grey-text">
                   <th>Date</th>
                   <th>Item</th>
                   <th>Type</th>
-                  <th class="right-align">Quantity</th>
+                  <th>Dir</th>
+                  <th class="right-align">Qty</th>
                 </tr>
                 </thead>
                 <tbody>
                 {#each recentTransactions}
                   <tr>
-                    <td class="grey-text text-darken-1" style="font-size: 0.9rem;">{it.transactionDate}</td>
-                    <td style="font-weight: 500;">{it.item.itemName}</td>
+                    <td class="grey-text text-darken-1" style="font-size:0.9rem;">{it.transactionDate}</td>
+                    <td style="font-weight:500;">{it.item.itemName}</td>
                     <td>
-                                    <span class="chip {it.transactionType == 'SALE' ? 'blue lighten-5 blue-text' : 'grey lighten-4 grey-text text-darken-2'}" style="border-radius: 4px; font-weight: 600; font-size: 0.75rem;">
-                                        {it.transactionType}
-                                    </span>
+                      <span class="chip" style="border-radius:4px;font-weight:600;font-size:0.75rem;
+                              background:{it.direction.name() == 'IN' ? '#f0fdf4' : '#fff1f2'};
+                              color:{it.direction.name() == 'IN' ? '#15803d' : '#be123c'};">
+                        {it.transactionType.name()}
+                      </span>
+                    </td>
+                    <td>
+                      {#if it.direction.name() == 'IN'}
+                        <i class="material-icons green-text" style="font-size:1rem;">arrow_downward</i>
+                      {#else}
+                        <i class="material-icons red-text" style="font-size:1rem;">arrow_upward</i>
+                      {/if}
                     </td>
                     <td class="right-align">
-                      <strong style="color: #1e293b;">{it.quantity}</strong>
+                      <strong style="color:#1e293b;">{it.quantity}</strong>
                     </td>
                   </tr>
                 {/each}
@@ -112,47 +144,56 @@
         </div>
 
         <div class="col s12 l5">
-          <div class="card br-12 z-soft gradient-45deg-light-blue-cyan" style="background: linear-gradient(45deg, #1e293b 0%, #334155 100%);">
+
+          <!-- Quick Actions -->
+          <div class="card br-12 z-soft" style="background:linear-gradient(45deg,#1e293b 0%,#334155 100%);">
             <div class="card-content white-text">
-              <span class="card-title" style="font-weight: 500;">Quick Actions</span>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 1.5rem;">
-                <a href="/items" class="btn white blue-text text-darken-4 waves-effect" style="border-radius: 8px; font-weight: 600;">Stock</a>
-                <a href="/production-batches" class="btn white blue-text text-darken-4 waves-effect" style="border-radius: 8px; font-weight: 600;">Produce</a>
-                <a href="/sales-invoices" class="btn transparent white-text waves-effect" style="border-radius: 8px; border: 1px solid white;">Invoice</a>
-                <a href="/customers" class="btn transparent white-text waves-effect" style="border-radius: 8px; border: 1px solid white;">Clients</a>
+              <span class="card-title" style="font-weight:500;">Quick Actions</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1.5rem;">
+                <a href="/items" class="btn white blue-text text-darken-4 waves-effect" style="border-radius:8px;font-weight:600;">Stock</a>
+                <a href="/production/batch" class="btn white blue-text text-darken-4 waves-effect" style="border-radius:8px;font-weight:600;">Produce</a>
+                <a href="/invoices" class="btn transparent white-text waves-effect" style="border-radius:8px;border:1px solid white;">Invoice</a>
+                <a href="/customers" class="btn transparent white-text waves-effect" style="border-radius:8px;border:1px solid white;">Clients</a>
               </div>
             </div>
           </div>
 
+          <!-- Production Queue -->
           <div class="card br-12 z-soft">
             <div class="card-content">
-              <span class="card-title" style="font-weight: 600; font-size: 1.1rem;">Queue</span>
-              <ul class="collection no-border" style="border: none; margin-top: 1rem;">
-                {#each pendingBatches}
-                  <li class="collection-item" style="padding: 10px 0; border-bottom: 1px solid #f1f5f9;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <div>
-                        <span style="font-weight: 600; display: block;">{it.batchCode}</span>
-                        <span class="grey-text" style="font-size: 0.8rem;">{it.finishedItem.itemName}</span>
+              <span class="card-title" style="font-weight:600;font-size:1.1rem;display:flex;align-items:center;">
+                <i class="material-icons orange-text" style="margin-right:8px;">factory</i> Production Queue
+              </span>
+              {#if pendingBatches.isEmpty()}
+                <p class="grey-text" style="text-align:center;padding:1rem 0;">No open batches</p>
+              {#else}
+                <ul class="collection" style="border:none;margin-top:1rem;">
+                  {#each pendingBatches}
+                    <li class="collection-item" style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <span style="font-weight:600;display:block;">{it.batchCode}</span>
+                          <span class="grey-text" style="font-size:0.8rem;">{it.finishedItem.itemName}</span>
+                        </div>
+                        <div class="right-align">
+                          <span class="blue-text" style="font-weight:700;">{it.outputQty}</span>
+                          <span class="grey-text" style="display:block;font-size:0.7rem;">{it.productionDate}</span>
+                        </div>
                       </div>
-                      <div class="right-align">
-                        <span class="blue-text" style="font-weight: 700;">{it.outputQty}</span>
-                        <span class="grey-text" style="display: block; font-size: 0.7rem;">{it.productionDate}</span>
-                      </div>
-                    </div>
-                  </li>
-                {/each}
-              </ul>
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
             </div>
           </div>
+
         </div>
       </div>
     </div>
 
     <style>
       .z-soft { box-shadow: 0 4px 20px 0 rgba(0,0,0,0.05) !important; }
-      .br-12 { border-radius: 12px !important; }
-      .collection.no-border .collection-item { background: transparent; }
+      .br-12  { border-radius: 12px !important; }
     </style>
   {/body}
 {/include}

@@ -5,7 +5,6 @@ import com.rosswood.entity.Item;
 import com.rosswood.entity.ProductionBatch;
 import com.rosswood.entity.ProductionConsumption;
 import com.rosswood.event.ProductionFinishedEvent;
-import com.rosswood.interceptor.UpdatesStock;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
@@ -155,7 +154,7 @@ public class ProductionBatchController extends HxController {
         if (batch == null) throw new NotFoundException();
 
         // Set status to Finished
-        batch.status = "FINISHED";
+        batch.status = ProductionBatch.BatchStatus.FINISHED;
         batch.persist();
         finishedEvent.fire(new ProductionFinishedEvent(batch, batch.outputQty));
 

@@ -16,7 +16,7 @@
                         {c.consumedQty} {c.rawItem.uom.uomCode} consumed
                     </div>
                 </div>
-                {#if batch.status != 'FINISHED'}
+                {#if batch.status.name() != 'FINISHED'}
                     <form hx-post="{uri:ProductionConsumptionController.delete(c.id)}" hx-target="#detail-{batch.id}">
                             {#authenticityToken/}
                         <button type="submit" class="btn-flat red-text text-lighten-3" style="padding: 0;">
@@ -28,7 +28,7 @@
         {/for}
     </div>
 
-    {#if batch.status != 'FINISHED'}
+    {#if batch.status.name() != 'FINISHED'}
         <div style="margin-top: 2rem; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 1.5rem;">
             <form hx-post="{uri:ProductionConsumptionController.add(batch.id)}" hx-target="#detail-{batch.id}">
                     {#authenticityToken/}
@@ -55,11 +55,8 @@
 
 <script>
     (function() {
-        // Initialize Materialize Select for the newly rendered fragment
         var selectElems = document.querySelectorAll('.consumption-detail-pane select');
         M.FormSelect.init(selectElems);
-
-        // Ensure labels are correctly positioned
         M.updateTextFields();
     })();
 </script>

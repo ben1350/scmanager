@@ -28,8 +28,8 @@
                      data-url="{uri:ProductionBatchController.getConsumption(batch.id)}"
                      data-target="#detail-{batch.id}">
 
-                    <div style="background: {batch.status == 'FINISHED' ? '#e8f5e9' : '#e3f2fd'}; color: {batch.status == 'FINISHED' ? '#2e7d32' : '#1976d2'}; padding: 12px; border-radius: 12px;">
-                        <i class="material-icons">{batch.status == 'FINISHED' ? 'check_circle' : 'layers'}</i>
+                    <div style="background: {batch.status.name() == 'FINISHED' ? '#e8f5e9' : '#e3f2fd'}; color: {batch.status.name() == 'FINISHED' ? '#2e7d32' : '#1976d2'}; padding: 12px; border-radius: 12px;">
+                        <i class="material-icons">{batch.status.name() == 'FINISHED' ? 'check_circle' : 'layers'}</i>
                     </div>
 
                     <div style="flex-grow: 1;">
@@ -41,7 +41,7 @@
                         <div style="font-weight: 600; color: #455a64;">{batch.finishedItem.itemName}</div>
 
                         <div id="qty-display-{batch.id}"
-                                {#if batch.status != 'FINISHED'}
+                                {#if batch.status.name() != 'FINISHED'}
                              hx-get="{uri:ProductionBatchController.editQty(batch.id)}"
                              hx-target="this"
                              hx-trigger="dblclick"
@@ -54,7 +54,7 @@
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 15px;">
-                        {#if batch.status != 'FINISHED'}
+                        {#if batch.status.name() != 'FINISHED'}
                         <form hx-post="{uri:ProductionBatchController.finishBatch(batch.id)}?page={page}"
                               hx-target="#batchListContainer"
                               hx-confirm="Finalize this batch? This will adjust inventory levels."

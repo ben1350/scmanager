@@ -1,10 +1,13 @@
 package rest;
 
 import com.rosswood.entity.Item;
+import com.rosswood.entity.StockOpening;
 import com.rosswood.entity.StockTransaction;
+import com.rosswood.service.StockTransactionService;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
@@ -19,6 +22,9 @@ import java.util.Optional;
 
 @Path("/stock-transactions")
 public class StockTransactionController extends HxController {
+
+    @Inject
+    StockTransactionService stockService;
 
     private static final int PAGE_SIZE = 10;
 
@@ -48,14 +54,40 @@ public class StockTransactionController extends HxController {
     ) {
         onlyHxRequest();
 
-        StockTransaction tx = new StockTransaction();
-        tx.item = Item.findById(itemId);
-        tx.transactionType = transactionType;
-        tx.quantity = quantity;
-        tx.transactionDate = LocalDate.parse(transactionDate);
-        tx.referenceNo = referenceNo;
-        tx.remarks = remarks;
-        tx.persist();
+        Item item = Item.findById(itemId);
+        LocalDate date = LocalDate.parse(transactionDate);
+
+        switch (StockTransaction.TransactionType.valueOf(transactionType)) {
+            case PURCHASE ->
+                    stockService.postPurchase(item, quantity,
+                            item.uom != null ? item.uom.uomCode : null,
+                            referenceNo, date, remarks);
+
+            case OPENING_STOCK -> {
+                StockOpening opening = new StockOpening();
+                opening.item       = item;
+                opening.openingQty = quantity;
+                opening.stockDate  = date;
+                opening.persist();
+                stockService.postOpeningStock(opening);
+            }
+
+            case DAMAGE ->
+                    stockService.postDamage(item, quantity, null, referenceNo, remarks);
+
+            case EXPIRY_WRITEOFF ->
+                    stockService.postExpiryWriteOff(item, quantity, null, date, remarks);
+
+            case ADJUSTMENT_IN ->
+                    stockService.postAdjustmentIn(item, quantity, referenceNo, remarks);
+
+            case ADJUSTMENT_OUT ->
+                    stockService.postAdjustmentOut(item, quantity, referenceNo, remarks);
+
+            default -> throw new IllegalArgumentException(
+                    "'" + transactionType + "' cannot be posted manually. " +
+                            "Use the production or sales workflow.");
+        }
 
         return render(Optional.ofNullable(page).orElse(1), true);
     }
