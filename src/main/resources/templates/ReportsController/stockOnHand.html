@@ -1,0 +1,108 @@
+{#include "/layout.html"}
+    {#title}Stock on Hand{/title}
+    {#body}
+        <style>
+            .rpt { padding: 1.5rem 0 4rem; }
+            .rpt-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:1.8rem; }
+            .rpt-topbar-left { display:flex; align-items:center; gap:10px; }
+            .rpt-back { display:flex; align-items:center; gap:4px; color:#64748b; text-decoration:none; font-size:0.8rem; font-weight:600; }
+            .rpt-back:hover { color:#2563eb; }
+            .rpt-title { font-size:1.3rem; font-weight:800; color:#0f172a; margin:0; letter-spacing:-0.3px; }
+            .rpt-subtitle { font-size:0.78rem; color:#94a3b8; margin:2px 0 0; }
+            .as-of { font-size:0.75rem; color:#94a3b8; background:white; border:1px solid #e2e8f0; border-radius:6px; padding:5px 12px; }
+            .soh-table-wrap { background:white; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; }
+            .soh-table { width:100%; border-collapse:collapse; }
+            .soh-table thead th { padding:.7rem 1.2rem; font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; background:#f8fafc; border-bottom:1px solid #e2e8f0; text-align:left; }
+            .soh-table thead th.r { text-align:right; }
+            .soh-table tbody tr:hover { background:#f8fafc; }
+            .soh-table tbody td { padding:.9rem 1.2rem; font-size:.83rem; color:#1e293b; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+            .soh-table tbody tr:last-child td { border-bottom:none; }
+            .soh-table td.r { text-align:right; }
+            .soh-table td.muted { color:#94a3b8; font-size:.75rem; }
+            .soh-table td.bold { font-weight:700; }
+            .qty-badge { display:inline-block; padding:3px 10px; border-radius:50px; font-size:.75rem; font-weight:700; }
+            .qty-ok   { background:#f0fdf4; color:#059669; }
+            .qty-low  { background:#fef2f2; color:#dc2626; }
+            .qty-zero { background:#f1f5f9; color:#94a3b8; }
+            .expiry-badge { display:inline-block; padding:2px 8px; border-radius:50px; font-size:.7rem; font-weight:700; }
+            .exp-urgent { background:#fef2f2; color:#dc2626; }
+            .exp-soon   { background:#fffbeb; color:#d97706; }
+            .exp-ok     { background:#f0fdf4; color:#059669; }
+            .lot-link { color:#2563eb; text-decoration:none; font-size:.75rem; font-weight:600; }
+            .lot-link:hover { text-decoration:underline; }
+            .summary-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+            .summary-tile { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:1rem 1.2rem; }
+            .summary-tile-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; }
+            .summary-tile-value { font-size:1.6rem; font-weight:800; letter-spacing:-1px; margin-top:4px; }
+        </style>
+
+        <div class="rpt container">
+            <div class="rpt-topbar">
+                <div class="rpt-topbar-left">
+                    <a href="/reports" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
+                    <span style="color:#e2e8f0;">/</span>
+                    <div>
+                        <p class="rpt-title">Stock on Hand</p>
+                        <p class="rpt-subtitle">Current inventory levels across all active items</p>
+                    </div>
+                </div>
+                <span class="as-of">As of {asOf}</span>
+            </div>
+
+            <div class="summary-strip">
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Total Items</div>
+                    <div class="summary-tile-value blue-text">{rows.size()}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Low Stock (&lt;10)</div>
+                    <div class="summary-tile-value red-text">{lowStockCount}</div>
+                </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Out of Stock</div>
+                    <div class="summary-tile-value" style="color:#94a3b8;">{outOfStockCount}</div>
+                </div>
+            </div>
+
+            <div class="soh-table-wrap">
+                <table class="soh-table">
+                    <thead>
+                    <tr>
+                        <th>Item Code</th><th>Item Name</th><th>Type</th><th>UOM</th>
+                        <th class="r">Qty on Hand</th><th>Next Expiry</th><th>Lots</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {#for r in rows}
+                        <tr>
+                            <td class="muted">{r.item().itemCode}</td>
+                            <td class="bold">{r.item().itemName}</td>
+                            <td class="muted">{r.item().itemType.itemTypeCode}</td>
+                            <td class="muted">{r.item().uom.uomCode}</td>
+                            <td class="r">
+            <span class="qty-badge {r.qtyClass()}">
+              {r.qty()}
+            </span>
+                            </td>
+                            <td>
+                                {#if r.nextExpiry() != null}
+                                    <span class="expiry-badge {r.expiryClass(in7days, in30days)}">
+                {r.nextExpiry()}
+              </span>
+                                {#else}
+                                    <span class="muted">—</span>
+                                {/if}
+                            </td>
+                            <td>
+                                <a href="/reports/stock/{r.item().id}/lots" class="lot-link">
+                                    <i class="material-icons" style="font-size:.9rem;vertical-align:middle;">layers</i> Lots
+                                </a>
+                            </td>
+                        </tr>
+                    {/for}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {/body}
+{/include}

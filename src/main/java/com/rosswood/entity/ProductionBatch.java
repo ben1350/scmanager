@@ -22,7 +22,7 @@ public class ProductionBatch extends AuditableEntity {
     @Column(name = "production_date", nullable = false)
     public LocalDate productionDate;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "finished_item_id")
     public Item finishedItem;
 
