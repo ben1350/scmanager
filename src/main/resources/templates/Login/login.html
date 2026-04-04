@@ -115,12 +115,7 @@
         }
 
         .left-badges {
-            display: flex;
-            gap: 10px;
-            margin-top: 2.5rem;
-            flex-wrap: wrap;
-            position: relative;
-            z-index: 1;
+            display: flex; gap: 10px; margin-top: 2.5rem; flex-wrap: wrap; position: relative; z-index: 1;
         }
 
         .badge {
@@ -146,23 +141,31 @@
             max-width: 380px;
         }
 
+        /* Logo styling for the login form */
+        .login-form-logo {
+            display: block;
+            margin: 0 auto 1.5rem auto;
+            max-height: 60px;
+            width: auto;
+        }
+
         .login-box h3 {
             font-size: 1.6rem;
             font-weight: 700;
             color: var(--navy);
             margin-bottom: 0.4rem;
             letter-spacing: -0.4px;
+            text-align: center; /* Centered for better look with logo */
         }
 
         .login-box .subtitle {
             color: var(--slate);
             font-size: 0.9rem;
             margin-bottom: 2rem;
+            text-align: center;
         }
 
-        .field-wrap {
-            margin-bottom: 1.2rem;
-        }
+        .field-wrap { margin-bottom: 1.2rem; }
 
         .field-wrap label {
             display: block;
@@ -174,9 +177,7 @@
             margin-bottom: 7px;
         }
 
-        .input-inner {
-            position: relative;
-        }
+        .input-inner { position: relative; }
 
         .input-inner i {
             position: absolute;
@@ -199,7 +200,6 @@
             background: white;
             outline: none;
             transition: border-color 0.2s, box-shadow 0.2s;
-            /* kill Materialize overrides */
             border-bottom: 1.5px solid var(--border) !important;
             box-shadow: none !important;
             height: auto !important;
@@ -235,20 +235,6 @@
             box-shadow: 0 6px 18px rgba(26,86,219,0.4);
         }
 
-        .error-msg {
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-            border-radius: 8px;
-            padding: 10px 14px;
-            color: #be123c;
-            font-size: 0.83rem;
-            font-weight: 500;
-            margin-bottom: 1.2rem;
-            display: flex;
-            align-items: center;
-            gap: 7px;
-        }
-
         .divider-line {
             height: 1px;
             background: var(--border);
@@ -271,37 +257,33 @@
 </head>
 <body>
 
-<!-- Left branding panel -->
 <div class="left-panel">
     <div class="left-logo">
-        <div class="left-logo-icon">
-            <i class="material-icons-round">inventory_2</i>
-        </div>
+        <img src="image_58f646.png" alt="Rosswood Logo" style="height: 44px; width: auto;">
         <span>Rosswood</span>
     </div>
+
     <div class="left-headline">
-        <h2>Supply chain,<br><span>simplified.</span></h2>
-        <p>Manage inventory, production, and sales from a single unified platform built for modern manufacturing.</p>
-        <div class="left-badges">
-            <span class="badge">Inventory</span>
-            <span class="badge">Production</span>
-            <span class="badge">Sales</span>
-            <span class="badge">Customers</span>
-        </div>
+        <h2>Modern Management <span>Simplified.</span></h2>
+        <p>A comprehensive system designed specifically for Rosswood's operational excellence.</p>
+    </div>
+
+    <div class="left-badges">
+        <span class="badge">Inventory</span>
+        <span class="badge">Production</span>
+        <span class="badge">Sales</span>
+        <span class="badge">Customers</span>
     </div>
 </div>
 
-<!-- Right login panel -->
 <div class="right-panel">
     <div class="login-box">
+        <img src="image_58f646.png" alt="Rosswood" class="login-form-logo">
 
         <h3>Welcome back</h3>
         <p class="subtitle">Sign in to your account to continue</p>
 
-
         <form action="/_renarde/security/login" method="POST">
-                {#authenticityToken/}
-
             <div class="field-wrap">
                 <label>Username</label>
                 <div class="input-inner">
