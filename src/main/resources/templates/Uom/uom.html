@@ -16,6 +16,16 @@
                 </div>
             </div>
 
+            <div style="margin-bottom: 1rem; max-width: 400px;">
+                <div class="input-field" style="margin: 0;">
+                    <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+                    <input type="text" id="uom-search"
+                           placeholder="Filter UOMs..."
+                           oninput="filterUoms(this.value)"
+                           style="margin-left: 2.5rem;">
+                </div>
+            </div>
+
             <div id="uomTableBody">
                 {#fragment id="rows"}
                     <div id="uomContainer">
@@ -136,6 +146,13 @@
             }
             document.addEventListener('DOMContentLoaded', initUI);
             document.body.addEventListener('htmx:afterOnLoad', initUI);
+
+            function filterUoms(q) {
+                const term = q.toLowerCase();
+                document.querySelectorAll('#uomContainer > div').forEach(function(card) {
+                    card.style.display = card.textContent.toLowerCase().includes(term) ? '' : 'none';
+                });
+            }
         </script>
     {/body}
 {/include}

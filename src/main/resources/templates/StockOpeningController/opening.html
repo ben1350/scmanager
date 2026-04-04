@@ -16,6 +16,18 @@
         </div>
     </div>
 
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:StockOpeningController.opening()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#openingListContainer"
+                   placeholder="Search stock openings..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
     <div id="openingListContainer">
         {#fragment id="rows"}
         <div id="openingContainer">
@@ -64,7 +76,7 @@
                 <ul class="pagination custom-pagination">
                     <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
                         <a {#if page > 1}
-                                hx-get="{uri:StockOpeningController.opening()}?page={page - 1}"
+                                hx-get="{uri:StockOpeningController.opening()}?page={page - 1}&q={q ?: ''}"
                                 hx-target="#openingListContainer"
                                 {/if} style="cursor: pointer;">
                             <i class="material-icons">chevron_left</i>
@@ -72,14 +84,14 @@
                     </li>
                     {#for i in totalPages.range}
                     <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
-                        <a hx-get="{uri:StockOpeningController.opening()}?page={i}"
+                        <a hx-get="{uri:StockOpeningController.opening()}?page={i}&q={q ?: ''}"
                            hx-target="#openingListContainer"
                            style="cursor: pointer;">{i}</a>
                     </li>
                     {/for}
                     <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
                         <a {#if page < totalPages}
-                                hx-get="{uri:StockOpeningController.opening()}?page={page + 1}"
+                                hx-get="{uri:StockOpeningController.opening()}?page={page + 1}&q={q ?: ''}"
                                 hx-target="#openingListContainer"
                                 {/if} style="cursor: pointer;">
                             <i class="material-icons">chevron_right</i>

@@ -30,14 +30,14 @@ public class StockTransactionController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance index(List<StockTransaction> transactions, List<Item> items, int page, int totalPages);
-        public static native TemplateInstance index$rows(List<StockTransaction> transactions, int page, int totalPages);
+        public static native TemplateInstance index(List<StockTransaction> transactions, List<Item> items, int page, int totalPages, String q);
+        public static native TemplateInstance index$rows(List<StockTransaction> transactions, int page, int totalPages, String q);
     }
 
     @GET
-    public TemplateInstance index(@RestQuery Integer page) {
+    public TemplateInstance index(@RestQuery Integer page, @RestQuery String q) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
-        return render(currentPage, isHxRequest());
+        return render(currentPage, isHxRequest(), q);
     }
 
     @POST
@@ -89,7 +89,7 @@ public class StockTransactionController extends HxController {
                             "Use the production or sales workflow.");
         }
 
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
     @POST
@@ -98,19 +98,24 @@ public class StockTransactionController extends HxController {
     public TemplateInstance delete(@RestPath Long id, @RestForm Integer page) {
         onlyHxRequest();
         StockTransaction.deleteById(id);
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
-    private TemplateInstance render(int page, boolean fragmentOnly) {
-        long totalCount = StockTransaction.count();
+    private TemplateInstance render(int page, boolean fragmentOnly, String q) {
+        String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
+        long totalCount = term != null
+                ? StockTransaction.count("lower(item.itemName) like ?1 or lower(referenceNo) like ?1 or lower(batchCode) like ?1", term)
+                : StockTransaction.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
         int currentPage = Math.min(page, totalPages);
 
-        List<StockTransaction> transactions = StockTransaction.find("order by transactionDate desc, id desc")
-                .page(currentPage - 1, PAGE_SIZE).list();
+        List<StockTransaction> transactions = term != null
+                ? StockTransaction.find("(lower(item.itemName) like ?1 or lower(referenceNo) like ?1 or lower(batchCode) like ?1) order by transactionDate desc, id desc", term)
+                        .page(currentPage - 1, PAGE_SIZE).list()
+                : StockTransaction.find("order by transactionDate desc, id desc").page(currentPage - 1, PAGE_SIZE).list();
 
         return fragmentOnly
-                ? Templates.index$rows(transactions, currentPage, totalPages)
-                : Templates.index(transactions, Item.listAll(), currentPage, totalPages);
+                ? Templates.index$rows(transactions, currentPage, totalPages, q)
+                : Templates.index(transactions, Item.listAll(), currentPage, totalPages, q);
     }
 }

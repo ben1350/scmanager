@@ -15,6 +15,18 @@
         </button>
     </div>
 
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:ItemController.index()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#itemListContainer"
+                   placeholder="Search items..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
     <div id="itemListContainer">
         {#fragment id="rows"}
         <div id="insertion-point"></div>
@@ -54,17 +66,17 @@
             <div class="col s12 center-align">
                 <ul class="pagination">
                     <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
-                        <a hx-get="{uri:ItemController.index()}?page={page - 1}" hx-target="#itemListContainer">
+                        <a hx-get="{uri:ItemController.index()}?page={page - 1}&q={q ?: ''}" hx-target="#itemListContainer">
                             <i class="material-icons">chevron_left</i>
                         </a>
                     </li>
                     {#for i in totalPages.range}
                     <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
-                        <a hx-get="{uri:ItemController.index()}?page={i}" hx-target="#itemListContainer">{i}</a>
+                        <a hx-get="{uri:ItemController.index()}?page={i}&q={q ?: ''}" hx-target="#itemListContainer">{i}</a>
                     </li>
                     {/for}
                     <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
-                        <a hx-get="{uri:ItemController.index()}?page={page + 1}" hx-target="#itemListContainer">
+                        <a hx-get="{uri:ItemController.index()}?page={page + 1}&q={q ?: ''}" hx-target="#itemListContainer">
                             <i class="material-icons">chevron_right</i>
                         </a>
                     </li>

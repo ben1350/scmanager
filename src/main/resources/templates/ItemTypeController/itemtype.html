@@ -14,6 +14,16 @@
         </form>
     </div>
 
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" id="type-search"
+                   placeholder="Filter item types..."
+                   oninput="filterTypeTable(this.value)"
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
     <div class="card" style="border-radius: 16px; overflow: hidden;">
         <table class="highlight">
             <tbody id="type-list-body">
@@ -53,5 +63,13 @@
         </td>
     </tr>
 {/fragment}
+<script>
+function filterTypeTable(q) {
+    const term = q.toLowerCase();
+    document.querySelectorAll('#type-list-body tr').forEach(function(row) {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+}
+</script>
 {/body}
 {/include}

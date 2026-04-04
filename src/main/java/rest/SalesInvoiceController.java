@@ -29,8 +29,8 @@ public class SalesInvoiceController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages, String now);
-        public static native TemplateInstance index$rows(List<SalesInvoice> invoices, int page, int totalPages);
+        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages, String now, String q);
+        public static native TemplateInstance index$rows(List<SalesInvoice> invoices, int page, int totalPages, String q);
         public static native TemplateInstance invoiceFormFragment(List<CustomerBranch> branches);
         public static native TemplateInstance invoiceDetail(SalesInvoice invoice, List<Item> availableItems);
         public static native TemplateInstance uomOptions(List<ItemUom> uoms);
@@ -44,11 +44,11 @@ public class SalesInvoiceController extends HxController {
     }
 
     @GET
-    public TemplateInstance index(@RestQuery Integer page) {
+    public TemplateInstance index(@RestQuery Integer page, @RestQuery String q) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
         List<CustomerBranch> branches = CustomerBranch.listAll();
         String today = LocalDate.now().toString();
-        return render(currentPage, isHxRequest(), branches, today);
+        return render(currentPage, isHxRequest(), branches, today, q);
     }
 
     @POST
@@ -73,7 +73,7 @@ public class SalesInvoiceController extends HxController {
         invoice.status = SalesInvoice.InvoiceStatus.DRAFT;
         invoice.persistAndFlush();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString());
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
     }
 
     @GET
@@ -144,7 +144,7 @@ public class SalesInvoiceController extends HxController {
         if (invoice == null) throw new NotFoundException();
 
         if (!invoice.isEditable()) {
-            return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString());
+            return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
         }
 
         // Post stock OUT for each line
@@ -153,7 +153,7 @@ public class SalesInvoiceController extends HxController {
         invoice.status = SalesInvoice.InvoiceStatus.CONFIRMED;
         invoice.persist();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString());
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
     }
 
     /**
@@ -176,7 +176,7 @@ public class SalesInvoiceController extends HxController {
         invoice.status = SalesInvoice.InvoiceStatus.CANCELLED;
         invoice.persist();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString());
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
     }
 
 
@@ -204,19 +204,23 @@ public class SalesInvoiceController extends HxController {
             invoice.persist();
         }
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString());
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
     }
 
 
-    private TemplateInstance render(int page, boolean fragmentOnly, List<CustomerBranch> branches, String today) {
-        long totalCount = SalesInvoice.count();
+    private TemplateInstance render(int page, boolean fragmentOnly, List<CustomerBranch> branches, String today, String q) {
+        String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
+        long totalCount = term != null
+                ? SalesInvoice.count("lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1", term)
+                : SalesInvoice.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
         int currentPage = Math.min(page, totalPages);
-        List<SalesInvoice> invoices = SalesInvoice
-                .find("order by invoiceDate desc, id desc")
-                .page(currentPage - 1, PAGE_SIZE).list();
+        List<SalesInvoice> invoices = term != null
+                ? SalesInvoice.find("(lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1) order by invoiceDate desc, id desc", term)
+                        .page(currentPage - 1, PAGE_SIZE).list()
+                : SalesInvoice.find("order by invoiceDate desc, id desc").page(currentPage - 1, PAGE_SIZE).list();
         return fragmentOnly
-                ? Templates.index$rows(invoices, currentPage, totalPages)
-                : Templates.index(invoices, branches, currentPage, totalPages, today);
+                ? Templates.index$rows(invoices, currentPage, totalPages, q)
+                : Templates.index(invoices, branches, currentPage, totalPages, today, q);
     }
 }

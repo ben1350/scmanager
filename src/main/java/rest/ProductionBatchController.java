@@ -32,17 +32,17 @@ public class ProductionBatchController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance batch(List<ProductionBatch> batches, List<Item> items, int page, int totalPages);
-        public static native TemplateInstance batch$rows(List<ProductionBatch> batches, int page, int totalPages);
+        public static native TemplateInstance batch(List<ProductionBatch> batches, List<Item> items, int page, int totalPages, String q);
+        public static native TemplateInstance batch$rows(List<ProductionBatch> batches, int page, int totalPages, String q);
         public static native TemplateInstance batchFormFragment(List<Item> items);
         public static native TemplateInstance consumptionDetail(ProductionBatch batch, List<Item> rawItems);
         public static native TemplateInstance editQtyForm(ProductionBatch batch);
     }
 
     @GET
-    public TemplateInstance batch(@RestQuery Integer page) {
+    public TemplateInstance batch(@RestQuery Integer page, @RestQuery String q) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
-        return render(currentPage, isHxRequest());
+        return render(currentPage, isHxRequest(), q);
     }
 
     @GET
@@ -79,7 +79,7 @@ public class ProductionBatchController extends HxController {
         batch.outputQty = outputQty;
         batch.persist();
 
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
     @POST
@@ -100,19 +100,24 @@ public class ProductionBatchController extends HxController {
             }
         }
 
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
 
-    private TemplateInstance render(int page, boolean fragmentOnly) {
-        long totalCount = ProductionBatch.count();
+    private TemplateInstance render(int page, boolean fragmentOnly, String q) {
+        String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
+        long totalCount = term != null
+                ? ProductionBatch.count("lower(batchCode) like ?1 or lower(finishedItem.itemName) like ?1", term)
+                : ProductionBatch.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
-        List<ProductionBatch> batches = ProductionBatch.find("order by productionDate desc")
-                .page(page - 1, PAGE_SIZE).list();
+        List<ProductionBatch> batches = term != null
+                ? ProductionBatch.find("(lower(batchCode) like ?1 or lower(finishedItem.itemName) like ?1) order by productionDate desc", term)
+                        .page(page - 1, PAGE_SIZE).list()
+                : ProductionBatch.find("order by productionDate desc").page(page - 1, PAGE_SIZE).list();
 
         return fragmentOnly
-                ? Templates.batch$rows(batches, page, totalPages)
-                : Templates.batch(batches, Item.listAll(), page, totalPages);
+                ? Templates.batch$rows(batches, page, totalPages, q)
+                : Templates.batch(batches, Item.listAll(), page, totalPages, q);
     }
 
     @GET
@@ -139,7 +144,7 @@ public class ProductionBatchController extends HxController {
 
         }
         // Return the updated rows to refresh the UI
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
 
@@ -159,7 +164,7 @@ public class ProductionBatchController extends HxController {
         finishedEvent.fire(new ProductionFinishedEvent(batch, batch.outputQty));
 
         // Return the updated rows fragment
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 }
 
