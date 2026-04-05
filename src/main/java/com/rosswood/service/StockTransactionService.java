@@ -23,9 +23,11 @@ public class StockTransactionService {
     /**
      * Post finished good output when a batch is finished.
      * Copies batchCode and expiryDate onto the transaction for traceability.
+     * unitCost is the rolled-up production cost per unit (total raw material cost / output qty).
+     * If provided, the finished item's WAC is recalculated.
      */
     @Transactional
-    public StockTransaction postProductionOutput(ProductionBatch batch, BigDecimal qty) {
+    public StockTransaction postProductionOutput(ProductionBatch batch, BigDecimal qty, BigDecimal unitCost) {
         StockTransaction tx = new StockTransaction();
         tx.item             = batch.finishedItem;
         tx.quantity         = qty;
@@ -37,7 +39,12 @@ public class StockTransactionService {
         tx.expiryDate       = batch.expiryDate;
         tx.uomCode          = uomOf(batch.finishedItem);
         tx.referenceNo      = batch.batchCode;
+        tx.unitCost         = unitCost;
         tx.persist();
+
+        if (unitCost != null) {
+            recalculateWac(batch.finishedItem, qty, unitCost);
+        }
         return tx;
     }
 
