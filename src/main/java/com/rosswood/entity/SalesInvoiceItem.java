@@ -46,10 +46,26 @@ public class SalesInvoiceItem extends AuditableEntity {
     @Column(name = "line_total_inc_vat", precision = 12, scale = 2)
     public BigDecimal lineTotalIncVat;
 
+    /**
+     * Line-level discount percentage (e.g. 10.00 for 10%).
+     * Applied to unitPriceExVat before calculating the line total.
+     * Null / zero means no discount.
+     */
+    @Column(name = "discount_pct", precision = 5, scale = 2)
+    public BigDecimal discountPct;
+
     // ── Helper ────────────────────────────────────────────────────────────
 
     public void calculate() {
-        this.lineTotal = this.unitPriceExVat
+        BigDecimal effectivePrice = this.unitPriceExVat;
+        if (this.discountPct != null && this.discountPct.compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal discountAmount = effectivePrice
+                    .multiply(this.discountPct)
+                    .divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+            effectivePrice = effectivePrice.subtract(discountAmount);
+        }
+
+        this.lineTotal = effectivePrice
                 .multiply(this.quantity)
                 .setScale(2, RoundingMode.HALF_UP);
 

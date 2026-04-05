@@ -13,6 +13,9 @@
                     <div style="font-weight: 700; color: #333; font-size: 0.9rem;">{item.item.itemName}</div>
                     <div style="color: #757575; font-size: 0.8rem;">
                         {item.quantity} {item.uom.uomCode} &times; GHS {item.unitPriceExVat}
+                        {#if item.discountPct != null && item.discountPct > 0}
+                            <span style="color: #e65100; font-weight: 700; margin-left: 4px;">-{item.discountPct}%</span>
+                        {/if}
                     </div>
                     {#if item.vatRate != null && item.vatRate > 0}
                         <div style="color: #9e9e9e; font-size: 0.75rem;">
@@ -41,6 +44,7 @@
             <div style="display: flex; gap: 12px; align-items: center; background: white; padding: 8px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
 
                 <select name="itemId"
+                        id="item-select-{invoice.id}"
                         hx-get="/invoices/item/uoms"
                         hx-vals='js:{"itemId": event.target.value}'
                         hx-trigger="change"
@@ -48,7 +52,9 @@
                         style="border: none; flex: 2; height: 35px; padding-left: 15px; font-weight: 600; background: none;">
                     <option value="" disabled selected>Select Product</option>
                     {#for ai in availableItems}
-                    <option value="{ai.id}">{ai.itemName}</option>
+                    <option value="{ai.id}"
+                            data-price="{ai.sellingPriceExVat ?: ''}"
+                            data-vat="{ai.vatRate ?: ''}">{ai.itemName}</option>
                     {/for}
                 </select>
 
@@ -66,12 +72,17 @@
 
                 <div style="width: 1px; height: 20px; background: #eee;"></div>
 
-                <input name="unitPriceExVat" type="number" step="0.01" placeholder="Price (ex-VAT)" required
+                <input name="unitPriceExVat" id="price-{invoice.id}" type="number" step="0.0001" placeholder="Price (ex-VAT)" required
                        style="border: none !important; box-shadow: none !important; flex: 0.8; margin: 0; height: 35px;">
 
                 <div style="width: 1px; height: 20px; background: #eee;"></div>
 
-                <input name="vatRate" type="number" step="0.01" placeholder="VAT %" value="20"
+                <input name="discountPct" type="number" step="0.01" min="0" max="100" placeholder="Disc %"
+                       style="border: none !important; box-shadow: none !important; flex: 0.5; margin: 0; height: 35px; color: #e65100;">
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="vatRate" id="vat-{invoice.id}" type="number" step="0.01" placeholder="VAT %" value="20"
                        style="border: none !important; box-shadow: none !important; flex: 0.5; margin: 0; height: 35px;">
 
                 <button type="submit" hx-disabled-elt="this" class="btn blue darken-2"
@@ -79,6 +90,21 @@
             </div>
         </form>
     </div>
+    <script>
+    (function() {
+        var sel = document.getElementById('item-select-{invoice.id}');
+        if (!sel) return;
+        sel.addEventListener('change', function() {
+            var opt = this.options[this.selectedIndex];
+            var price = opt.getAttribute('data-price');
+            var vat   = opt.getAttribute('data-vat');
+            var priceEl = document.getElementById('price-{invoice.id}');
+            var vatEl   = document.getElementById('vat-{invoice.id}');
+            if (priceEl && price !== null && price !== '') priceEl.value = price;
+            if (vatEl   && vat   !== null && vat   !== '') vatEl.value   = vat;
+        });
+    })();
+    </script>
     {#else}
     <div style="margin-top: 1.5rem; padding: 0.8rem 1rem; background: rgba(0,0,0,0.03); border-radius: 10px; text-align: center;" class="grey-text">
         <i class="material-icons" style="vertical-align: middle; font-size: 1.1rem; margin-right: 6px;">lock</i>
