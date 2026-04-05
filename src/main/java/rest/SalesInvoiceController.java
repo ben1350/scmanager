@@ -29,8 +29,8 @@ public class SalesInvoiceController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages, String now, String q);
-        public static native TemplateInstance index$rows(List<SalesInvoice> invoices, int page, int totalPages, String q);
+        public static native TemplateInstance index(List<SalesInvoice> invoices, List<CustomerBranch> branches, int page, int totalPages, String now, String q, String errorMessage);
+        public static native TemplateInstance index$rows(List<SalesInvoice> invoices, int page, int totalPages, String q, String errorMessage);
         public static native TemplateInstance invoiceFormFragment(List<CustomerBranch> branches);
         public static native TemplateInstance invoiceDetail(SalesInvoice invoice, List<Item> availableItems);
         public static native TemplateInstance uomOptions(List<ItemUom> uoms);
@@ -48,7 +48,7 @@ public class SalesInvoiceController extends HxController {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
         List<CustomerBranch> branches = CustomerBranch.listAll();
         String today = LocalDate.now().toString();
-        return render(currentPage, isHxRequest(), branches, today, q);
+        return render(currentPage, isHxRequest(), branches, today, q, null);
     }
 
     @POST
@@ -59,6 +59,7 @@ public class SalesInvoiceController extends HxController {
             @RestForm Long branchId,
             @RestForm String invoiceDate,
             @RestForm String remarks,
+            @RestForm String paymentMethod,
             @RestForm Integer page
     ) {
         onlyHxRequest();
@@ -71,9 +72,14 @@ public class SalesInvoiceController extends HxController {
         invoice.invoiceDate = LocalDate.parse(invoiceDate);
         invoice.remarks = remarks;
         invoice.status = SalesInvoice.InvoiceStatus.DRAFT;
+        try {
+            invoice.paymentMethod = SalesInvoice.PaymentMethod.valueOf(paymentMethod);
+        } catch (Exception e) {
+            invoice.paymentMethod = SalesInvoice.PaymentMethod.CASH;
+        }
         invoice.persistAndFlush();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
     }
 
     @GET
@@ -135,6 +141,7 @@ public class SalesInvoiceController extends HxController {
     /**
      * Confirm invoice — posts stock OUT transactions for each line item.
      * Once confirmed the invoice is locked for editing.
+     * Credit invoices are validated against the customer's credit limit before confirmation.
      */
     @POST
     @Path("/{id}/confirm")
@@ -146,7 +153,28 @@ public class SalesInvoiceController extends HxController {
         if (invoice == null) throw new NotFoundException();
 
         if (!invoice.isEditable()) {
-            return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
+            return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
+        }
+
+        // Credit limit check — only applies when payment method is CREDIT
+        if (invoice.paymentMethod == SalesInvoice.PaymentMethod.CREDIT) {
+            com.rosswood.entity.Customer customer = invoice.customerBranch.customer;
+
+            if (customer.customerType != com.rosswood.entity.Customer.CustomerType.CREDIT) {
+                String error = customer.name + " is a CASH customer and cannot be invoiced on credit.";
+                return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, error);
+            }
+
+            if (customer.creditLimit != null) {
+                java.math.BigDecimal outstanding = SalesInvoice.outstandingCreditBalance(customer.id);
+                java.math.BigDecimal newTotal    = outstanding.add(invoice.totalAmount);
+                if (newTotal.compareTo(customer.creditLimit) > 0) {
+                    String error = String.format(
+                            "Credit limit exceeded for %s. Limit: GHS %s | Outstanding: GHS %s | This invoice: GHS %s",
+                            customer.name, customer.creditLimit, outstanding, invoice.totalAmount);
+                    return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, error);
+                }
+            }
         }
 
         // Post stock OUT for each line
@@ -155,7 +183,7 @@ public class SalesInvoiceController extends HxController {
         invoice.status = SalesInvoice.InvoiceStatus.CONFIRMED;
         invoice.persist();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
     }
 
     /**
@@ -178,7 +206,7 @@ public class SalesInvoiceController extends HxController {
         invoice.status = SalesInvoice.InvoiceStatus.CANCELLED;
         invoice.persist();
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
     }
 
 
@@ -206,11 +234,11 @@ public class SalesInvoiceController extends HxController {
             invoice.persist();
         }
 
-        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null);
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
     }
 
 
-    private TemplateInstance render(int page, boolean fragmentOnly, List<CustomerBranch> branches, String today, String q) {
+    private TemplateInstance render(int page, boolean fragmentOnly, List<CustomerBranch> branches, String today, String q, String errorMessage) {
         String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
         long totalCount = term != null
                 ? SalesInvoice.count("lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1", term)
@@ -222,7 +250,7 @@ public class SalesInvoiceController extends HxController {
                         .page(currentPage - 1, PAGE_SIZE).list()
                 : SalesInvoice.find("order by invoiceDate desc, id desc").page(currentPage - 1, PAGE_SIZE).list();
         return fragmentOnly
-                ? Templates.index$rows(invoices, currentPage, totalPages, q)
-                : Templates.index(invoices, branches, currentPage, totalPages, today, q);
+                ? Templates.index$rows(invoices, currentPage, totalPages, q, errorMessage)
+                : Templates.index(invoices, branches, currentPage, totalPages, today, q, errorMessage);
     }
 }

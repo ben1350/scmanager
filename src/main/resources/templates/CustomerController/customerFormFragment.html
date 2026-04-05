@@ -36,6 +36,31 @@
                     <label for="new_cust_addr">Primary Physical Address</label>
                 </div>
             </div>
+
+            <div class="row" style="margin-top: 0.5rem;">
+                <div class="col s6">
+                    <label style="font-size: 0.8rem; color: #9e9e9e; font-weight: 700; display: block; margin-bottom: 8px;">Customer Type</label>
+                    <div style="display: flex; gap: 1rem;">
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="customerType" value="CASH" checked
+                                   onchange="toggleCreditLimit(this.value)"
+                                   class="with-gap">
+                            <span style="font-weight: 600;">CASH</span>
+                        </label>
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="customerType" value="CREDIT"
+                                   onchange="toggleCreditLimit(this.value)"
+                                   class="with-gap">
+                            <span style="font-weight: 600;">CREDIT</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="input-field col s6" id="creditLimitField" style="display: none;">
+                    <i class="material-icons prefix">account_balance</i>
+                    <input name="creditLimit" id="new_cust_limit" type="number" step="0.01" min="0">
+                    <label for="new_cust_limit">Credit Limit (GHS)</label>
+                </div>
+            </div>
         </div>
 
         <div class="card-action right-align" style="background: rgba(0,0,0,0.02); border-top: 1px solid #eee;">
@@ -49,4 +74,13 @@
         </div>
     </form>
 </div>
-<script>M.updateTextFields();</script>
+<script>
+M.updateTextFields();
+function toggleCreditLimit(type) {
+    var field = document.getElementById('creditLimitField');
+    if (!field) return;
+    field.style.display = type === 'CREDIT' ? '' : 'none';
+    var input = document.getElementById('new_cust_limit');
+    if (type !== 'CREDIT' && input) input.value = '';
+}
+</script>

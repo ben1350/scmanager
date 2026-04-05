@@ -1,0 +1,3 @@
+ALTER TABLE customer ADD COLUMN customer_type VARCHAR(20) NOT NULL DEFAULT 'CASH';
+ALTER TABLE customer ADD COLUMN credit_limit DECIMAL(12,2);
+ALTER TABLE sales_invoice ADD COLUMN payment_method VARCHAR(20) NOT NULL DEFAULT 'CASH';

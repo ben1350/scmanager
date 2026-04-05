@@ -28,6 +28,12 @@
 
     <div id="invoiceListContainer">
         {#fragment id="rows"}
+        {#if errorMessage != null}
+        <div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:10px;padding:12px 18px;margin-bottom:1rem;display:flex;align-items:center;gap:10px;">
+            <i class="material-icons" style="color:#c62828;">error_outline</i>
+            <span style="color:#c62828;font-weight:600;font-size:0.9rem;">{errorMessage}</span>
+        </div>
+        {/if}
         <div id="insertion-point"></div>
 
         <div id="invoiceContainer">
@@ -60,6 +66,11 @@
                                     background: {inv.status.name() == 'CONFIRMED' ? '#e8f5e9' : inv.status.name() == 'DELIVERED' ? '#e3f2fd' : inv.status.name() == 'CANCELLED' ? '#fce4ec' : '#fff8e1'};
                                     color: {inv.status.name() == 'CONFIRMED' ? '#2e7d32' : inv.status.name() == 'DELIVERED' ? '#1565c0' : inv.status.name() == 'CANCELLED' ? '#c62828' : '#f57f17'};">
                                 {inv.status.name()}
+                            </span>
+                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+                                    background: {inv.paymentMethod.name() == 'CREDIT' ? '#e3f2fd' : inv.paymentMethod.name() == 'MOMO' ? '#f3e5f5' : inv.paymentMethod.name() == 'CHEQUE' ? '#fff8e1' : '#f1f8e9'};
+                                    color: {inv.paymentMethod.name() == 'CREDIT' ? '#1565c0' : inv.paymentMethod.name() == 'MOMO' ? '#6a1b9a' : inv.paymentMethod.name() == 'CHEQUE' ? '#f57f17' : '#33691e'};">
+                                {inv.paymentMethod.name()}
                             </span>
                             {#if inv.vatInvoiceNo}
                             <span style="background: #f3e5f5; color: #6a1b9a; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700;">
