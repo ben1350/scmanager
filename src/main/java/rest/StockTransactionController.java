@@ -50,6 +50,7 @@ public class StockTransactionController extends HxController {
             @RestForm String transactionDate,
             @RestForm String referenceNo,
             @RestForm String remarks,
+            @RestForm BigDecimal unitCost,
             @RestForm Integer page
     ) {
         onlyHxRequest();
@@ -61,7 +62,7 @@ public class StockTransactionController extends HxController {
             case PURCHASE ->
                     stockService.postPurchase(item, quantity,
                             item.uom != null ? item.uom.uomCode : null,
-                            referenceNo, date, remarks);
+                            referenceNo, date, remarks, unitCost);
 
             case OPENING_STOCK -> {
                 StockOpening opening = new StockOpening();

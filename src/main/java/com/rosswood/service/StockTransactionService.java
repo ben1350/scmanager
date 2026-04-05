@@ -7,6 +7,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 /**
@@ -64,6 +65,7 @@ public class StockTransactionService {
     /**
      * Post stock OUT for each line item when an invoice is confirmed.
      * batchCode on the invoice line links the sale back to the source batch.
+     * unitCost is stamped with the item's current WAC as a COGS snapshot.
      */
     @Transactional
     public StockTransaction postSale(SalesInvoice invoice, SalesInvoiceItem line) {
@@ -77,6 +79,7 @@ public class StockTransactionService {
         tx.batchCode        = line.batchCode;
         tx.uomCode          = line.uom != null ? line.uom.uomCode : uomOf(line.item);
         tx.referenceNo      = invoice.invoiceNo;
+        tx.unitCost         = line.item.averageCost; // COGS snapshot at time of sale
         tx.persist();
         return tx;
     }
@@ -105,10 +108,12 @@ public class StockTransactionService {
 
     /**
      * Post stock IN for a purchase (raw materials arriving).
+     * If unitCost is provided, the item's weighted average cost is recalculated.
      */
     @Transactional
     public StockTransaction postPurchase(Item item, BigDecimal qty, String uomCode,
-                                         String referenceNo, LocalDate date, String remarks) {
+                                         String referenceNo, LocalDate date, String remarks,
+                                         BigDecimal unitCost) {
         StockTransaction tx = new StockTransaction();
         tx.item             = item;
         tx.quantity         = qty;
@@ -118,7 +123,12 @@ public class StockTransactionService {
         tx.uomCode          = uomCode != null ? uomCode : uomOf(item);
         tx.referenceNo      = referenceNo;
         tx.remarks          = remarks;
+        tx.unitCost         = unitCost;
         tx.persist();
+
+        if (unitCost != null) {
+            recalculateWac(item, qty, unitCost);
+        }
         return tx;
     }
 
@@ -126,6 +136,7 @@ public class StockTransactionService {
 
     /**
      * Post opening stock balance for an item on a given date.
+     * If StockOpening.unitCost is set, seeds/updates the item's WAC.
      */
     @Transactional
     public StockTransaction postOpeningStock(StockOpening opening) {
@@ -138,7 +149,12 @@ public class StockTransactionService {
         tx.uomCode          = uomOf(opening.item);
         tx.referenceNo      = "OPENING-" + opening.stockDate;
         tx.remarks          = "Opening stock entry";
+        tx.unitCost         = opening.unitCost;
         tx.persist();
+
+        if (opening.unitCost != null) {
+            recalculateWac(opening.item, opening.openingQty, opening.unitCost);
+        }
         return tx;
     }
 
@@ -223,7 +239,36 @@ public class StockTransactionService {
         return tx;
     }
 
-    // ── Private helper ────────────────────────────────────────────────────
+    // ── Private helpers ───────────────────────────────────────────────────
+
+    /**
+     * Recalculate and persist the weighted average cost on an item.
+     *
+     * Formula: newWAC = (priorQty × priorWAC + incomingQty × incomingCost)
+     *                   / (priorQty + incomingQty)
+     *
+     * Called AFTER tx.persist(), so stockOnHand() already includes the new IN row.
+     * We subtract incomingQty to recover the balance that existed beforehand.
+     *
+     * Edge cases:
+     *   - priorQty <= 0 or item.averageCost == null → use incomingCost directly
+     */
+    private void recalculateWac(Item item, BigDecimal incomingQty, BigDecimal incomingCost) {
+        BigDecimal totalAfter = StockTransaction.stockOnHand(item.id);
+        BigDecimal priorQty   = totalAfter.subtract(incomingQty);
+
+        BigDecimal newWac;
+        if (priorQty.compareTo(BigDecimal.ZERO) <= 0 || item.averageCost == null) {
+            newWac = incomingCost;
+        } else {
+            BigDecimal numerator   = priorQty.multiply(item.averageCost)
+                                             .add(incomingQty.multiply(incomingCost));
+            BigDecimal denominator = priorQty.add(incomingQty);
+            newWac = numerator.divide(denominator, 4, RoundingMode.HALF_UP);
+        }
+        item.averageCost = newWac;
+        item.persist();
+    }
 
     private String uomOf(Item item) {
         return (item != null && item.uom != null) ? item.uom.uomCode : null;
