@@ -104,7 +104,8 @@ public class SalesInvoiceController extends HxController {
             @RestForm @NotNull Long uomId,
             @RestForm @NotNull BigDecimal quantity,
             @RestForm @NotNull BigDecimal unitPriceExVat,
-            @RestForm BigDecimal vatRate
+            @RestForm BigDecimal vatRate,
+            @RestForm BigDecimal discountPct
     ) {
         onlyHxRequest();
 
@@ -122,6 +123,7 @@ public class SalesInvoiceController extends HxController {
         line.quantity       = quantity;
         line.unitPriceExVat = unitPriceExVat;
         line.vatRate        = vatRate != null ? vatRate : BigDecimal.ZERO;
+        line.discountPct    = (discountPct != null && discountPct.compareTo(BigDecimal.ZERO) > 0) ? discountPct : null;
         line.calculate();   // computes lineTotal, vatAmount, lineTotalIncVat
 
         invoice.addItem(line); // adds line and calls recalculateTotals()
