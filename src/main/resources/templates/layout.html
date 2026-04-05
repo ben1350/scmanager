@@ -261,7 +261,8 @@
             </div>
           </li>
           <li style="display:flex;align-items:center;padding:0 4px;">
-            <form action="/_renarde/security/logout" method="GET" style="margin:0;">
+            <form action="/_renarde/security/logout" method="POST" style="margin:0;">
+              {#authenticityToken/}
               <button type="submit" class="signout-btn">
                 <i class="material-icons">logout</i> Sign out
               </button>
@@ -293,7 +294,8 @@
     <li><a href="/admin/users"><i class="material-icons">manage_accounts</i>Users</a></li>
     <li class="divider"></li>
     <li>
-      <form action="/_renarde/security/logout" method="GET" style="padding:12px 1.5rem;">
+      <form action="/_renarde/security/logout" method="POST" style="padding:12px 1.5rem;">
+        {#authenticityToken/}
         <button type="submit" class="signout-btn" style="width:100%;justify-content:center;">
           <i class="material-icons">logout</i> Sign Out
         </button>
