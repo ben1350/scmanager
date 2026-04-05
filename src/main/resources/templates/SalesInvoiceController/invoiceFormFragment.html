@@ -16,12 +16,24 @@
                     <input name="invoiceDate" id="inv_date" type="text" class="datepicker" required>
                     <label for="inv_date">Date</label>
                 </div>
-                <div class="input-field col s6">
-                    <select name="branchId"  style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                <div class="input-field col s4">
+                    <select name="branchId" id="inv-branch-select"
+                            onchange="updatePaymentOptions(this)"
+                            style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
                         <option value="" disabled selected>Select Customer — Branch</option>
                         {#for branch in branches}
-                            <option value="{branch.id}">{branch.customer.name} — {branch.branchName}</option>
+                            <option value="{branch.id}"
+                                    data-type="{branch.customer.customerType.name()}">{branch.customer.name} — {branch.branchName}</option>
                         {/for}
+                    </select>
+                </div>
+                <div class="input-field col s2">
+                    <select name="paymentMethod" id="inv-payment-select"
+                            style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                        <option value="CASH">Cash</option>
+                        <option value="MOMO">MoMo</option>
+                        <option value="CHEQUE">Cheque</option>
+                        <option value="CREDIT" id="credit-option">Credit</option>
                     </select>
                 </div>
             </div>
@@ -42,4 +54,21 @@
         });
         M.updateTextFields();
     })();
+
+    function updatePaymentOptions(branchSel) {
+        var opt     = branchSel.options[branchSel.selectedIndex];
+        var type    = opt ? opt.getAttribute('data-type') : 'CASH';
+        var creditOpt = document.getElementById('credit-option');
+        var paymentSel = document.getElementById('inv-payment-select');
+        if (!creditOpt || !paymentSel) return;
+        if (type === 'CREDIT') {
+            creditOpt.disabled = false;
+            creditOpt.style.display = '';
+        } else {
+            // If CREDIT was selected, revert to CASH
+            if (paymentSel.value === 'CREDIT') paymentSel.value = 'CASH';
+            creditOpt.disabled = true;
+            creditOpt.style.display = 'none';
+        }
+    }
 </script>

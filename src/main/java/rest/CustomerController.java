@@ -1,6 +1,7 @@
 package rest;
 
 import com.rosswood.entity.Customer;
+import com.rosswood.entity.Customer.CustomerType;
 import com.rosswood.entity.CustomerBranch;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
@@ -14,6 +15,7 @@ import org.jboss.resteasy.reactive.RestForm;
 import org.jboss.resteasy.reactive.RestPath;
 import org.jboss.resteasy.reactive.RestQuery;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -56,6 +58,8 @@ public class CustomerController extends HxController {
             @RestForm String address,
             @RestForm String email,
             @RestForm String phone,
+            @RestForm String customerType,
+            @RestForm BigDecimal creditLimit,
             @RestForm Integer page
     ) {
         onlyHxRequest();
@@ -67,6 +71,9 @@ public class CustomerController extends HxController {
         customer.address = address;
         customer.email = email;
         customer.phone = phone;
+        customer.customerType = (customerType != null && customerType.equals("CREDIT"))
+                ? CustomerType.CREDIT : CustomerType.CASH;
+        customer.creditLimit = (customer.customerType == CustomerType.CREDIT) ? creditLimit : null;
         customer.persist();
 
         // Refresh only the rows fragment; #insertion-point will naturally be empty again

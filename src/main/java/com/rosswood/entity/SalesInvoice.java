@@ -47,6 +47,15 @@ public class SalesInvoice extends AuditableEntity {
     @Column(name = "status", nullable = false)
     public InvoiceStatus status = InvoiceStatus.DRAFT;
 
+    /**
+     * How the customer is paying for this invoice.
+     * CREDIT means the amount is added to the customer's outstanding credit balance.
+     * For CASH customers only CASH/MOMO/CHEQUE are permitted.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", nullable = false)
+    public PaymentMethod paymentMethod = PaymentMethod.CASH;
+
     @Column(name = "total_amount_ex_vat", precision = 12, scale = 2)
     public BigDecimal totalAmountExVat = BigDecimal.ZERO;
 
@@ -61,7 +70,7 @@ public class SalesInvoice extends AuditableEntity {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     public List<SalesInvoiceItem> items = new ArrayList<>();
 
-    // ── Enum ──────────────────────────────────────────────────────────────
+    // ── Enums ─────────────────────────────────────────────────────────────
     public enum InvoiceStatus {
         /** Being built — editable, no stock impact yet */
         DRAFT,
@@ -71,6 +80,10 @@ public class SalesInvoice extends AuditableEntity {
         DELIVERED,
         /** Voided — reverse stock transactions posted */
         CANCELLED
+    }
+
+    public enum PaymentMethod {
+        CASH, MOMO, CHEQUE, CREDIT
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────
@@ -114,6 +127,19 @@ public class SalesInvoice extends AuditableEntity {
     public static List<SalesInvoice> findUndelivered() {
         return list("status = ?1 AND deliveryDate IS NULL ORDER BY invoiceDate ASC",
                 InvoiceStatus.CONFIRMED);
+    }
+
+    /**
+     * Sum of all outstanding credit invoices (CONFIRMED or DELIVERED) for a customer.
+     * Used to enforce credit limits before confirming a new credit invoice.
+     */
+    public static BigDecimal outstandingCreditBalance(Long customerId) {
+        List<SalesInvoice> invoices = list(
+                "customerBranch.customer.id = ?1 and paymentMethod = ?2 and (status = ?3 or status = ?4)",
+                customerId, PaymentMethod.CREDIT, InvoiceStatus.CONFIRMED, InvoiceStatus.DELIVERED);
+        return invoices.stream()
+                .map(i -> i.totalAmount != null ? i.totalAmount : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }
 
