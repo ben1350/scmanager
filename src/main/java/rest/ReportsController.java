@@ -25,7 +25,8 @@ public class ReportsController extends HxController {
         public static native TemplateInstance index();
         public static native TemplateInstance stockOnHand(List<StockSummaryRow> rows, LocalDate asOf,
                                                           long lowStockCount, long outOfStockCount,
-                                                          LocalDate in7days, LocalDate in30days);
+                                                          LocalDate in7days, LocalDate in30days,
+                                                          BigDecimal totalStockValue);
         public static native TemplateInstance stockByLot(List<LotRow> lots, Item item,
                                                          LocalDate in7days, LocalDate in30days);
         public static native TemplateInstance salesSummary(List<SalesInvoice> invoices,
@@ -54,8 +55,12 @@ public class ReportsController extends HxController {
         long lowStock    = rows.stream().filter(r -> r.qty().compareTo(BigDecimal.TEN) < 0
                 && r.qty().compareTo(BigDecimal.ZERO) > 0).count();
         long outOfStock  = rows.stream().filter(r -> r.qty().compareTo(BigDecimal.ZERO) <= 0).count();
+        BigDecimal totalStockValue = rows.stream()
+                .filter(r -> r.stockValue() != null)
+                .map(StockSummaryRow::stockValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         return Templates.stockOnHand(rows, LocalDate.now(), lowStock, outOfStock,
-                LocalDate.now().plusDays(7), LocalDate.now().plusDays(30));
+                LocalDate.now().plusDays(7), LocalDate.now().plusDays(30), totalStockValue);
     }
 
     @GET

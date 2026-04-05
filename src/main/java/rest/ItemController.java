@@ -27,17 +27,17 @@ public class ItemController extends HxController {
 
     @CheckedTemplate(requireTypeSafeExpressions = false)
     public static class Templates {
-        public static native TemplateInstance index(List<Item> items, List<ItemType> itemTypes, List<UnitOfMeasure> uoms, int page, int totalPages);
-        public static native TemplateInstance index$rows(List<Item> items, int page, int totalPages);
+        public static native TemplateInstance index(List<Item> items, List<ItemType> itemTypes, List<UnitOfMeasure> uoms, int page, int totalPages, String q);
+        public static native TemplateInstance index$rows(List<Item> items, int page, int totalPages, String q);
         public static native TemplateInstance itemFormFragment(List<ItemType> itemTypes, List<UnitOfMeasure> uoms, int page);
         // Updated to include both global uoms (for selection) and item-specific itemUoms (for display/conversions)
         public static native TemplateInstance itemDetailPane(Item item, List<UnitOfMeasure> uoms, List<ItemUom> itemUoms, List<ItemUomConversion> itemConversions);
     }
 
     @GET
-    public TemplateInstance index(@RestQuery Integer page) {
+    public TemplateInstance index(@RestQuery Integer page, @RestQuery String q) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
-        return render(currentPage, isHxRequest());
+        return render(currentPage, isHxRequest(), q);
     }
 
     @GET
@@ -74,7 +74,7 @@ public class ItemController extends HxController {
         itemUom.persist();
 
 
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
     @GET
@@ -140,16 +140,21 @@ public class ItemController extends HxController {
         return Templates.itemDetailPane(item, allUoms, itemUoms, convs);
     }
 
-    private TemplateInstance render(int page, boolean fragmentOnly) {
-        long totalCount = Item.count();
+    private TemplateInstance render(int page, boolean fragmentOnly, String q) {
+        String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
+        long totalCount = term != null
+                ? Item.count("lower(itemCode) like ?1 or lower(itemName) like ?1", term)
+                : Item.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
         int currentPage = Math.min(page, totalPages);
 
-        List<Item> items = Item.find("order by createdAt desc")
-                .page(currentPage - 1, PAGE_SIZE).list();
+        List<Item> items = term != null
+                ? Item.find("(lower(itemCode) like ?1 or lower(itemName) like ?1) order by createdAt desc", term)
+                        .page(currentPage - 1, PAGE_SIZE).list()
+                : Item.find("order by createdAt desc").page(currentPage - 1, PAGE_SIZE).list();
 
         return fragmentOnly
-                ? Templates.index$rows(items, currentPage, totalPages)
-                : Templates.index(items, ItemType.listAll(), UnitOfMeasure.listAll(), currentPage, totalPages);
+                ? Templates.index$rows(items, currentPage, totalPages, q)
+                : Templates.index(items, ItemType.listAll(), UnitOfMeasure.listAll(), currentPage, totalPages, q);
     }
 }

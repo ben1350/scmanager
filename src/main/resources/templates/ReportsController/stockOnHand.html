@@ -30,7 +30,7 @@
             .exp-ok     { background:#f0fdf4; color:#059669; }
             .lot-link { color:#2563eb; text-decoration:none; font-size:.75rem; font-weight:600; }
             .lot-link:hover { text-decoration:underline; }
-            .summary-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+            .summary-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; margin-bottom:1.5rem; }
             .summary-tile { background:white; border:1px solid #e2e8f0; border-radius:12px; padding:1rem 1.2rem; }
             .summary-tile-label { font-size:.65rem; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#94a3b8; }
             .summary-tile-value { font-size:1.6rem; font-weight:800; letter-spacing:-1px; margin-top:4px; }
@@ -62,6 +62,10 @@
                     <div class="summary-tile-label">Out of Stock</div>
                     <div class="summary-tile-value" style="color:#94a3b8;">{outOfStockCount}</div>
                 </div>
+                <div class="summary-tile">
+                    <div class="summary-tile-label">Total Stock Value</div>
+                    <div class="summary-tile-value" style="color:#059669;">{totalStockValue ?: '—'}</div>
+                </div>
             </div>
 
             <div class="soh-table-wrap">
@@ -69,7 +73,7 @@
                     <thead>
                     <tr>
                         <th>Item Code</th><th>Item Name</th><th>Type</th><th>UOM</th>
-                        <th class="r">Qty on Hand</th><th>Next Expiry</th><th>Lots</th>
+                        <th class="r">Qty on Hand</th><th class="r">Avg Cost</th><th class="r">Stock Value</th><th>Next Expiry</th><th>Lots</th>
                     </tr>
                     </thead>
                     <tbody>
@@ -83,6 +87,12 @@
             <span class="qty-badge {r.qtyClass()}">
               {r.qty()}
             </span>
+                            </td>
+                            <td class="r muted">
+                                {#if r.item().averageCost != null}{r.item().averageCost}{#else}—{/if}
+                            </td>
+                            <td class="r bold">
+                                {#if r.stockValue() != null}{r.stockValue()}{#else}—{/if}
                             </td>
                             <td>
                                 {#if r.nextExpiry() != null}

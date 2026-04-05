@@ -25,16 +25,16 @@ public class CustomerController extends HxController {
 
     @CheckedTemplate
     public static class Templates {
-        public static native TemplateInstance index(List<Customer> customers, int page, int totalPages);
-        public static native TemplateInstance index$rows(List<Customer> customers, int page, int totalPages);
+        public static native TemplateInstance index(List<Customer> customers, int page, int totalPages, String q);
+        public static native TemplateInstance index$rows(List<Customer> customers, int page, int totalPages, String q);
         public static native TemplateInstance branchDetail(Customer customer);
         public static native TemplateInstance customerFormFragment();
     }
 
     @GET
-    public TemplateInstance index(@RestQuery Integer page) {
+    public TemplateInstance index(@RestQuery Integer page, @RestQuery String q) {
         int currentPage = Optional.ofNullable(page).filter(p -> p >= 1).orElse(1);
-        return render(currentPage, isHxRequest());
+        return render(currentPage, isHxRequest(), q);
     }
 
     /**
@@ -70,7 +70,7 @@ public class CustomerController extends HxController {
         customer.persist();
 
         // Refresh only the rows fragment; #insertion-point will naturally be empty again
-        return render(Optional.ofNullable(page).orElse(1), true);
+        return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
     @GET
@@ -103,16 +103,21 @@ public class CustomerController extends HxController {
         return Templates.branchDetail(customer);
     }
 
-    private TemplateInstance render(int page, boolean fragmentOnly) {
-        long totalCount = Customer.count();
+    private TemplateInstance render(int page, boolean fragmentOnly, String q) {
+        String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
+        long totalCount = term != null
+                ? Customer.count("lower(customerCode) like ?1 or lower(name) like ?1 or lower(email) like ?1 or lower(phone) like ?1", term)
+                : Customer.count();
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
         int currentPage = Math.min(page, totalPages);
 
-        List<Customer> customers = Customer.find("order by id desc")
-                .page(currentPage - 1, PAGE_SIZE).list();
+        List<Customer> customers = term != null
+                ? Customer.find("(lower(customerCode) like ?1 or lower(name) like ?1 or lower(email) like ?1 or lower(phone) like ?1) order by id desc", term)
+                        .page(currentPage - 1, PAGE_SIZE).list()
+                : Customer.find("order by id desc").page(currentPage - 1, PAGE_SIZE).list();
 
         return fragmentOnly
-                ? Templates.index$rows(customers, currentPage, totalPages)
-                : Templates.index(customers, currentPage, totalPages);
+                ? Templates.index$rows(customers, currentPage, totalPages, q)
+                : Templates.index(customers, currentPage, totalPages, q);
     }
 }

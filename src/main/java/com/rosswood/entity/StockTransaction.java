@@ -59,6 +59,15 @@ public class StockTransaction extends AuditableEntity {
     @Column(nullable = false, precision = 12, scale = 4)
     public BigDecimal quantity;
 
+    /**
+     * Cost per unit at the time of this transaction.
+     * Set on: PURCHASE (supplier price), OPENING_STOCK (entered cost),
+     *         SALE (item.averageCost snapshot = COGS).
+     * Null for: DAMAGE, EXPIRY_WRITEOFF, ADJUSTMENT_*, PRODUCTION_OUTPUT/CONSUME.
+     */
+    @Column(name = "unit_cost", precision = 12, scale = 4)
+    public BigDecimal unitCost;
+
     @Column(name = "uom_code")
     public String uomCode;
 

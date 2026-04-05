@@ -33,7 +33,10 @@ public class ReportService {
                     .firstResultOptional()
                     .map(t -> t.expiryDate)
                     .orElse(null);
-            return new StockSummaryRow(item, qty, nextExpiry);
+            BigDecimal stockValue = (item.averageCost != null && qty.compareTo(BigDecimal.ZERO) > 0)
+                    ? qty.multiply(item.averageCost).setScale(4, java.math.RoundingMode.HALF_UP)
+                    : null;
+            return new StockSummaryRow(item, qty, nextExpiry, stockValue);
         }).collect(Collectors.toList());
     }
 
@@ -227,7 +230,7 @@ public class ReportService {
 
     // ── Row types (records) ───────────────────────────────────────────────
 
-    public record StockSummaryRow(Item item, BigDecimal qty, LocalDate nextExpiry) {
+    public record StockSummaryRow(Item item, BigDecimal qty, LocalDate nextExpiry, BigDecimal stockValue) {
         public String qtyClass() {
             if (qty.compareTo(BigDecimal.ZERO) <= 0) return "qty-zero";
             if (qty.compareTo(BigDecimal.TEN)  <  0) return "qty-low";

@@ -37,6 +37,14 @@ public class Item extends AuditableEntity {
     public BigDecimal vatRate = BigDecimal.ZERO;
 
     /**
+     * Weighted average cost (WAC) — recalculated automatically on every
+     * purchase or opening stock entry that includes a unit cost.
+     * Null until the first cost-bearing transaction is recorded.
+     */
+    @Column(name = "average_cost", precision = 12, scale = 4)
+    public BigDecimal averageCost;
+
+    /**
      * Default shelf life in days for finished goods.
      * Used to auto-calculate expiryDate when a production batch is finished.
      * e.g. 21 days for fresh yogurt.

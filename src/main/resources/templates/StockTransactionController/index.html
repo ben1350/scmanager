@@ -16,6 +16,18 @@
                 </div>
             </div>
 
+            <div style="margin-bottom: 1rem; max-width: 400px;">
+                <div class="input-field" style="margin: 0;">
+                    <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+                    <input type="text" name="q" value="{q ?: ''}"
+                           hx-get="{uri:StockTransactionController.index()}"
+                           hx-trigger="keyup changed delay:400ms"
+                           hx-target="#transactionListContainer"
+                           placeholder="Search transactions..."
+                           style="margin-left: 2.5rem;">
+                </div>
+            </div>
+
             <div id="transactionListContainer">
                 {#fragment id="rows"}
                     <div id="transactionContainer">
@@ -72,17 +84,17 @@
                         <div class="col s12 center-align">
                             <ul class="pagination custom-pagination">
                                 <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
-                                    <a {#if !page.isFirst} hx-get="{uri:StockTransactionController.index()}?page={page.minus(1)}" hx-target="#transactionListContainer" {/if} style="cursor: pointer;">
+                                    <a {#if !page.isFirst} hx-get="{uri:StockTransactionController.index()}?page={page.minus(1)}&q={q ?: ''}" hx-target="#transactionListContainer" {/if} style="cursor: pointer;">
                                         <i class="material-icons">chevron_left</i>
                                     </a>
                                 </li>
                                 {#for i in totalPages.range}
                                     <li class="{page.is(i, 'active blue darken-2', 'waves-effect')}">
-                                        <a hx-get="{uri:StockTransactionController.index()}?page={i}" hx-target="#transactionListContainer" style="cursor: pointer;">{i}</a>
+                                        <a hx-get="{uri:StockTransactionController.index()}?page={i}&q={q ?: ''}" hx-target="#transactionListContainer" style="cursor: pointer;">{i}</a>
                                     </li>
                                 {/for}
                                 <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
-                                    <a {#if !page.isLast(totalPages)} hx-get="{uri:StockTransactionController.index()}?page={page.plus(1)}" hx-target="#transactionListContainer" {/if} style="cursor: pointer;">
+                                    <a {#if !page.isLast(totalPages)} hx-get="{uri:StockTransactionController.index()}?page={page.plus(1)}&q={q ?: ''}" hx-target="#transactionListContainer" {/if} style="cursor: pointer;">
                                         <i class="material-icons">chevron_right</i>
                                     </a>
                                 </li>
@@ -122,7 +134,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="input-field col s8">
+                        <div class="input-field col s6">
                             <i class="material-icons prefix">inventory_2</i>
                             <select name="itemId" required>
                                 <option value="" disabled selected>Select Item</option>
@@ -132,9 +144,13 @@
                             </select>
                             <label>Item</label>
                         </div>
-                        <div class="input-field col s4">
+                        <div class="input-field col s3">
                             <input name="quantity" type="number" step="0.01" required>
                             <label>Quantity</label>
+                        </div>
+                        <div class="input-field col s3" id="unitCostField" style="display:none;">
+                            <input name="unitCost" id="unitCostInput" type="number" step="0.0001" min="0">
+                            <label for="unitCostInput">Unit Cost</label>
                         </div>
                     </div>
 
@@ -165,10 +181,25 @@
         </style>
 
         <script>
+            function initTransactionTypeListener() {
+                const sel   = document.querySelector('[name="transactionType"]');
+                const field = document.getElementById('unitCostField');
+                const input = document.getElementById('unitCostInput');
+                if (!sel || !field) return;
+                function toggle() {
+                    const show = sel.value === 'PURCHASE';
+                    field.style.display = show ? '' : 'none';
+                    show ? input.setAttribute('required', '') : input.removeAttribute('required');
+                    if (!show) input.value = '';
+                }
+                sel.addEventListener('change', toggle);
+                toggle();
+            }
             function initUI() {
                 M.Modal.init(document.querySelectorAll('.modal'));
                 M.FormSelect.init(document.querySelectorAll('select'));
                 M.updateTextFields();
+                initTransactionTypeListener();
             }
             document.addEventListener('DOMContentLoaded', initUI);
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
