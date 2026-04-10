@@ -122,6 +122,11 @@
                             <i class="material-icons left" style="font-size:1rem;">cancel</i>Cancel
                         </button>
                     </form>
+                    <button class="btn-small grey darken-1 waves-effect"
+                            style="border-radius:6px;text-transform:none;font-weight:600;"
+                            onclick="togglePaymentForm('{inv.id}')">
+                        <i class="material-icons left" style="font-size:1rem;">payment</i>Payment
+                    </button>
                     {/if}
 
                     {#if inv.status.name() == 'CONFIRMED'}
@@ -160,6 +165,77 @@
                         </button>
                         <button type="button" class="btn-flat grey-text"
                                 onclick="toggleDeliveryForm('{inv.id}')">Cancel</button>
+                    </form>
+                </div>
+
+                <!-- Payment form — hidden until "Payment" clicked -->
+                <div id="payment-form-{inv.id}" style="display:none; padding: 0 1.8rem 1rem;">
+                    <form hx-post="{uri:SalesInvoiceController.updatePayment(inv.id)}?page={page}"
+                          hx-target="#invoiceListContainer"
+                          style="background:#f8fafc;padding:14px 16px;border-radius:10px;border:1px solid #e2e8f0;">
+                        {#authenticityToken/}
+                        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+
+                            <div style="flex:0 0 130px;">
+                                <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Method</label>
+                                <select name="paymentMethod" id="pm-sel-{inv.id}"
+                                        onchange="onPaymentMethodChange('{inv.id}', this.value)"
+                                        style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;font-size:0.85rem;background:white;">
+                                    <option value="CASH"   {inv.paymentMethod.name() == 'CASH'   ? 'selected' : ''}>Cash</option>
+                                    <option value="MOMO"   {inv.paymentMethod.name() == 'MOMO'   ? 'selected' : ''}>MoMo</option>
+                                    <option value="CHEQUE" {inv.paymentMethod.name() == 'CHEQUE' ? 'selected' : ''}>Cheque</option>
+                                    {#if inv.customerBranch.customer.customerType.name() == 'CREDIT'}
+                                    <option value="CREDIT" {inv.paymentMethod.name() == 'CREDIT' ? 'selected' : ''}>Credit</option>
+                                    {/if}
+                                </select>
+                            </div>
+
+                            <!-- MoMo fields -->
+                            <div id="momo-fields-{inv.id}" style="display:none;gap:10px;flex:1;">
+                                <div style="flex:1;">
+                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Transaction Ref</label>
+                                    <input name="momoRef" value="{inv.paymentRef ?: ''}" placeholder="e.g. GHS-12345678"
+                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Sender Phone</label>
+                                    <input name="momoInfo" value="{inv.paymentInfo ?: ''}" placeholder="e.g. 024XXXXXXX"
+                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
+                                </div>
+                            </div>
+
+                            <!-- Cheque fields -->
+                            <div id="cheque-fields-{inv.id}" style="display:none;gap:10px;flex:1;">
+                                <div style="flex:1;">
+                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Cheque No</label>
+                                    <input name="chequeRef" value="{inv.paymentRef ?: ''}" placeholder="Cheque number"
+                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
+                                </div>
+                                <div style="flex:1;">
+                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Bank</label>
+                                    <input name="chequeInfo" value="{inv.paymentInfo ?: ''}" placeholder="Bank name"
+                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
+                                </div>
+                                <div style="flex:0 0 140px;">
+                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Cheque Date</label>
+                                    <input name="chequeDate" type="date" value="{inv.paymentDate ?: ''}"
+                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;font-size:0.85rem;background:white;">
+                                </div>
+                            </div>
+
+                            <!-- Hidden inputs carry the active group's values on submit -->
+                            <input type="hidden" name="paymentRef"  id="paymentRef-{inv.id}">
+                            <input type="hidden" name="paymentInfo" id="paymentInfo-{inv.id}">
+                            <input type="hidden" name="paymentDate" id="paymentDate-{inv.id}">
+
+                            <button type="submit" class="btn-small blue darken-2 waves-effect"
+                                    style="border-radius:6px;text-transform:none;font-weight:600;height:36px;align-self:flex-end;">
+                                <i class="material-icons left" style="font-size:1rem;">save</i>Save
+                            </button>
+                            <button type="button" class="btn-flat grey-text"
+                                    style="align-self:flex-end;"
+                                    onclick="togglePaymentForm('{inv.id}')">Cancel</button>
+                        </div>
                     </form>
                 </div>
 
@@ -226,6 +302,9 @@
     }
 
     function toggleDeliveryForm(id) {
+        // Close payment form if open
+        var pf = document.getElementById('payment-form-' + id);
+        if (pf) pf.style.display = 'none';
         const form = document.getElementById('delivery-form-' + id);
         if (form) {
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -234,5 +313,54 @@
             M.Datepicker.init(dp, { format: 'yyyy-mm-dd', autoClose: true, container: 'body' });
         }
     }
+
+    function togglePaymentForm(id) {
+        var form = document.getElementById('payment-form-' + id);
+        if (!form) return;
+        var isHidden = form.style.display === 'none';
+        // Close delivery form if open
+        var deliveryForm = document.getElementById('delivery-form-' + id);
+        if (deliveryForm) deliveryForm.style.display = 'none';
+        form.style.display = isHidden ? 'block' : 'none';
+        if (isHidden) {
+            var sel = document.getElementById('pm-sel-' + id);
+            if (sel) onPaymentMethodChange(id, sel.value);
+        }
+    }
+
+    function onPaymentMethodChange(id, method) {
+        var momoFields   = document.getElementById('momo-fields-'   + id);
+        var chequeFields = document.getElementById('cheque-fields-' + id);
+        if (momoFields)   momoFields.style.display   = method === 'MOMO'   ? 'flex' : 'none';
+        if (chequeFields) chequeFields.style.display = method === 'CHEQUE' ? 'flex' : 'none';
+    }
+
+    // On submit, copy visible group's values into the hidden named inputs
+    document.addEventListener('htmx:configRequest', function(e) {
+        var form = e.target.closest ? e.target.closest('form[id]') : null;
+        // Find all payment forms and sync hidden fields before submission
+        document.querySelectorAll('[id^="payment-form-"]').forEach(function(pf) {
+            var f = pf.querySelector('form');
+            if (!f || f !== e.target) return;
+            var id = pf.id.replace('payment-form-', '');
+            var method = (document.getElementById('pm-sel-' + id) || {}).value || '';
+            var refInput  = document.getElementById('paymentRef-'  + id);
+            var infoInput = document.getElementById('paymentInfo-' + id);
+            var dateInput = document.getElementById('paymentDate-' + id);
+            if (method === 'MOMO') {
+                if (refInput)  refInput.value  = (f.querySelector('[name="momoRef"]')   || {}).value || '';
+                if (infoInput) infoInput.value = (f.querySelector('[name="momoInfo"]')  || {}).value || '';
+                if (dateInput) dateInput.value = '';
+            } else if (method === 'CHEQUE') {
+                if (refInput)  refInput.value  = (f.querySelector('[name="chequeRef"]')  || {}).value || '';
+                if (infoInput) infoInput.value = (f.querySelector('[name="chequeInfo"]') || {}).value || '';
+                if (dateInput) dateInput.value = (f.querySelector('[name="chequeDate"]') || {}).value || '';
+            } else {
+                if (refInput)  refInput.value  = '';
+                if (infoInput) infoInput.value = '';
+                if (dateInput) dateInput.value = '';
+            }
+        });
+    });
 </script>
 {/body}

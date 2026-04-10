@@ -187,6 +187,49 @@ public class SalesInvoiceController extends HxController {
     }
 
     /**
+     * Update payment method and capture MoMo/Cheque details on a DRAFT invoice.
+     */
+    @POST
+    @Path("/{id}/payment")
+    @Transactional
+    public TemplateInstance updatePayment(
+            @RestPath Long id,
+            @RestForm String paymentMethod,
+            @RestForm String paymentRef,
+            @RestForm String paymentInfo,
+            @RestForm String paymentDate,
+            @RestForm Integer page
+    ) {
+        onlyHxRequest();
+
+        SalesInvoice invoice = SalesInvoice.findById(id);
+        if (invoice == null) throw new NotFoundException();
+        if (!invoice.isEditable()) {
+            return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
+        }
+
+        SalesInvoice.PaymentMethod pm;
+        try { pm = SalesInvoice.PaymentMethod.valueOf(paymentMethod); }
+        catch (Exception e) { pm = SalesInvoice.PaymentMethod.CASH; }
+
+        if (pm == SalesInvoice.PaymentMethod.CREDIT) {
+            com.rosswood.entity.Customer customer = invoice.customerBranch.customer;
+            if (customer.customerType != com.rosswood.entity.Customer.CustomerType.CREDIT) {
+                String error = customer.name + " is a CASH customer and cannot be invoiced on credit.";
+                return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, error);
+            }
+        }
+
+        invoice.paymentMethod = pm;
+        invoice.paymentRef  = (paymentRef  != null && !paymentRef.isBlank())  ? paymentRef.trim()  : null;
+        invoice.paymentInfo = (paymentInfo != null && !paymentInfo.isBlank()) ? paymentInfo.trim() : null;
+        invoice.paymentDate = (paymentDate != null && !paymentDate.isBlank()) ? LocalDate.parse(paymentDate) : null;
+        invoice.persist();
+
+        return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
+    }
+
+    /**
      * Cancel invoice — reverses stock transactions if already confirmed.
      */
     @POST

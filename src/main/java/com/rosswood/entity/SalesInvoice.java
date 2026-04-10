@@ -56,6 +56,18 @@ public class SalesInvoice extends AuditableEntity {
     @Column(name = "payment_method", nullable = false)
     public PaymentMethod paymentMethod = PaymentMethod.CASH;
 
+    /** MoMo transaction reference / cheque number */
+    @Column(name = "payment_ref")
+    public String paymentRef;
+
+    /** MoMo sender phone number / bank name */
+    @Column(name = "payment_info")
+    public String paymentInfo;
+
+    /** Cheque date only (null for all other methods) */
+    @Column(name = "payment_date")
+    public LocalDate paymentDate;
+
     @Column(name = "total_amount_ex_vat", precision = 12, scale = 2)
     public BigDecimal totalAmountExVat = BigDecimal.ZERO;
 
