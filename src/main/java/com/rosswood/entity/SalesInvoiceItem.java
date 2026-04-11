@@ -13,11 +13,11 @@ public class SalesInvoiceItem extends AuditableEntity {
     @JoinColumn(name = "invoice_id")
     public SalesInvoice invoice;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "item_id")
     public Item item;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "uom_id")
     public ItemUom uom;
 
