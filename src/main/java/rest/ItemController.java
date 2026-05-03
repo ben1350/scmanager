@@ -131,6 +131,26 @@ public class ItemController extends HxController {
     }
 
     /**
+     * Update selling price and VAT rate on an item.
+     */
+    @POST
+    @Path("/{id}/price")
+    @Transactional
+    public TemplateInstance updatePrice(
+            @RestPath Long id,
+            @RestForm BigDecimal sellingPriceExVat,
+            @RestForm BigDecimal vatRate
+    ) {
+        onlyHxRequest();
+        Item item = Item.findById(id);
+        if (item == null) throw new NotFoundException();
+        item.sellingPriceExVat = sellingPriceExVat;
+        item.vatRate = vatRate != null ? vatRate : BigDecimal.ZERO;
+        item.persist();
+        return renderDetailPane(item);
+    }
+
+    /**
      * Helper to render the detail pane with all necessary data lists
      */
     private TemplateInstance renderDetailPane(Item item) {
