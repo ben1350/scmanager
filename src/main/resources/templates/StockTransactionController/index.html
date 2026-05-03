@@ -56,6 +56,10 @@
                                         <div class="col s2 center-align">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Quantity</span>
                                             <span style="font-weight: 700; font-size: 1.1rem;">{tx.quantity}</span>
+                                            <span style="font-size:0.7rem; font-weight:700; color:#1565c0;
+                                                  background:#e3f2fd; padding:1px 6px; border-radius:4px; margin-left:4px;">
+                                                {tx.item.uom.uomCode ?: ''}
+                                            </span>
                                         </div>
 
                                         <div class="col s2">
@@ -136,10 +140,11 @@
                     <div class="row">
                         <div class="input-field col s6">
                             <i class="material-icons prefix">inventory_2</i>
-                            <select name="itemId" required>
+                            <select name="itemId" id="itemSelect" required>
                                 <option value="" disabled selected>Select Item</option>
                                 {#for item in items}
-                                    <option value="{item.id}">{item.itemName}</option>
+                                    <option value="{item.id}"
+                                            data-uom="{item.uom.uomCode ?: ''}">{item.itemName}</option>
                                 {/for}
                             </select>
                             <label>Item</label>
@@ -147,6 +152,11 @@
                         <div class="input-field col s3">
                             <input name="quantity" type="number" step="0.01" required>
                             <label>Quantity</label>
+                            <span id="uomLabel" style="font-size:0.75rem; font-weight:700; color:#1565c0;
+                                  background:#e3f2fd; padding:2px 8px; border-radius:4px;
+                                  margin-top:4px; display:inline-block; visibility:hidden;">
+                                —
+                            </span>
                         </div>
                         <div class="input-field col s3" id="unitCostField" style="display:none;">
                             <input name="unitCost" id="unitCostInput" type="number" step="0.0001" min="0">
@@ -195,11 +205,29 @@
                 sel.addEventListener('change', toggle);
                 toggle();
             }
+            function initItemUomListener() {
+                const itemSel  = document.getElementById('itemSelect');
+                const uomLabel = document.getElementById('uomLabel');
+                if (!itemSel || !uomLabel) return;
+                function updateUom() {
+                    const opt = itemSel.options[itemSel.selectedIndex];
+                    const uom = opt ? opt.getAttribute('data-uom') : '';
+                    if (uom) {
+                        uomLabel.textContent    = uom;
+                        uomLabel.style.visibility = 'visible';
+                    } else {
+                        uomLabel.style.visibility = 'hidden';
+                    }
+                }
+                itemSel.addEventListener('change', updateUom);
+                updateUom();
+            }
             function initUI() {
                 M.Modal.init(document.querySelectorAll('.modal'));
                 M.FormSelect.init(document.querySelectorAll('select'));
                 M.updateTextFields();
                 initTransactionTypeListener();
+                initItemUomListener();
             }
             document.addEventListener('DOMContentLoaded', initUI);
             document.body.addEventListener('htmx:afterOnLoad', function(evt) {
