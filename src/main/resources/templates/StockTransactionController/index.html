@@ -121,8 +121,9 @@
                     <div class="row" style="margin-top: 2rem;">
                         <div class="input-field col s6">
                             <i class="material-icons prefix">calendar_today</i>
-                            <input name="transactionDate" type="date" required>
-                            <label>Transaction Date</label>
+                            <input name="transactionDate" type="text" id="transactionDatePicker"
+                                   class="datepicker" placeholder="Pick a date" required autocomplete="off">
+                            <label for="transactionDatePicker">Transaction Date</label>
                         </div>
                         <div class="input-field col s6">
                             <i class="material-icons prefix">tag</i>
@@ -225,6 +226,11 @@
             function initUI() {
                 M.Modal.init(document.querySelectorAll('.modal'));
                 M.FormSelect.init(document.querySelectorAll('select'));
+                M.Datepicker.init(document.querySelectorAll('.datepicker'), {
+                    format: 'yyyy-mm-dd',
+                    autoClose: true,
+                    container: 'body'
+                });
                 M.updateTextFields();
                 initTransactionTypeListener();
                 initItemUomListener();
