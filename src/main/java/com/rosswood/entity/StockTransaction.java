@@ -24,7 +24,7 @@ public class StockTransaction extends AuditableEntity {
     public LocalDate transactionDate;
 
     // ── What ──────────────────────────────────────────────────────────────
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
     @JoinColumn(name = "item_id")
     public Item item;
 
