@@ -43,20 +43,37 @@
                 {#authenticityToken/}
             <div style="display: flex; gap: 12px; align-items: center; background: white; padding: 8px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
 
-                <select name="itemId"
-                        id="item-select-{invoice.id}"
-                        hx-get="/invoices/item/uoms"
-                        hx-vals='js:{"itemId": event.target.value}'
-                        hx-trigger="change"
-                        hx-target="#uom-select-{invoice.id}"
-                        style="border: none; flex: 2; height: 35px; padding-left: 15px; font-weight: 600; background: none;">
-                    <option value="" disabled selected>Select Product</option>
-                    {#for ai in availableItems}
-                    <option value="{ai.id}"
-                            data-price="{ai.sellingPriceExVat ?: ''}"
-                            data-vat="{ai.vatRate ?: ''}">{ai.itemName}</option>
-                    {/for}
-                </select>
+                <!-- Searchable product picker -->
+                <div style="flex:2; position:relative;" id="picker-wrap-{invoice.id}">
+                    <input type="text" id="item-search-{invoice.id}"
+                           placeholder="Search product..."
+                           autocomplete="off"
+                           style="border:none !important; box-shadow:none !important; width:100%;
+                                  height:35px; padding-left:10px; font-weight:600; background:none;
+                                  font-size:0.9rem;"
+                           oninput="filterProducts_{invoice.id}(this.value)"
+                           onfocus="showDropdown_{invoice.id}()"
+                           onblur="hideDropdown_{invoice.id}()">
+                    <input type="hidden" name="itemId" id="item-id-{invoice.id}" required>
+                    <div id="item-dropdown-{invoice.id}"
+                         style="display:none; position:absolute; top:38px; left:0; right:0;
+                                background:white; border:1px solid #e0e0e0; border-radius:10px;
+                                box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:9999;
+                                max-height:220px; overflow-y:auto;">
+                        {#for ai in availableItems}
+                        <div class="prod-opt-{invoice.id}"
+                             data-id="{ai.id}"
+                             data-name="{ai.itemName}"
+                             data-price="{ai.sellingPriceExVat ?: ''}"
+                             data-vat="{ai.vatRate ?: ''}"
+                             onmousedown="selectProduct_{invoice.id}(this)"
+                             style="padding:9px 14px; cursor:pointer; font-size:0.85rem;
+                                    font-weight:600; color:#37474f; border-bottom:1px solid #f5f5f5;">
+                            {ai.itemName}
+                        </div>
+                        {/for}
+                    </div>
+                </div>
 
                 <div style="width: 1px; height: 20px; background: #eee;"></div>
 
@@ -92,17 +109,46 @@
     </div>
     <script>
     (function() {
-        var sel = document.getElementById('item-select-{invoice.id}');
-        if (!sel) return;
-        sel.addEventListener('change', function() {
-            var opt = this.options[this.selectedIndex];
-            var price = opt.getAttribute('data-price');
-            var vat   = opt.getAttribute('data-vat');
+        function filterProducts_{invoice.id}(term) {
+            var items = document.querySelectorAll('.prod-opt-{invoice.id}');
+            var q = term.toLowerCase();
+            items.forEach(function(el) {
+                el.style.display = el.getAttribute('data-name').toLowerCase().includes(q) ? '' : 'none';
+            });
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'block';
+        }
+        function showDropdown_{invoice.id}() {
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'block';
+        }
+        function hideDropdown_{invoice.id}() {
+            setTimeout(function() {
+                document.getElementById('item-dropdown-{invoice.id}').style.display = 'none';
+            }, 150);
+        }
+        function selectProduct_{invoice.id}(el) {
+            var id    = el.getAttribute('data-id');
+            var name  = el.getAttribute('data-name');
+            var price = el.getAttribute('data-price');
+            var vat   = el.getAttribute('data-vat');
+            document.getElementById('item-search-{invoice.id}').value = name;
+            document.getElementById('item-id-{invoice.id}').value     = id;
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'none';
+            // Auto-fill price and VAT
             var priceEl = document.getElementById('price-{invoice.id}');
             var vatEl   = document.getElementById('vat-{invoice.id}');
-            if (priceEl && price !== null && price !== '') priceEl.value = price;
-            if (vatEl   && vat   !== null && vat   !== '') vatEl.value   = vat;
-        });
+            if (priceEl && price) priceEl.value = price;
+            if (vatEl   && vat)   vatEl.value   = vat;
+            // Load UOMs for selected item
+            htmx.ajax('GET', '/invoices/item/uoms?itemId=' + id, {
+                target: '#uom-select-{invoice.id}',
+                swap: 'innerHTML'
+            });
+        }
+        // Expose to global scope for inline handlers
+        window['filterProducts_{invoice.id}']  = filterProducts_{invoice.id};
+        window['showDropdown_{invoice.id}']    = showDropdown_{invoice.id};
+        window['hideDropdown_{invoice.id}']    = hideDropdown_{invoice.id};
+        window['selectProduct_{invoice.id}']   = selectProduct_{invoice.id};
     })();
     </script>
     {#else}
