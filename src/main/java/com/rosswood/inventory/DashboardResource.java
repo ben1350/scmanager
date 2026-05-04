@@ -74,9 +74,11 @@ public class DashboardResource {
         List<ProductionBatch> expiringBatches = ProductionBatch
                 .expiringBefore(LocalDate.now().plusDays(7));
 
-        // Recent transactions (last 5)
+        // Recent transactions (last 5) — sales and purchases only
         List<StockTransaction> recentTransactions = StockTransaction
-                .find("order by transactionDate desc, id desc")
+                .find("transactionType in (?1, ?2) order by transactionDate desc, id desc",
+                        StockTransaction.TransactionType.SALE,
+                        StockTransaction.TransactionType.PURCHASE)
                 .page(0, 5).list();
 
         return dashboard
