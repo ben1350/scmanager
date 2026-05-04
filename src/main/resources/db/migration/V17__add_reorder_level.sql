@@ -1,0 +1,1 @@
+ALTER TABLE item ADD COLUMN reorder_level DECIMAL(12,4);

@@ -13,64 +13,82 @@
       <!-- KPI Cards -->
       <div class="row">
 
-        <div class="col s12 m6 l3">
+        <!-- 1: Finished goods stock value -->
+        <div class="col s12 m6 l2">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding: 1.5rem;">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Total Stock</span>
-                  <h4 style="margin:0.5rem 0;font-weight:700;color:#1e293b;">{totalStock}</h4>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Finished Goods Value</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#1e293b;font-size:1.3rem;">GHS {finishedGoodsValue}</h5>
                 </div>
-                <i class="material-icons blue-text text-lighten-3" style="font-size:2.5rem;">inventory_2</i>
+                <i class="material-icons blue-text text-lighten-3" style="font-size:2rem;">inventory_2</i>
               </div>
-              <div class="progress blue lighten-4" style="height:4px;margin-top:1rem;">
-                <div class="determinate blue" style="width:70%"></div>
-              </div>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Stock on hand × WAC</p>
             </div>
           </div>
         </div>
 
-        <div class="col s12 m6 l3">
+        <!-- 2: Low stock -->
+        <div class="col s12 m6 l2">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding:1.5rem;">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Low Stock Items</span>
-                  <h4 style="margin:0.5rem 0;font-weight:700;color:#e11d48;">{lowStock}</h4>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Low Stock Items</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#e11d48;font-size:1.3rem;">{lowStock}</h5>
                 </div>
-                <i class="material-icons red-text text-lighten-3" style="font-size:2.5rem;">error_outline</i>
+                <i class="material-icons red-text text-lighten-3" style="font-size:2rem;">error_outline</i>
               </div>
-              <p class="red-text text-darken-1" style="font-size:0.8rem;margin:0;">Requires attention</p>
+              <p class="red-text text-darken-1" style="font-size:0.75rem;margin:0;">Below reorder level</p>
             </div>
           </div>
         </div>
 
+        <!-- 3: Today's revenue -->
         <div class="col s12 m6 l3">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding:1.5rem;">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Today's Sales</span>
-                  <h4 style="margin:0.5rem 0;font-weight:700;color:#059669;">{todaysSales}</h4>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Today's Revenue</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#059669;font-size:1.3rem;">GHS {todaysRevenue}</h5>
                 </div>
-                <i class="material-icons green-text text-lighten-3" style="font-size:2.5rem;">payments</i>
+                <i class="material-icons green-text text-lighten-3" style="font-size:2rem;">payments</i>
               </div>
-              <p class="green-text" style="font-size:0.8rem;margin:0;">Units dispatched today</p>
+              <p class="green-text" style="font-size:0.75rem;margin:0;">Confirmed invoices today</p>
             </div>
           </div>
         </div>
 
-        <div class="col s12 m6 l3">
+        <!-- 4: Pending deliveries -->
+        <div class="col s12 m6 l2">
           <div class="card br-12 z-soft hoverable">
-            <div class="card-content" style="padding:1.5rem;">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
-                  <span class="grey-text" style="font-size:0.85rem;font-weight:600;text-transform:uppercase;">Open Batches</span>
-                  <h4 style="margin:0.5rem 0;font-weight:700;color:#d97706;">{pendingProduction}</h4>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Pending Deliveries</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#d97706;font-size:1.3rem;">{pendingDeliveries}</h5>
                 </div>
-                <i class="material-icons orange-text text-lighten-3" style="font-size:2.5rem;">precision_manufacturing</i>
+                <i class="material-icons orange-text text-lighten-3" style="font-size:2rem;">local_shipping</i>
               </div>
-              <p class="grey-text" style="font-size:0.8rem;margin:0;">Active production runs</p>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Confirmed, not delivered</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5: Outstanding credit -->
+        <div class="col s12 m6 l3">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Outstanding Credit</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#7c3aed;font-size:1.3rem;">GHS {outstandingCredit}</h5>
+                </div>
+                <i class="material-icons purple-text text-lighten-3" style="font-size:2rem;">account_balance_wallet</i>
+              </div>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Unpaid credit invoices</p>
             </div>
           </div>
         </div>

@@ -131,6 +131,24 @@ public class ItemController extends HxController {
     }
 
     /**
+     * Update reorder level on an item.
+     */
+    @POST
+    @Path("/{id}/reorder-level")
+    @Transactional
+    public TemplateInstance updateReorderLevel(
+            @RestPath Long id,
+            @RestForm BigDecimal reorderLevel
+    ) {
+        onlyHxRequest();
+        Item item = Item.findById(id);
+        if (item == null) throw new NotFoundException();
+        item.reorderLevel = reorderLevel;
+        item.persist();
+        return renderDetailPane(item);
+    }
+
+    /**
      * Update selling price and VAT rate on an item.
      */
     @POST
