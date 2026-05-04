@@ -49,7 +49,7 @@ public class ProductionBatchController extends HxController {
     @Path("/new-form")
     public TemplateInstance getFormFragment() {
         onlyHxRequest();
-        return Templates.batchFormFragment(Item.listAll());
+        return Templates.batchFormFragment(Item.list("itemType.itemTypeCode", "FINISHED_GOOD"));
     }
 
     @GET
