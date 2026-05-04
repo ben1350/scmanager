@@ -13,14 +13,19 @@
                     <label for="prod_date">Date</label>
                 </div>
                 <div class="input-field col s4">
-                    <select name="finishedItemId"  style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                    <select name="finishedItemId" id="finishedItemSelect" style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
                         <option value="" disabled selected>Select Finished Product</option>
-                        {#for item in items}<option value="{item.id}">{item.itemName}</option>{/for}
+                        {#for item in items}
+                            <option value="{item.id}" data-uom="{item.uom.uomCode ?: ''}">{item.itemName}</option>
+                        {/for}
                     </select>
                 </div>
                 <div class="input-field col s2">
                     <input name="outputQty" id="output_qty" type="number" step="0.01" required>
                     <label for="output_qty">Target Qty</label>
+                    <span id="outputUomLabel" style="font-size:0.75rem; font-weight:700; color:#1565c0;
+                          background:#e3f2fd; padding:2px 8px; border-radius:4px;
+                          margin-top:4px; display:inline-block; visibility:hidden;">—</span>
                 </div>
             </div>
         </div>
@@ -44,6 +49,22 @@
         // Initialize the Select dropdown (fixes the "missing" select box)
         var selectElems = document.querySelectorAll('#new-batch-row select');
         M.FormSelect.init(selectElems);
+
+        // Show base UOM next to Target Qty when a finished product is selected
+        var finishedSel = document.getElementById('finishedItemSelect');
+        var uomLabel    = document.getElementById('outputUomLabel');
+        if (finishedSel && uomLabel) {
+            finishedSel.addEventListener('change', function() {
+                var opt = this.options[this.selectedIndex];
+                var uom = opt ? opt.getAttribute('data-uom') : '';
+                if (uom) {
+                    uomLabel.textContent     = uom;
+                    uomLabel.style.visibility = 'visible';
+                } else {
+                    uomLabel.style.visibility = 'hidden';
+                }
+            });
+        }
 
         // Force label animation/alignment for all inputs (Output Qty, etc.)
         M.updateTextFields();
