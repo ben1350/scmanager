@@ -52,6 +52,13 @@ public class Item extends AuditableEntity {
     @Column(name = "shelf_life_days")
     public Integer shelfLifeDays;
 
+    /**
+     * Minimum stock level before this item is flagged as low stock.
+     * Null means no reorder level has been set — item is excluded from low-stock alerts.
+     */
+    @Column(name = "reorder_level", precision = 12, scale = 4)
+    public BigDecimal reorderLevel;
+
     @Column(name = "active_flag")
     public Boolean activeFlag = true;
 
