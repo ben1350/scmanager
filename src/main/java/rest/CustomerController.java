@@ -80,6 +80,23 @@ public class CustomerController extends HxController {
         return render(Optional.ofNullable(page).orElse(1), true, null);
     }
 
+    @POST
+    @Path("/{id}/credit-settings")
+    @Transactional
+    public TemplateInstance updateCreditSettings(
+            @RestPath Long id,
+            @RestForm String customerType,
+            @RestForm BigDecimal creditLimit
+    ) {
+        onlyHxRequest();
+        Customer customer = Customer.findById(id);
+        if (customer == null) throw new NotFoundException();
+        customer.customerType = "CREDIT".equals(customerType) ? CustomerType.CREDIT : CustomerType.CASH;
+        customer.creditLimit  = (customer.customerType == CustomerType.CREDIT) ? creditLimit : null;
+        customer.persist();
+        return Templates.branchDetail(customer);
+    }
+
     @GET
     @Path("/{id}/branches")
     public TemplateInstance getBranches(@RestPath Long id) {

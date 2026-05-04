@@ -2,6 +2,73 @@
 
 <div class="branch-detail-pane" style="padding: 1.5rem 2.5rem; background-color: #fcfcfc; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;">
 
+  <!-- Credit settings row -->
+  <div style="display:flex; align-items:center; gap:16px; margin-bottom:1.5rem; padding:12px 16px;
+              background:white; border-radius:10px; border:1px solid #eee;">
+    <div style="flex:1;">
+      <div style="font-size:0.65rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:2px;">Customer Type &amp; Credit Limit</div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-weight:700;font-size:0.95rem;
+              color:{customer.customerType.name() == 'CREDIT' ? '#1565c0' : '#33691e'};">
+          {customer.customerType.name()}
+        </span>
+        {#if customer.customerType.name() == 'CREDIT'}
+          <span style="font-size:0.85rem;color:#546e7a;">
+            Limit: <b>GHS {customer.creditLimit ?: '—'}</b>
+          </span>
+        {/if}
+      </div>
+    </div>
+    <button type="button" onclick="toggleCreditEdit('{customer.id}')"
+            style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;
+                   cursor:pointer;font-size:0.75rem;font-weight:700;color:#1565c0;">
+      ✎ Edit
+    </button>
+  </div>
+
+  <!-- Inline credit edit form — hidden by default -->
+  <div id="credit-edit-{customer.id}" style="display:none; margin-bottom:1.5rem;">
+    <form hx-post="{uri:CustomerController.updateCreditSettings(customer.id)}"
+          hx-target="#detail-{customer.id}"
+          hx-swap="innerHTML"
+          style="background:white;padding:16px 20px;border-radius:10px;border:1px solid #e2e8f0;">
+      {#authenticityToken/}
+      <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+        <div>
+          <div style="font-size:0.72rem;font-weight:700;color:#64748b;margin-bottom:6px;">Type</div>
+          <div style="display:flex;gap:12px;">
+            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:600;font-size:0.9rem;">
+              <input type="radio" name="customerType" value="CASH"
+                     {customer.customerType.name() == 'CASH' ? 'checked' : ''}
+                     onchange="toggleCreditLimitEdit_{customer.id}(this.value)">
+              CASH
+            </label>
+            <label style="cursor:pointer;display:flex;align-items:center;gap:4px;font-weight:600;font-size:0.9rem;">
+              <input type="radio" name="customerType" value="CREDIT"
+                     {customer.customerType.name() == 'CREDIT' ? 'checked' : ''}
+                     onchange="toggleCreditLimitEdit_{customer.id}(this.value)">
+              CREDIT
+            </label>
+          </div>
+        </div>
+        <div id="limit-field-{customer.id}"
+             style="display:{customer.customerType.name() == 'CREDIT' ? 'block' : 'none'};">
+          <div style="font-size:0.72rem;font-weight:700;color:#64748b;margin-bottom:4px;">Credit Limit (GHS)</div>
+          <input name="creditLimit" type="number" step="0.01" min="0"
+                 value="{customer.creditLimit ?: ''}"
+                 placeholder="e.g. 5000.00"
+                 style="height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.9rem;width:160px;">
+        </div>
+        <button type="submit" class="btn-small blue darken-2 waves-effect"
+                style="border-radius:6px;text-transform:none;font-weight:600;height:36px;align-self:flex-end;">
+          Save
+        </button>
+        <button type="button" onclick="toggleCreditEdit('{customer.id}')"
+                class="btn-flat grey-text" style="align-self:flex-end;">Cancel</button>
+      </div>
+    </form>
+  </div>
+
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;">
     <h6 style="color: #9e9e9e; font-size: 0.7rem; letter-spacing: 1.5px; font-weight: 800; margin: 0; text-transform: uppercase;">
       Branch Network
@@ -76,3 +143,13 @@
     to { opacity: 1; transform: translateY(0); }
   }
 </style>
+<script>
+function toggleCreditEdit(id) {
+    var form = document.getElementById('credit-edit-' + id);
+    if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+function toggleCreditLimitEdit_{customer.id}(type) {
+    var field = document.getElementById('limit-field-{customer.id}');
+    if (field) field.style.display = type === 'CREDIT' ? 'block' : 'none';
+}
+</script>
