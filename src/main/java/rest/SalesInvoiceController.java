@@ -88,7 +88,7 @@ public class SalesInvoiceController extends HxController {
         onlyHxRequest();
         SalesInvoice invoice = SalesInvoice.findById(id);
         if (invoice == null) throw new NotFoundException();
-        return Templates.invoiceDetail(invoice, Item.list("activeFlag", true));
+        return Templates.invoiceDetail(invoice, Item.list("activeFlag = true and itemType.itemTypeCode = 'FINISHED_GOOD'"));
     }
 
     @GET
@@ -120,7 +120,7 @@ public class SalesInvoiceController extends HxController {
 
         if (!invoice.isEditable()) {
             // Silently return — locked invoice, no changes
-            return Templates.invoiceDetail(invoice, Item.list("activeFlag", true));
+            return Templates.invoiceDetail(invoice, Item.list("activeFlag = true and itemType.itemTypeCode = 'FINISHED_GOOD'"));
         }
 
         SalesInvoiceItem line = new SalesInvoiceItem();
@@ -135,7 +135,7 @@ public class SalesInvoiceController extends HxController {
         invoice.addItem(line); // adds line and calls recalculateTotals()
         invoice.persist();
 
-        return Templates.invoiceDetail(invoice, Item.list("activeFlag", true));
+        return Templates.invoiceDetail(invoice, Item.list("activeFlag = true and itemType.itemTypeCode = 'FINISHED_GOOD'"));
     }
 
     /**
