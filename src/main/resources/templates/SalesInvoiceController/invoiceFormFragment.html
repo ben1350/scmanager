@@ -18,7 +18,7 @@
                 </div>
                 <div class="input-field col s4">
                     <select name="branchId" id="inv-branch-select"
-                            onchange="updatePaymentOptions(this)"
+                            onchange="onBranchChange(this)"
                             style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
                         <option value="" disabled selected>Select Customer — Branch</option>
                         {#for branch in branches}
@@ -27,14 +27,13 @@
                         {/for}
                     </select>
                 </div>
-                <div class="input-field col s2">
-                    <select name="paymentMethod" id="inv-payment-select"
-                            style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
-                        <option value="CASH">Cash</option>
-                        <option value="MOMO">MoMo</option>
-                        <option value="CHEQUE">Cheque</option>
-                        <option value="CREDIT" id="credit-option">Credit</option>
-                    </select>
+                <!-- Hidden — carries CASH or CREDIT automatically from the selected branch -->
+                <input type="hidden" name="paymentMethod" id="inv-payment-hidden" value="CASH">
+                <div class="col s2" style="display:flex; align-items:center; padding-top:8px;">
+                    <span id="customer-type-badge"
+                          style="display:none; padding:4px 14px; border-radius:50px; font-size:0.75rem;
+                                 font-weight:800; text-transform:uppercase; letter-spacing:.05em;">
+                    </span>
                 </div>
             </div>
         </div>
@@ -55,20 +54,16 @@
         M.updateTextFields();
     })();
 
-    function updatePaymentOptions(branchSel) {
-        var opt     = branchSel.options[branchSel.selectedIndex];
-        var type    = opt ? opt.getAttribute('data-type') : 'CASH';
-        var creditOpt = document.getElementById('credit-option');
-        var paymentSel = document.getElementById('inv-payment-select');
-        if (!creditOpt || !paymentSel) return;
-        if (type === 'CREDIT') {
-            creditOpt.disabled = false;
-            creditOpt.style.display = '';
-        } else {
-            // If CREDIT was selected, revert to CASH
-            if (paymentSel.value === 'CREDIT') paymentSel.value = 'CASH';
-            creditOpt.disabled = true;
-            creditOpt.style.display = 'none';
-        }
+    function onBranchChange(branchSel) {
+        var opt    = branchSel.options[branchSel.selectedIndex];
+        var type   = opt ? opt.getAttribute('data-type') : 'CASH';
+        var badge  = document.getElementById('customer-type-badge');
+        var hidden = document.getElementById('inv-payment-hidden');
+        if (!badge || !hidden) return;
+        hidden.value = type === 'CREDIT' ? 'CREDIT' : 'CASH';
+        badge.textContent = type;
+        badge.style.display = 'inline-block';
+        badge.style.background = type === 'CREDIT' ? '#e3f2fd' : '#f1f8e9';
+        badge.style.color      = type === 'CREDIT' ? '#1565c0' : '#33691e';
     }
 </script>
