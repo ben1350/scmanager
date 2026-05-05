@@ -42,6 +42,10 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
         return userName;
     }
 
+    public boolean hasRole(String role) {
+        return rolesRaw != null && roles().contains(role);
+    }
+
     @Override
     public boolean registered(){
         return true;
