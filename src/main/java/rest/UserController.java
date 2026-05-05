@@ -58,7 +58,7 @@ public class UserController extends HxController {
         user.password  = BcryptUtil.bcryptHash(password);
         user.status    = UserStatus.REGISTERED;
         user.isAdmin   = roles != null && roles.contains("admin");
-        user.roles     = roles != null && !roles.isEmpty() ? String.join(",", roles) : null;
+        user.rolesRaw     = roles != null && !roles.isEmpty() ? String.join(",", roles) : null;
         user.persist();
 
         return Templates.index$rows(User.find("order by id asc").list(), ALL_ROLES);
@@ -76,7 +76,7 @@ public class UserController extends HxController {
         User user = User.findById(id);
         if (user == null) throw new NotFoundException();
 
-        user.roles   = roles != null && !roles.isEmpty() ? String.join(",", roles) : null;
+        user.rolesRaw   = roles != null && !roles.isEmpty() ? String.join(",", roles) : null;
         user.isAdmin = roles != null && roles.contains("admin");
         user.persist();
 
