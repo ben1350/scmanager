@@ -6,6 +6,7 @@ import com.rosswood.entity.SalesInvoice.PaymentMethod;
 import io.quarkus.qute.Location;
 import io.quarkus.qute.Template;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
@@ -14,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Set;
 
 @Path("/d")
 public class DashboardResource {
@@ -22,8 +24,55 @@ public class DashboardResource {
     @Location("pub/dashboard")
     Template dashboard;
 
+    @Inject
+    SecurityIdentity identity;
+
+    /** True when the user has only the "sales" role — no ops, inventory, or admin access. */
+    private boolean isSalesOnly() {
+        if (identity.isAnonymous()) return false;
+        Set<String> roles = identity.getRoles();
+        return roles.contains("sales")
+                && !roles.contains("inventory")
+                && !roles.contains("production")
+                && !roles.contains("finance")
+                && !roles.contains("admin");
+    }
+
     @GET
     public TemplateInstance showDashboard() {
+
+        if (isSalesOnly()) {
+            // ── Sales rep personal dashboard ──────────────────────────────
+            String currentUser = identity.getPrincipal().getName();
+
+            BigDecimal myRevenue = SalesInvoice.revenueToday(currentUser)
+                    .setScale(2, RoundingMode.HALF_UP);
+            long myPending = SalesInvoice.pendingDeliveriesFor(currentUser);
+            BigDecimal myCredit = SalesInvoice.outstandingCreditFor(currentUser)
+                    .setScale(2, RoundingMode.HALF_UP);
+            List<SalesInvoice> myRecentInvoices = SalesInvoice
+                    .find("createdBy = ?1 order by invoiceDate desc, id desc", currentUser)
+                    .page(0, 5).list();
+
+            return dashboard
+                    .data("isSalesRep",        true)
+                    .data("myRevenue",          myRevenue)
+                    .data("myPending",          myPending)
+                    .data("myCredit",           myCredit)
+                    .data("myRecentInvoices",   myRecentInvoices)
+                    // unused by sales rep view but required by template
+                    .data("finishedGoodsValue", BigDecimal.ZERO)
+                    .data("lowStock",           0L)
+                    .data("todaysRevenue",      BigDecimal.ZERO)
+                    .data("pendingDeliveries",  0L)
+                    .data("outstandingCredit",  BigDecimal.ZERO)
+                    .data("recentTransactions", List.of())
+                    .data("pendingBatches",     List.of())
+                    .data("expiringCount",      0)
+                    .data("expiringBatches",    List.of());
+        }
+
+        // ── Full operational dashboard ─────────────────────────────────────
 
         // KPI 1: Finished goods stock value (GHS) = sum of stockOnHand × WAC per finished good item
         List<Item> finishedGoods = Item.list("itemType.itemTypeCode", "FINISHED_GOOD");
@@ -82,7 +131,8 @@ public class DashboardResource {
                 .page(0, 5).list();
 
         return dashboard
-                .data("finishedGoodsValue",  finishedGoodsValue)
+                .data("isSalesRep",          false)
+                .data("finishedGoodsValue",   finishedGoodsValue)
                 .data("lowStock",             lowStock)
                 .data("todaysRevenue",        todaysRevenue)
                 .data("pendingDeliveries",    pendingDeliveries)
@@ -90,6 +140,11 @@ public class DashboardResource {
                 .data("recentTransactions",   recentTransactions)
                 .data("pendingBatches",       pendingBatches)
                 .data("expiringCount",        expiringBatches.size())
-                .data("expiringBatches",      expiringBatches);
+                .data("expiringBatches",      expiringBatches)
+                // unused by ops view
+                .data("myRevenue",            BigDecimal.ZERO)
+                .data("myPending",            0L)
+                .data("myCredit",             BigDecimal.ZERO)
+                .data("myRecentInvoices",     List.of());
     }
 }

@@ -5,6 +5,7 @@ import com.rosswood.service.StockTransactionService;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
@@ -18,6 +19,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Path("/invoices")
 public class SalesInvoiceController extends HxController {
@@ -26,6 +28,9 @@ public class SalesInvoiceController extends HxController {
 
     @Inject
     StockTransactionService stockService;
+
+    @Inject
+    SecurityIdentity identity;
 
     @CheckedTemplate
     public static class Templates {
@@ -76,6 +81,9 @@ public class SalesInvoiceController extends HxController {
             invoice.paymentMethod = SalesInvoice.PaymentMethod.valueOf(paymentMethod);
         } catch (Exception e) {
             invoice.paymentMethod = SalesInvoice.PaymentMethod.CASH;
+        }
+        if (!identity.isAnonymous()) {
+            invoice.createdBy = identity.getPrincipal().getName();
         }
         invoice.persistAndFlush();
 
@@ -281,17 +289,55 @@ public class SalesInvoiceController extends HxController {
     }
 
 
+    /**
+     * Returns true when the logged-in user has only the "sales" role —
+     * no inventory, production, finance, or admin access.
+     * These users see only the invoices they personally created.
+     */
+    private boolean isSalesOnly() {
+        if (identity.isAnonymous()) return false;
+        Set<String> roles = identity.getRoles();
+        return roles.contains("sales")
+                && !roles.contains("inventory")
+                && !roles.contains("production")
+                && !roles.contains("finance")
+                && !roles.contains("admin");
+    }
+
     private TemplateInstance render(int page, boolean fragmentOnly, List<CustomerBranch> branches, String today, String q, String errorMessage) {
         String term = (q != null && !q.isBlank()) ? "%" + q.trim().toLowerCase() + "%" : null;
-        long totalCount = term != null
-                ? SalesInvoice.count("lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1", term)
-                : SalesInvoice.count();
+
+        boolean salesOnly = isSalesOnly();
+        String currentUser = salesOnly ? identity.getPrincipal().getName() : null;
+
+        long totalCount;
+        if (salesOnly) {
+            totalCount = term != null
+                    ? SalesInvoice.count("createdBy = ?1 and (lower(invoiceNo) like ?2 or lower(vatInvoiceNo) like ?2 or lower(customerBranch.branchName) like ?2)", currentUser, term)
+                    : SalesInvoice.count("createdBy = ?1", currentUser);
+        } else {
+            totalCount = term != null
+                    ? SalesInvoice.count("lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1", term)
+                    : SalesInvoice.count();
+        }
+
         int totalPages = Math.max(1, (int) Math.ceil((double) totalCount / PAGE_SIZE));
         int currentPage = Math.min(page, totalPages);
-        List<SalesInvoice> invoices = term != null
-                ? SalesInvoice.find("(lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1) order by invoiceDate desc, id desc", term)
-                        .page(currentPage - 1, PAGE_SIZE).list()
-                : SalesInvoice.find("order by invoiceDate desc, id desc").page(currentPage - 1, PAGE_SIZE).list();
+
+        List<SalesInvoice> invoices;
+        if (salesOnly) {
+            invoices = term != null
+                    ? SalesInvoice.find("createdBy = ?1 and (lower(invoiceNo) like ?2 or lower(vatInvoiceNo) like ?2 or lower(customerBranch.branchName) like ?2) order by invoiceDate desc, id desc", currentUser, term)
+                            .page(currentPage - 1, PAGE_SIZE).list()
+                    : SalesInvoice.find("createdBy = ?1 order by invoiceDate desc, id desc", currentUser)
+                            .page(currentPage - 1, PAGE_SIZE).list();
+        } else {
+            invoices = term != null
+                    ? SalesInvoice.find("(lower(invoiceNo) like ?1 or lower(vatInvoiceNo) like ?1 or lower(customerBranch.branchName) like ?1) order by invoiceDate desc, id desc", term)
+                            .page(currentPage - 1, PAGE_SIZE).list()
+                    : SalesInvoice.find("order by invoiceDate desc, id desc").page(currentPage - 1, PAGE_SIZE).list();
+        }
+
         return fragmentOnly
                 ? Templates.index$rows(invoices, currentPage, totalPages, q, errorMessage)
                 : Templates.index(invoices, branches, currentPage, totalPages, today, q, errorMessage);
