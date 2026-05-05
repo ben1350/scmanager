@@ -21,6 +21,9 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
     public String userName;
     public String password;
 
+    @Column(name = "roles")
+    public String roles;
+
     @Override
     public boolean registered(){
         return true;
@@ -28,7 +31,13 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
 
     @Override
     public Set<String> roles() {
-        return Collections.emptySet();
+        if (roles == null || roles.isBlank()) return Collections.emptySet();
+        Set<String> set = new HashSet<>();
+        for (String r : roles.split(",")) {
+            String trimmed = r.trim();
+            if (!trimmed.isEmpty()) set.add(trimmed);
+        }
+        return Collections.unmodifiableSet(set);
     }
 
     @Override

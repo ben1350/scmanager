@@ -79,6 +79,10 @@ public class SalesInvoice extends AuditableEntity {
 
     public String remarks;
 
+    /** Username of the user who created this invoice — used for sales rep scoping. */
+    @Column(name = "created_by")
+    public String createdBy;
+
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     public List<SalesInvoiceItem> items = new ArrayList<>();
 
@@ -152,6 +156,33 @@ public class SalesInvoice extends AuditableEntity {
         return invoices.stream()
                 .map(i -> i.totalAmount != null ? i.totalAmount : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    // ── Personal (sales rep) queries ──────────────────────────────────────
+
+    /** Today's revenue from invoices created by this user. */
+    public static BigDecimal revenueToday(String createdBy) {
+        BigDecimal result = find(
+                "select coalesce(sum(s.totalAmount), 0) from SalesInvoice s " +
+                "where s.createdBy = ?1 and s.invoiceDate = ?2 and (s.status = ?3 or s.status = ?4)",
+                createdBy, java.time.LocalDate.now(), InvoiceStatus.CONFIRMED, InvoiceStatus.DELIVERED)
+                .project(BigDecimal.class).firstResult();
+        return result != null ? result : BigDecimal.ZERO;
+    }
+
+    /** Count of CONFIRMED (not yet delivered) invoices created by this user. */
+    public static long pendingDeliveriesFor(String createdBy) {
+        return count("createdBy = ?1 and status = ?2", createdBy, InvoiceStatus.CONFIRMED);
+    }
+
+    /** Sum of outstanding CREDIT invoices created by this user. */
+    public static BigDecimal outstandingCreditFor(String createdBy) {
+        BigDecimal result = find(
+                "select coalesce(sum(s.totalAmount), 0) from SalesInvoice s " +
+                "where s.createdBy = ?1 and s.paymentMethod = ?2 and (s.status = ?3 or s.status = ?4)",
+                createdBy, PaymentMethod.CREDIT, InvoiceStatus.CONFIRMED, InvoiceStatus.DELIVERED)
+                .project(BigDecimal.class).firstResult();
+        return result != null ? result : BigDecimal.ZERO;
     }
 }
 
