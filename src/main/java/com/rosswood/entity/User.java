@@ -34,7 +34,7 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
     public UserStatus status = UserStatus.REGISTERED;
 
     @Column(name = "roles")
-    public String roles;
+    public String rolesRaw;
 
     public String fullName() {
         if (firstName != null && lastName != null) return firstName + " " + lastName;
@@ -49,9 +49,9 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
 
     @Override
     public Set<String> roles() {
-        if (roles == null || roles.isBlank()) return Collections.emptySet();
+        if (rolesRaw == null || rolesRaw.isBlank()) return Collections.emptySet();
         Set<String> set = new HashSet<>();
-        for (String r : roles.split(",")) {
+        for (String r : rolesRaw.split(",")) {
             String trimmed = r.trim();
             if (!trimmed.isEmpty()) set.add(trimmed);
         }
