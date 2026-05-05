@@ -158,7 +158,7 @@
                   {#for r in allRoles}
                     <label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer;">
                       <input type="checkbox" name="roles" value="{r}" class="filled-in"
-                             {user.rolesRaw != null && user.rolesRaw.contains(r) ? 'checked' : ''}>
+                             {user.hasRole(r) ? 'checked' : ''}>
                       <span>{r}</span>
                     </label>
                   {/for}
