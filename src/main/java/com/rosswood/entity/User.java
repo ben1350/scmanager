@@ -21,8 +21,26 @@ public class User extends PanacheEntity implements RenardeUserWithPassword {
     public String userName;
     public String password;
 
+    @Column(unique = true)
+    public String email;
+
+    public String firstName;
+    public String lastName;
+
+    @Column(name = "isAdmin")
+    public boolean isAdmin;
+
+    @Enumerated(EnumType.STRING)
+    public UserStatus status = UserStatus.REGISTERED;
+
     @Column(name = "roles")
     public String roles;
+
+    public String fullName() {
+        if (firstName != null && lastName != null) return firstName + " " + lastName;
+        if (firstName != null) return firstName;
+        return userName;
+    }
 
     @Override
     public boolean registered(){
