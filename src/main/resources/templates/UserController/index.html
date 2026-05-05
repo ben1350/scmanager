@@ -1,147 +1,230 @@
 {#include "/layout.html"}
-    {#title}User Management{/title}
-    {#body}
-        <div style="margin-top: 2rem;">
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
-                <div>
-                    <h4 class="blue-text text-darken-4" style="font-weight: 800; margin: 0;">User Management</h4>
-                    <p class="grey-text" style="margin: 4px 0 0;">Create and manage system users</p>
-                </div>
-            </div>
+{#title}User Management{/title}
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1100px;">
 
-            {#if error}
-                <div class="card-panel red lighten-5" style="border-radius: 10px; border-left: 4px solid #e53935; padding: 12px 16px; margin-bottom: 1.5rem;">
-        <span class="red-text text-darken-2" style="font-weight: 600;">
-            <i class="material-icons tiny" style="vertical-align: middle;">error_outline</i> {error}
+  <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:2rem;">
+    <div>
+      <h4 class="blue-text text-darken-4" style="font-weight:800; margin:0;">User Management</h4>
+      <p class="grey-text">Create accounts and assign roles</p>
+    </div>
+    <button onclick="toggleCreateForm()"
+            class="btn-floating btn-large waves-effect waves-light blue darken-2 z-depth-3">
+      <i class="material-icons">person_add</i>
+    </button>
+  </div>
+
+  <!-- Create user form (hidden by default) -->
+  <div id="create-user-form" style="display:none; margin-bottom:2rem;">
+    <div class="card br-12 z-soft" style="border-left:4px solid #1565c0;">
+      <div class="card-content">
+        <span class="card-title" style="font-weight:600;font-size:1rem;margin-bottom:1.2rem;display:block;">
+          <i class="material-icons blue-text" style="vertical-align:middle;margin-right:6px;">person_add</i>New User
         </span>
-                </div>
-            {/if}
-
-            <!-- Add User Form -->
-            <div class="card" style="border-radius: 16px; border: 2px dashed #90caf9; background: #fafeff; margin-bottom: 2rem;">
-                <div class="card-content">
-            <span class="card-title blue-text text-darken-2" style="font-weight: 700;">
-                <i class="material-icons left">person_add</i>Add New User
-            </span>
-                    <form hx-post="{uri:UserController.add()}"
-                          hx-target="#user-rows"
-                          hx-swap="innerHTML">
-                            {#authenticityToken/}
-                        <div class="row" style="margin-bottom: 0;">
-                            <div class="input-field col s12 m3">
-                                <input name="firstName" type="text">
-                                <label>First Name</label>
-                            </div>
-                            <div class="input-field col s12 m3">
-                                <input name="lastName" type="text">
-                                <label>Last Name</label>
-                            </div>
-                            <div class="input-field col s12 m3">
-                                <input name="username" type="text" required>
-                                <label>Username *</label>
-                            </div>
-                            <div class="input-field col s12 m3">
-                                <input name="email" type="email" required>
-                                <label>Email *</label>
-                            </div>
-                        </div>
-                        <div class="row" style="margin-bottom: 0;">
-                            <div class="input-field col s12 m4">
-                                <input name="password" type="password" required minlength="8">
-                                <label>Password * (min 8 chars)</label>
-                            </div>
-                            <div class="col s12 m8" style="padding-top: 1.2rem;">
-                                <p style="margin: 0 0 8px; font-weight: 600; color: #475569; font-size: 0.9rem;">Roles</p>
-                                <label style="margin-right: 1.5rem;">
-                                    <input name="roles" type="checkbox" value="sales" class="filled-in" />
-                                    <span>Sales</span>
-                                </label>
-                                <label style="margin-right: 1.5rem;">
-                                    <input name="roles" type="checkbox" value="production" class="filled-in" />
-                                    <span>Production</span>
-                                </label>
-                                <label style="margin-right: 1.5rem;">
-                                    <input name="roles" type="checkbox" value="inventory" class="filled-in" />
-                                    <span>Inventory</span>
-                                </label>
-                                <label style="margin-right: 1.5rem;">
-                                    <input name="isAdmin" type="checkbox" class="filled-in" />
-                                    <span style="font-weight: 700; color: #1d4ed8;">Admin (all access)</span>
-                                </label>
-                            </div>
-                        </div>
-                        <div class="row" style="margin-bottom: 0;">
-                            <div class="col s12 right-align" style="padding-top: 0.5rem;">
-                                <button type="submit" hx-disabled-elt="this"
-                                        class="btn blue darken-2 waves-effect waves-light"
-                                        style="border-radius: 50px;">
-                                    <i class="material-icons left">add</i>Create User
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
+        <form hx-post="{uri:UserController.create()}"
+              hx-target="#user-table-body"
+              hx-swap="innerHTML"
+              hx-on::after-request="document.getElementById('create-user-form').style.display='none'; this.reset();">
+          {#authenticityToken/}
+          <div class="row" style="margin-bottom:0;">
+            <div class="col s12 m6 l3">
+              <div class="input-field" style="margin-top:0;">
+                <input name="firstName" type="text" id="cu-first" placeholder=" ">
+                <label for="cu-first">First Name</label>
+              </div>
             </div>
-
-            <!-- User List -->
-            <div id="user-rows">
-                {#fragment id="rows"}
-                    {#for user in users}
-                        <div class="card" style="border-radius: 12px; margin-bottom: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                            <div style="padding: 1rem 1.5rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
-
-                                <div style="width: 42px; height: 42px; border-radius: 50%; background: {user.isAdmin ? '#dbeafe' : '#f1f5f9'}; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                    <i class="material-icons {user.isAdmin ? 'blue-text text-darken-2' : 'grey-text'}">
-                                        {user.isAdmin ? 'admin_panel_settings' : 'person'}
-                                    </i>
-                                </div>
-
-                                <div style="flex-grow: 1; min-width: 180px;">
-                                    <div style="font-weight: 700; color: #1e293b;">
-                                        {user.firstName} {user.lastName}
-                                        <span class="grey-text" style="font-weight: 400;"> · @{user.username}</span>
-                                    </div>
-                                    <div class="grey-text" style="font-size: 0.82rem;">{user.email}</div>
-                                </div>
-
-                                <div style="display: flex; gap: 6px; flex-wrap: wrap; align-items: center;">
-                                    {#if user.isAdmin}
-                                        <span style="background:#dbeafe;color:#1d4ed8;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">ADMIN</span>
-                                    {/if}
-                                    {#if user.hasRole("sales")}
-                                        <span style="background:#dcfce7;color:#15803d;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">SALES</span>
-                                    {/if}
-                                    {#if user.hasRole("production")}
-                                        <span style="background:#fef9c3;color:#854d0e;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">PRODUCTION</span>
-                                    {/if}
-                                    {#if user.hasRole("inventory")}
-                                        <span style="background:#fce7f3;color:#9d174d;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">INVENTORY</span>
-                                    {/if}
-                                </div>
-
-                                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                    {#if user.status.name() == "DISABLED"}
-                                        <span style="background:#fee2e2;color:#b91c1c;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">DISABLED</span>
-                                        <form hx-post="{uri:UserController.enable(user.id)}" hx-target="#user-rows" hx-swap="innerHTML" style="display:inline;">
-                                                {#authenticityToken/}
-                                            <button class="btn-small green waves-effect" style="border-radius: 20px;">Enable</button>
-                                        </form>
-                                    {#else}
-                                        <span style="background:#dcfce7;color:#15803d;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;">ACTIVE</span>
-                                        <form hx-post="{uri:UserController.disable(user.id)}" hx-target="#user-rows" hx-swap="innerHTML"
-                                              hx-confirm="Disable {user.username}? They won't be able to log in."
-                                              onclick="event.stopPropagation()" style="display:inline;">
-                                                {#authenticityToken/}
-                                            <button class="btn-small red lighten-1 waves-effect" style="border-radius: 20px;">Disable</button>
-                                        </form>
-                                    {/if}
-                                </div>
-
-                            </div>
-                        </div>
-                    {/for}
-                {/fragment}
+            <div class="col s12 m6 l3">
+              <div class="input-field" style="margin-top:0;">
+                <input name="lastName" type="text" id="cu-last" placeholder=" ">
+                <label for="cu-last">Last Name</label>
+              </div>
             </div>
-        </div>
-    {/body}
-{/include}
+            <div class="col s12 m6 l3">
+              <div class="input-field" style="margin-top:0;">
+                <input name="userName" type="text" id="cu-user" placeholder=" " required>
+                <label for="cu-user">Username *</label>
+              </div>
+            </div>
+            <div class="col s12 m6 l3">
+              <div class="input-field" style="margin-top:0;">
+                <input name="email" type="email" id="cu-email" placeholder=" " required>
+                <label for="cu-email">Email *</label>
+              </div>
+            </div>
+          </div>
+          <div class="row" style="margin-bottom:0;">
+            <div class="col s12 m6 l4">
+              <div class="input-field" style="margin-top:0;">
+                <input name="password" type="password" id="cu-pass" placeholder=" " required>
+                <label for="cu-pass">Password *</label>
+              </div>
+            </div>
+            <div class="col s12 l8">
+              <p style="font-size:0.72rem;font-weight:700;color:#64748b;text-transform:uppercase;margin-bottom:10px;margin-top:10px;">Roles</p>
+              <div style="display:flex;flex-wrap:wrap;gap:10px;">
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="sales" class="filled-in"><span>Sales</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="inventory" class="filled-in"><span>Inventory</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="production" class="filled-in"><span>Production</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="finance" class="filled-in"><span>Finance</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="dispatch" class="filled-in"><span>Dispatch</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="customer_manager" class="filled-in"><span>Customer Mgr</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="reports" class="filled-in"><span>Reports</span>
+                </label>
+                <label style="display:flex;align-items:center;gap:5px;font-size:0.85rem;cursor:pointer;">
+                  <input type="checkbox" name="roles" value="admin" class="filled-in"><span style="font-weight:700;color:#c62828;">Admin</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:1.5rem;display:flex;gap:8px;">
+            <button type="submit" class="btn blue darken-2 waves-effect" style="border-radius:8px;text-transform:none;font-weight:600;">
+              <i class="material-icons left">save</i>Create User
+            </button>
+            <button type="button" class="btn-flat grey-text" onclick="toggleCreateForm()">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- User table -->
+  <div class="card br-12 z-soft">
+    <div class="card-content" style="padding:0;">
+      <table class="highlight responsive-table">
+        <thead>
+          <tr style="border-bottom:2px solid #f1f5f9;">
+            <th style="padding:1rem 1.5rem;font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;">User</th>
+            <th style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;">Username</th>
+            <th style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;">Roles</th>
+            <th style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#94a3b8;">Status</th>
+            <th style="width:150px;"></th>
+          </tr>
+        </thead>
+        <tbody id="user-table-body">
+          {#fragment id="rows"}
+          {#for user in users}
+          <tr id="user-row-{user.id}">
+            <td style="padding:1rem 1.5rem;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <div style="width:36px;height:36px;border-radius:50%;background:{user.isAdmin ? '#dbeafe' : '#f1f5f9'};
+                            display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <i class="material-icons {user.isAdmin ? 'blue-text text-darken-2' : 'grey-text'}" style="font-size:1.1rem;">
+                    {user.isAdmin ? 'admin_panel_settings' : 'person'}
+                  </i>
+                </div>
+                <div>
+                  <div style="font-weight:700;color:#1e293b;">{user.fullName()}</div>
+                  <div style="font-size:0.78rem;color:#94a3b8;">{user.email ?: ''}</div>
+                </div>
+              </div>
+            </td>
+            <td style="font-family:monospace;font-size:0.85rem;color:#475569;">@{user.userName}</td>
+            <td>
+              <!-- Role badges (shown by default) -->
+              <div style="display:flex;flex-wrap:wrap;gap:4px;" id="roles-display-{user.id}">
+                {#if user.roles != null && !user.roles.isEmpty()}
+                  {#for role in user.roles.split(",")}
+                    <span style="padding:2px 8px;border-radius:4px;font-size:0.68rem;font-weight:700;text-transform:uppercase;
+                            background:{role.trim() == 'admin' ? '#fce4ec' : role.trim() == 'sales' ? '#e8f5e9' : role.trim() == 'finance' ? '#e3f2fd' : role.trim() == 'production' ? '#fff8e1' : role.trim() == 'inventory' ? '#fce7f3' : '#f1f5f9'};
+                            color:{role.trim() == 'admin' ? '#c62828' : role.trim() == 'sales' ? '#2e7d32' : role.trim() == 'finance' ? '#1565c0' : role.trim() == 'production' ? '#e65100' : role.trim() == 'inventory' ? '#9d174d' : '#475569'};">
+                      {role.trim()}
+                    </span>
+                  {/for}
+                {#else}
+                  <span class="grey-text" style="font-size:0.78rem;font-style:italic;">No roles</span>
+                {/if}
+              </div>
+              <!-- Inline role editor (hidden by default) -->
+              <form id="roles-form-{user.id}"
+                    hx-post="{uri:UserController.updateRoles(user.id)}"
+                    hx-target="#user-table-body"
+                    hx-swap="innerHTML"
+                    style="display:none;margin-top:8px;">
+                {#authenticityToken/}
+                <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;">
+                  {#for r in allRoles}
+                    <label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer;">
+                      <input type="checkbox" name="roles" value="{r}" class="filled-in"
+                             {user.roles != null && user.roles.contains(r) ? 'checked' : ''}>
+                      <span>{r}</span>
+                    </label>
+                  {/for}
+                </div>
+                <div style="display:flex;gap:6px;">
+                  <button type="submit" class="btn-small blue darken-2 waves-effect"
+                          style="border-radius:6px;text-transform:none;font-weight:600;">Save</button>
+                  <button type="button" class="btn-flat grey-text"
+                          onclick="toggleRolesEdit('{user.id}')">Cancel</button>
+                </div>
+              </form>
+            </td>
+            <td>
+              {#if user.status.name() == 'DISABLED'}
+                <span style="padding:2px 10px;border-radius:50px;font-size:0.68rem;font-weight:800;text-transform:uppercase;background:#fce4ec;color:#c62828;">Disabled</span>
+              {#else}
+                <span style="padding:2px 10px;border-radius:50px;font-size:0.68rem;font-weight:800;text-transform:uppercase;background:#e8f5e9;color:#2e7d32;">Active</span>
+              {/if}
+            </td>
+            <td>
+              <div style="display:flex;gap:4px;align-items:center;">
+                <button class="btn-flat blue-text" style="font-weight:700;font-size:0.78rem;padding:0 8px;"
+                        onclick="toggleRolesEdit('{user.id}')">
+                  <i class="material-icons" style="font-size:1rem;vertical-align:middle;">manage_accounts</i> Roles
+                </button>
+                <form hx-post="{uri:UserController.toggle(user.id)}"
+                      hx-target="#user-table-body"
+                      hx-swap="innerHTML"
+                      hx-confirm="{user.status.name() == 'DISABLED' ? 'Enable this user?' : 'Disable this user? They will not be able to log in.'}">
+                  {#authenticityToken/}
+                  <button type="submit"
+                          class="btn-flat {user.status.name() == 'DISABLED' ? 'green-text' : 'red-text'}"
+                          style="font-weight:700;font-size:0.78rem;padding:0 8px;">
+                    {user.status.name() == 'DISABLED' ? 'Enable' : 'Disable'}
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {/for}
+          {/fragment}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .br-12 { border-radius:12px !important; }
+  .z-soft { box-shadow:0 4px 20px 0 rgba(0,0,0,0.05) !important; }
+</style>
+
+<script>
+  function toggleCreateForm() {
+    var f = document.getElementById('create-user-form');
+    if (f) f.style.display = f.style.display === 'none' ? 'block' : 'none';
+  }
+
+  function toggleRolesEdit(id) {
+    var display = document.getElementById('roles-display-' + id);
+    var form    = document.getElementById('roles-form-'    + id);
+    if (!display || !form) return;
+    var editing = form.style.display !== 'none';
+    display.style.display = editing ? 'flex'  : 'none';
+    form.style.display    = editing ? 'none'  : 'block';
+  }
+</script>
+{/body}
