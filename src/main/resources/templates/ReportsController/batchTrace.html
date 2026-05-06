@@ -1,0 +1,169 @@
+{#include "/layout.html"}
+{#title}Batch Traceability{/title}
+{#body}
+<style>
+  .rpt { padding:1.5rem 0 4rem; }
+  .rpt-back { display:flex; align-items:center; gap:4px; color:#64748b; text-decoration:none; font-size:0.8rem; font-weight:600; margin-bottom:1.5rem; }
+  .rpt-title { font-size:1.3rem; font-weight:800; color:#0f172a; margin:0 0 4px; letter-spacing:-0.3px; }
+  .rpt-subtitle { font-size:0.78rem; color:#94a3b8; }
+
+  .search-bar {
+    display:flex; gap:8px; align-items:center;
+    background:white; border:1px solid #e2e8f0; border-radius:12px;
+    padding:10px 14px; margin-bottom:1.5rem;
+    box-shadow:0 1px 3px rgba(0,0,0,0.04);
+  }
+  .search-bar i { color:#94a3b8; }
+  .search-bar input { border:none; flex:1; font-size:0.9rem; font-family:inherit; outline:none; color:#0f172a; }
+  .search-bar button { background:#2563eb; color:white; border:none; border-radius:8px; padding:7px 18px; font-size:0.82rem; font-weight:700; cursor:pointer; font-family:inherit; }
+
+  .trace-grid { display:grid; grid-template-columns:320px 1fr; gap:1rem; }
+
+  .panel { background:white; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; }
+  .panel-hd { padding:0.9rem 1.2rem; border-bottom:1px solid #f1f5f9; font-size:0.82rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:7px; }
+  .panel-hd i { font-size:1rem; color:#2563eb; }
+
+  .info-row { display:flex; justify-content:space-between; padding:0.7rem 1.2rem; border-bottom:1px solid #f8fafc; font-size:0.82rem; }
+  .info-row:last-child { border-bottom:none; }
+  .info-label { color:#94a3b8; font-weight:600; }
+  .info-value { font-weight:700; color:#0f172a; }
+
+  .status-badge { padding:2px 10px; border-radius:50px; font-size:0.65rem; font-weight:700; text-transform:uppercase; }
+  .s-open     { background:#fffbeb; color:#d97706; }
+  .s-finished { background:#f0fdf4; color:#059669; }
+  .s-cancelled{ background:#fef2f2; color:#dc2626; }
+
+  .timeline { padding:1rem 1.2rem; }
+  .tl-item { display:flex; gap:12px; padding-bottom:1.2rem; position:relative; }
+  .tl-item:last-child { padding-bottom:0; }
+  .tl-item:last-child .tl-line { display:none; }
+  .tl-dot-wrap { display:flex; flex-direction:column; align-items:center; flex-shrink:0; }
+  .tl-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; margin-top:3px; }
+  .tl-line { width:2px; flex:1; background:#f1f5f9; margin-top:4px; }
+  .tl-dot.in  { background:#059669; }
+  .tl-dot.out { background:#dc2626; }
+  .tl-content { flex:1; }
+  .tl-type { font-size:0.75rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; }
+  .tl-type.in  { color:#059669; }
+  .tl-type.out { color:#dc2626; }
+  .tl-desc { font-size:0.8rem; color:#64748b; margin-top:1px; }
+  .tl-qty  { font-size:0.85rem; font-weight:800; color:#0f172a; text-align:right; }
+  .tl-date { font-size:0.7rem; color:#94a3b8; text-align:right; }
+
+  .customer-row { display:flex; align-items:center; gap:10px; padding:0.8rem 1.2rem; border-bottom:1px solid #f8fafc; }
+  .customer-row:last-child { border-bottom:none; }
+  .cust-icon { width:32px; height:32px; background:#eff6ff; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .cust-icon i { font-size:1rem; color:#2563eb; }
+  .cust-name { font-size:0.83rem; font-weight:700; color:#0f172a; }
+  .cust-branch { font-size:0.72rem; color:#94a3b8; }
+  .cust-inv { font-size:0.75rem; font-weight:600; color:#2563eb; margin-left:auto; }
+
+  .no-trace { text-align:center; padding:3rem; color:#94a3b8; }
+  .no-trace i { font-size:3rem; color:#e2e8f0; display:block; margin-bottom:8px; }
+</style>
+
+<div class="rpt container">
+  <a href="/reports" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
+  <p class="rpt-title">Batch Traceability</p>
+  <p class="rpt-subtitle">Track a production batch forward to every customer who received stock from it</p>
+  <div style="height:1.2rem;"></div>
+
+  <!-- Search -->
+  <form method="GET" action="/reports/trace" class="search-bar">
+    <i class="material-icons">search</i>
+    <input type="text" name="batchCode" placeholder="Enter batch code e.g. PB-00001"
+           value="{batchCode ?: ''}" autofocus>
+    <button type="submit">Trace</button>
+  </form>
+
+  {#if trace == null && batchCode != null}
+    <div class="no-trace">
+      <i class="material-icons">find_in_page</i>
+      No batch found for code <strong>{batchCode}</strong>
+    </div>
+  {/if}
+
+  {#if trace != null}
+  <div class="trace-grid">
+
+    <!-- Left: batch details -->
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+
+      <div class="panel">
+        <div class="panel-hd"><i class="material-icons">precision_manufacturing</i> Batch Details</div>
+        <div class="info-row"><span class="info-label">Batch Code</span><span class="info-value">{trace.batch().batchCode}</span></div>
+        <div class="info-row"><span class="info-label">Product</span><span class="info-value">{trace.batch().finishedItem.itemName}</span></div>
+        <div class="info-row"><span class="info-label">Production Date</span><span class="info-value">{trace.batch().productionDate}</span></div>
+        <div class="info-row"><span class="info-label">Output Qty</span><span class="info-value">{trace.batch().outputQty} {trace.batch().finishedItem.uom.uomCode}</span></div>
+        <div class="info-row">
+          <span class="info-label">Expiry Date</span>
+          <span class="info-value">{trace.batch().expiryDate ?: '—'}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Status</span>
+          <span class="status-badge {trace.batch().status.name() == 'FINISHED' ? 's-finished' : trace.batch().status.name() == 'CANCELLED' ? 's-cancelled' : 's-open'}">
+            {trace.batch().status.name()}
+          </span>
+        </div>
+      </div>
+
+      <!-- Customers who received this batch -->
+      <div class="panel">
+        <div class="panel-hd"><i class="material-icons">group</i> Customers ({trace.invoices().size()})</div>
+        {#if trace.invoices().isEmpty()}
+          <div style="padding:1.5rem;text-align:center;color:#94a3b8;font-size:0.8rem;">No sales from this batch yet</div>
+        {#else}
+          {#for inv in trace.invoices()}
+            <div class="customer-row">
+              <div class="cust-icon"><i class="material-icons">store</i></div>
+              <div>
+                <div class="cust-name">{inv.customerBranch.customer.name}</div>
+                <div class="cust-branch">{inv.customerBranch.branchName}</div>
+              </div>
+              <a href="/invoices" class="cust-inv">{inv.invoiceNo}</a>
+            </div>
+          {/for}
+        {/if}
+      </div>
+
+    </div>
+
+    <!-- Right: stock movement timeline -->
+    <div class="panel">
+      <div class="panel-hd"><i class="material-icons">timeline</i> Stock Movement Timeline</div>
+      <div class="timeline">
+        {#if trace.movements().isEmpty()}
+          <div style="text-align:center;color:#94a3b8;padding:2rem;font-size:0.8rem;">No stock movements recorded</div>
+        {#else}
+          {#for tx in trace.movements()}
+            <div class="tl-item">
+              <div class="tl-dot-wrap">
+                <div class="tl-dot {tx.direction.name() == 'IN' ? 'in' : 'out'}"></div>
+                <div class="tl-line"></div>
+              </div>
+              <div class="tl-content">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                  <div>
+                    <div class="tl-type {tx.direction.name() == 'IN' ? 'in' : 'out'}">{tx.transactionType.name()}</div>
+                    <div class="tl-desc">
+                      {#if tx.salesInvoice != null}{tx.salesInvoice.invoiceNo} — {tx.salesInvoice.customerBranch.customer.name}{/if}
+                      {#if tx.salesInvoice == null}{tx.referenceNo ?: '—'}{/if}
+                    </div>
+                  </div>
+                  <div style="text-align:right;">
+                    <div class="tl-qty">{tx.quantity} {tx.uomCode ?: ''}</div>
+                    <div class="tl-date">{tx.transactionDate}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          {/for}
+        {/if}
+      </div>
+    </div>
+
+  </div>
+  {/if}
+</div>
+{/body}
+{/include}

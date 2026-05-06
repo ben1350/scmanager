@@ -1,0 +1,69 @@
+<div id="new-invoice-row" class="card" style="border-radius: 16px; margin-bottom: 2rem; border: 2px dashed #2196f3 !important; background: #fafafa;">
+    <form hx-post="{uri:SalesInvoiceController.add()}" hx-target="#invoiceListContainer">
+            {#authenticityToken/}
+        <div class="card-content" style="padding: 2rem;">
+            <span class="card-title blue-text text-darken-2" style="font-weight: 600;">Initialize New Invoice</span>
+            <div class="row" style="margin-top: 2rem;">
+                <div class="input-field col s2">
+                    <input value="INV-XXXX" disabled style="color: #9e9e9e; font-weight: 700;">
+                    <label class="active">Internal No</label>
+                </div>
+                <div class="input-field col s2">
+                    <input name="vatInvoiceNo" id="vat_no" type="text" placeholder="Enter VAT No">
+                    <label for="vat_no" class="active">VAT Invoice No</label>
+                </div>
+                <div class="input-field col s2">
+                    <input name="invoiceDate" id="inv_date" type="text" class="datepicker" required>
+                    <label for="inv_date">Date</label>
+                </div>
+                <div class="input-field col s4">
+                    <select name="branchId" id="inv-branch-select"
+                            onchange="onBranchChange(this)"
+                            style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                        <option value="" disabled selected>Select Customer — Branch</option>
+                        {#for branch in branches}
+                            <option value="{branch.id}"
+                                    data-type="{branch.customer.customerType.name()}">{branch.customer.name} — {branch.branchName}</option>
+                        {/for}
+                    </select>
+                </div>
+                <!-- Hidden — carries CASH or CREDIT automatically from the selected branch -->
+                <input type="hidden" name="paymentMethod" id="inv-payment-hidden" value="CASH">
+                <div class="col s2" style="display:flex; align-items:center; padding-top:8px;">
+                    <span id="customer-type-badge"
+                          style="display:none; padding:4px 14px; border-radius:50px; font-size:0.75rem;
+                                 font-weight:800; text-transform:uppercase; letter-spacing:.05em;">
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="card-action right-align" style="background: transparent; border-top: none;">
+            <button type="button" class="btn-flat" onclick="this.closest('#new-invoice-row').remove()">Cancel</button>
+            <button type="submit" class="btn-large blue darken-2" style="border-radius: 50px;">Create Invoice</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function() {
+        M.Datepicker.init(document.querySelectorAll('.datepicker'), {
+            format: 'yyyy-mm-dd',
+            autoClose: true,
+            container: 'body'
+        });
+        M.updateTextFields();
+    })();
+
+    function onBranchChange(branchSel) {
+        var opt    = branchSel.options[branchSel.selectedIndex];
+        var type   = opt ? opt.getAttribute('data-type') : 'CASH';
+        var badge  = document.getElementById('customer-type-badge');
+        var hidden = document.getElementById('inv-payment-hidden');
+        if (!badge || !hidden) return;
+        hidden.value = type === 'CREDIT' ? 'CREDIT' : 'CASH';
+        badge.textContent = type;
+        badge.style.display = 'inline-block';
+        badge.style.background = type === 'CREDIT' ? '#e3f2fd' : '#f1f8e9';
+        badge.style.color      = type === 'CREDIT' ? '#1565c0' : '#33691e';
+    }
+</script>

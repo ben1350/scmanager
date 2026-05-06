@@ -1,0 +1,106 @@
+{#include "/layout.html"}
+{#title}Reports{/title}
+{#body}
+<style>
+  .rpt { padding: 1.5rem 0 4rem; }
+  .rpt-header { margin-bottom: 2rem; }
+  .rpt-header h4 { font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.3px; }
+  .rpt-header p  { color: #94a3b8; font-size: 0.85rem; margin: 4px 0 0; }
+
+  .rpt-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+  .rpt-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    text-decoration: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition: box-shadow 0.2s, transform 0.2s;
+    cursor: pointer;
+  }
+  .rpt-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.09);
+    transform: translateY(-2px);
+  }
+  .rpt-card-icon {
+    width: 46px; height: 46px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .rpt-card-icon i { font-size: 1.4rem; }
+  .rpt-card-title { font-size: 1rem; font-weight: 700; color: #0f172a; margin: 0; }
+  .rpt-card-desc  { font-size: 0.78rem; color: #64748b; margin: 0; line-height: 1.5; }
+  .rpt-card-arrow { margin-top: auto; font-size: 0.75rem; font-weight: 700; display: flex; align-items: center; gap: 4px; }
+</style>
+
+<div class="rpt container">
+  <div class="rpt-header">
+    <h4>Reports &amp; Analytics</h4>
+    <p>Inventory, sales, production and traceability reports</p>
+  </div>
+
+  <div class="rpt-grid">
+    <a href="/reports/stock" class="rpt-card">
+      <div class="rpt-card-icon" style="background:#eff6ff;">
+        <i class="material-icons" style="color:#2563eb;">inventory_2</i>
+      </div>
+      <div>
+        <p class="rpt-card-title">Stock on Hand</p>
+        <p class="rpt-card-desc">Current inventory levels per item with lot breakdown and next expiry date.</p>
+      </div>
+      <span class="rpt-card-arrow blue-text">View report <i class="material-icons" style="font-size:1rem;">arrow_forward</i></span>
+    </a>
+
+    <a href="/reports/sales" class="rpt-card">
+      <div class="rpt-card-icon" style="background:#f0fdf4;">
+        <i class="material-icons" style="color:#059669;">receipt_long</i>
+      </div>
+      <div>
+        <p class="rpt-card-title">Sales Summary</p>
+        <p class="rpt-card-desc">Sales by date range, by customer, and top selling items.</p>
+      </div>
+      <span class="rpt-card-arrow green-text">View report <i class="material-icons" style="font-size:1rem;">arrow_forward</i></span>
+    </a>
+
+    <a href="/reports/production" class="rpt-card">
+      <div class="rpt-card-icon" style="background:#fffbeb;">
+        <i class="material-icons" style="color:#d97706;">precision_manufacturing</i>
+      </div>
+      <div>
+        <p class="rpt-card-title">Production Summary</p>
+        <p class="rpt-card-desc">Batches produced, raw material consumption and output quantities.</p>
+      </div>
+      <span class="rpt-card-arrow orange-text">View report <i class="material-icons" style="font-size:1rem;">arrow_forward</i></span>
+    </a>
+
+    <a href="/reports/expiry" class="rpt-card">
+      <div class="rpt-card-icon" style="background:#fff1f2;">
+        <i class="material-icons" style="color:#dc2626;">schedule</i>
+      </div>
+      <div>
+        <p class="rpt-card-title">Expiry Report</p>
+        <p class="rpt-card-desc">Batches expiring within 7 and 30 days. Act before stock is lost.</p>
+      </div>
+      <span class="rpt-card-arrow red-text">View report <i class="material-icons" style="font-size:1rem;">arrow_forward</i></span>
+    </a>
+
+    <a href="/reports/trace" class="rpt-card">
+      <div class="rpt-card-icon" style="background:#f5f3ff;">
+        <i class="material-icons" style="color:#7c3aed;">manage_search</i>
+      </div>
+      <div>
+        <p class="rpt-card-title">Batch Traceability</p>
+        <p class="rpt-card-desc">Full forward trace — which customers received stock from a given batch.</p>
+      </div>
+      <span class="rpt-card-arrow purple-text">View report <i class="material-icons" style="font-size:1rem;">arrow_forward</i></span>
+    </a>
+  </div>
+</div>
+{/body}
+{/include}

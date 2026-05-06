@@ -1,0 +1,170 @@
+{@com.rosswood.entity.Item item}
+<div style="padding: 2.5rem; background: #fafafa; border-top: 1px solid #eee;">
+    <div style="display:flex; gap:1rem; margin-bottom:1.5rem; padding: 0 0 1rem; border-bottom: 1px solid #eee;">
+        <!-- Selling price — inline editable -->
+        <div style="background:white; padding:12px 20px; border-radius:8px; border:1px solid #eee; flex:1;">
+            <span style="font-size:0.7rem; color:#9e9e9e; display:block; text-transform:uppercase; font-weight:700; margin-bottom:6px;">Selling Price (ex-VAT)</span>
+            <div id="price-display-{item.id}" style="display:flex; align-items:center; gap:10px;">
+                <span style="font-weight:700; font-size:1.1rem; color:#37474f;">{item.sellingPriceExVat ?: '—'}</span>
+                <button type="button" onclick="togglePriceEdit('{item.id}')"
+                        style="background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;color:#1565c0;font-size:0.75rem;font-weight:700;">
+                    ✎ Edit
+                </button>
+            </div>
+            <form id="price-form-{item.id}"
+                  hx-post="{uri:ItemController.updatePrice(item.id)}"
+                  hx-target="#detail-{item.id}"
+                  style="display:none; margin-top:6px;">
+                {#authenticityToken/}
+                <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+                    <div>
+                        <label style="font-size:0.65rem;color:#9e9e9e;display:block;">Price (ex-VAT)</label>
+                        <input name="sellingPriceExVat" type="number" step="0.0001"
+                               value="{item.sellingPriceExVat ?: ''}"
+                               placeholder="0.0000" required
+                               style="width:110px;height:32px;border:1.5px solid #e0e0e0;border-radius:6px;padding:0 8px;font-size:0.9rem;font-weight:700;">
+                    </div>
+                    <div>
+                        <label style="font-size:0.65rem;color:#9e9e9e;display:block;">VAT %</label>
+                        <input name="vatRate" type="number" step="0.01" min="0"
+                               value="{item.vatRate ?: '0'}"
+                               placeholder="0"
+                               style="width:70px;height:32px;border:1.5px solid #e0e0e0;border-radius:6px;padding:0 8px;font-size:0.9rem;">
+                    </div>
+                    <div style="display:flex;gap:4px;align-self:flex-end;">
+                        <button type="submit" class="btn-small blue darken-2 waves-effect"
+                                style="border-radius:6px;text-transform:none;font-weight:600;height:32px;line-height:32px;">Save</button>
+                        <button type="button" onclick="togglePriceEdit('{item.id}')"
+                                class="btn-flat grey-text"
+                                style="height:32px;line-height:32px;">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- WAC — read-only, computed by the system -->
+        <div style="background:white; padding:12px 20px; border-radius:8px; border:1px solid #e3f2fd; flex:1;">
+            <span style="font-size:0.7rem; color:#9e9e9e; display:block; text-transform:uppercase; font-weight:700;">Avg Cost (WAC)</span>
+            <span style="font-weight:700; font-size:1.1rem; color:#1565c0;">{item.averageCost ?: '—'}</span>
+            <span style="font-size:0.65rem; color:#b0bec5; display:block; margin-top:2px;">Calculated automatically from purchases &amp; production</span>
+        </div>
+
+        <!-- Reorder level — inline editable -->
+        <div style="background:white; padding:12px 20px; border-radius:8px; border:1px solid #fff3e0; flex:1;">
+            <span style="font-size:0.7rem; color:#9e9e9e; display:block; text-transform:uppercase; font-weight:700; margin-bottom:6px;">Reorder Level ({item.uom.uomCode})</span>
+            <div id="reorder-display-{item.id}" style="display:flex; align-items:center; gap:10px;">
+                <span style="font-weight:700; font-size:1.1rem; color:#e65100;">{item.reorderLevel ?: '—'}</span>
+                <button type="button" onclick="toggleReorderEdit('{item.id}')"
+                        style="background:none;border:none;cursor:pointer;padding:2px 6px;border-radius:4px;color:#e65100;font-size:0.75rem;font-weight:700;">
+                    ✎ Edit
+                </button>
+            </div>
+            <form id="reorder-form-{item.id}"
+                  hx-post="{uri:ItemController.updateReorderLevel(item.id)}"
+                  hx-target="#detail-{item.id}"
+                  style="display:none; margin-top:6px;">
+                {#authenticityToken/}
+                <div style="display:flex; gap:6px; align-items:center;">
+                    <input name="reorderLevel" type="number" step="0.01" min="0"
+                           value="{item.reorderLevel ?: ''}"
+                           placeholder="Min qty" required
+                           style="width:100px;height:32px;border:1.5px solid #ffe0b2;border-radius:6px;padding:0 8px;font-size:0.9rem;font-weight:700;">
+                    <button type="submit" class="btn-small orange darken-2 waves-effect"
+                            style="border-radius:6px;text-transform:none;font-weight:600;height:32px;line-height:32px;">Save</button>
+                    <button type="button" onclick="toggleReorderEdit('{item.id}')"
+                            class="btn-flat grey-text"
+                            style="height:32px;line-height:32px;">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+    function togglePriceEdit(id) {
+        var display = document.getElementById('price-display-' + id);
+        var form    = document.getElementById('price-form-'    + id);
+        if (!display || !form) return;
+        var editing = form.style.display !== 'none';
+        display.style.display = editing ? 'flex'  : 'none';
+        form.style.display    = editing ? 'none'  : 'block';
+    }
+    function toggleReorderEdit(id) {
+        var display = document.getElementById('reorder-display-' + id);
+        var form    = document.getElementById('reorder-form-'    + id);
+        if (!display || !form) return;
+        var editing = form.style.display !== 'none';
+        display.style.display = editing ? 'flex'  : 'none';
+        form.style.display    = editing ? 'none'  : 'block';
+    }
+    </script>
+    <div class="row">
+        <div class="col s5">
+            <h6 style="font-size: 0.7rem; font-weight: 800; color: #9e9e9e; text-transform: uppercase;">Packaging Units</h6>
+            <div style="margin-top: 1rem;">
+                <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee; display: flex; justify-content: space-between;">
+                    <span><b>{item.uom.uomCode}</b> <span class="blue-text" style="font-size: 0.6rem; font-weight: 800; margin-left: 5px;">(BASE)</span></span>
+                </div>
+
+                {#for iu in itemUoms}
+                    {#if iu.uomCode != item.uom.uomCode}
+                        <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 8px; border: 1px solid #eee;">
+                            <b>{iu.uomCode}</b>
+                        </div>
+                    {/if}
+                {/for}
+            </div>
+
+            <form hx-post="{uri:ItemController.addItemUom(item.id)}"
+                  hx-target="#detail-{item.id}"
+                  style="margin-top: 1rem; display: flex; gap: 5px;">
+                    {#authenticityToken/}
+                <select name="uomId" required style="flex-grow: 1; height: 35px; font-size: 0.8rem; border: 1px solid #eee; border-radius: 4px;">
+                    <option value="" disabled selected>Add Unit...</option>
+                    {#for u in uoms}
+                        <option value="{u.id}">{u.uomCode}</option>
+                    {/for}
+                </select>
+                <button type="submit" class="btn-flat blue-text" style="font-weight: 800;">ADD</button>
+            </form>
+        </div>
+
+        <div class="col s7" style="border-left: 1px solid #eee; padding-left: 3rem;">
+            <h6 style="font-size: 0.7rem; font-weight: 800; color: #9e9e9e; text-transform: uppercase;">Conversion Factors</h6>
+            <div id="conversion-list-{item.id}" style="margin-top: 1rem;">
+                {#for c in itemConversions}
+                    <div style="padding: 12px 0; border-bottom: 1px dashed #ddd; font-size: 0.95rem;">
+                        1 {c.fromUom} = <span class="blue-text" style="font-weight: 800;">{c.conversionFactor}</span> {c.toUom}
+                    </div>
+                {/for}
+                {#if itemConversions.isEmpty()}
+                    <p class="grey-text italic" style="font-size: 0.8rem;">No conversions defined.</p>
+                {/if}
+            </div>
+
+            <form hx-post="{uri:ItemController.addConversion(item.id)}"
+                  hx-target="#detail-{item.id}"
+                  style="margin-top: 1.5rem; display: flex; gap: 10px; align-items: center; background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #e0e0e0;">
+                    {#authenticityToken/}
+                <span style="font-size: 0.8rem; font-weight: bold;">1</span>
+
+                <select name="fromUom" required style="width: 100px; height: 30px; font-size: 0.8rem; border: 1px solid #eee;">
+                    <option value="" disabled selected>Unit</option>
+                    {#for iu in itemUoms}
+                        {#if iu.uomCode != item.uom.uomCode}
+                            <option value="{iu.uomCode}">{iu.uomCode}</option>
+                        {/if}
+                    {/for}
+                </select>
+
+                <span style="font-size: 0.8rem;">=</span>
+                <input name="factor" type="number" step="0.0001" placeholder="Qty" required style="width: 60px; height: 30px; font-size: 0.8rem; border: 1px solid #eee; padding-left: 5px;">
+
+                <div style="display: flex; align-items: center; gap: 5px;">
+                    <input name="toUom" value="{item.uom.uomCode}" readonly style="width: 80px; height: 30px; font-size: 0.8rem; border: 1px solid #f5f5f5; background: #fafafa; padding-left: 5px; color: #757575;">
+                    <span class="blue-text" style="font-size: 0.6rem; font-weight: bold;">BASE</span>
+                </div>
+
+                <button type="submit" class="btn-flat blue-text" style="font-weight: 800; padding: 0 10px;">ADD</button>
+            </form>
+        </div>
+    </div>
+</div>

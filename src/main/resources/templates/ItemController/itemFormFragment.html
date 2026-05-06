@@ -1,0 +1,38 @@
+<div id="new-item-row" class="card" style="border-radius: 16px; margin-bottom: 2rem; border: 2px dashed #2196f3 !important; background: #fafafa; animation: slideIn 0.3s ease-out;">
+    <form hx-post="{uri:ItemController.add()}" hx-target="#itemListContainer">
+            {#authenticityToken/}
+        <input type="hidden" name="page" value="{page}">
+        <div class="card-content" style="padding: 2rem;">
+            <span class="card-title blue-text text-darken-2" style="font-weight: 600;">New Item Registration</span>
+            <div class="row" style="margin-top: 2rem;">
+                <div class="input-field col s2">
+                    <input name="itemCode" id="item_code" type="text" required style="text-transform: uppercase;">
+                    <label for="item_code">Code</label>
+                </div>
+                <div class="input-field col s4">
+                    <input name="itemName" id="item_name" type="text" required>
+                    <label for="item_name">Item Name</label>
+                </div>
+                <div class="input-field col s3">
+                    <select name="itemTypeId" class="browser-default" style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                        <option value="" disabled selected>Item Type</option>
+                        {#for type in itemTypes}<option value="{type.id}">{type.itemTypeCode}</option>{/for}
+                    </select>
+                </div>
+                <div class="input-field col s3">
+                    <select name="uomId" class="browser-default" style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
+                        <option value="" disabled selected>Base Unit</option>
+                        {#for uom in uoms}<option value="{uom.id}">{uom.uomCode}</option>{/for}
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="card-action right-align" style="background: transparent; border: none;">
+            <button type="button" class="btn-flat grey-text" onclick="document.getElementById('new-item-row').remove()">Cancel</button>
+            <button type="submit" class="btn-large blue darken-2" style="border-radius: 50px; padding: 0 40px;">Save Item</button>
+        </div>
+    </form>
+</div>
+<script>
+    (function() { M.updateTextFields(); })();
+</script>

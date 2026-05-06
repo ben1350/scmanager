@@ -1,0 +1,16 @@
+{@com.rosswood.entity.ProductionBatch batch}
+<form hx-post="{uri:ProductionBatchController.updateQty(batch.id)}"
+      hx-target="#batchListContainer"
+      style="display: flex; align-items: center; gap: 5px;">
+        {#authenticityToken/}
+    <input type="number" name="outputQty" value="{batch.outputQty}"
+           step="0.01" style="width: 80px; height: 30px; margin: 0;">
+    <button type="submit" class="btn-flat green-text" style="padding: 0;">
+        <i class="material-icons">check</i>
+    </button>
+    <button type="button" class="btn-flat red-text"
+            hx-get="{uri:ProductionBatchController.batch()}"
+            hx-target="#batchListContainer" style="padding: 0;">
+        <i class="material-icons">close</i>
+    </button>
+</form>

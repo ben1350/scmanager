@@ -1,0 +1,156 @@
+{#include "/layout.html"}
+{#title}Production Management{/title}
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1200px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h4 class="blue-text text-darken-4" style="font-weight: 800; margin: 0;">Production Batches</h4>
+            <p class="grey-text">Track manufacturing output and raw material usage</p>
+        </div>
+        <button hx-get="{uri:ProductionBatchController.getFormFragment()}"
+                hx-target="#insertion-point"
+                class="btn-floating btn-large waves-effect waves-light blue darken-2 z-depth-3">
+            <i class="material-icons">add</i>
+        </button>
+    </div>
+
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:ProductionBatchController.batch()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#batchListContainer"
+                   placeholder="Search batches..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
+    <div id="batchListContainer">
+        {#fragment id="rows"}
+        <div id="insertion-point"></div>
+
+        <div id="batchContainer">
+            {#for batch in batches}
+            <div class="batch-card" id="card-{batch.id}"
+                 style="background: white; border-radius: 16px; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden;">
+
+                <div style="padding: 1.8rem; display: flex; align-items: center; gap: 2rem; cursor: pointer;"
+                     onclick="toggleActive(this)"
+                     data-url="{uri:ProductionBatchController.getConsumption(batch.id)}"
+                     data-target="#detail-{batch.id}">
+
+                    <div style="background: {batch.status.name() == 'FINISHED' ? '#e8f5e9' : '#e3f2fd'}; color: {batch.status.name() == 'FINISHED' ? '#2e7d32' : '#1976d2'}; padding: 12px; border-radius: 12px;">
+                        <i class="material-icons">{batch.status.name() == 'FINISHED' ? 'check_circle' : 'layers'}</i>
+                    </div>
+
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight: 800; font-size: 1.1rem; color: #263238;">{batch.batchCode}</div>
+                        <div class="grey-text" style="font-size: 0.85rem;">{batch.productionDate}</div>
+                    </div>
+
+                    <div style="flex-grow: 2;">
+                        <div style="font-weight: 600; color: #455a64;">{batch.finishedItem.itemName}</div>
+
+                        <div id="qty-display-{batch.id}"
+                                {#if batch.status.name() != 'FINISHED'}
+                             hx-get="{uri:ProductionBatchController.editQty(batch.id)}"
+                             hx-target="this"
+                             hx-trigger="dblclick"
+                             title="Double click to edit quantity"
+                             style="cursor: pointer;"
+                                {/if}
+                             class="blue-text" style="font-weight: 700;">
+                            {batch.outputQty} {batch.finishedItem.uom.uomCode}
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        {#if batch.status.name() != 'FINISHED'}
+                        <form hx-post="{uri:ProductionBatchController.finishBatch(batch.id)}?page={page}"
+                              hx-target="#batchListContainer"
+                              hx-confirm="Finalize this batch? This will adjust inventory levels."
+                              onclick="event.stopPropagation()">
+                            {#authenticityToken/}
+                            <button type="submit"
+                                    class="btn-small blue-grey darken-3 waves-effect waves-light"
+                                    style="border-radius: 6px; text-transform: none;">
+                                Finish Batch
+                            </button>
+                        </form>
+                        {#else}
+                        <span class="chip green lighten-5 green-text text-darken-3" style="font-weight: 700;">COMPLETED</span>
+                        {/if}
+
+                        <form hx-post="{uri:ProductionBatchController.delete(batch.id)}?page={page}" hx-target="#batchListContainer" hx-confirm="Delete?" onclick="event.stopPropagation()">
+                            {#authenticityToken/}
+                            <button class="btn-flat grey-text text-lighten-1" type="submit">
+                                <i class="material-icons">delete_outline</i>
+                            </button>
+                        </form>
+                        <i class="material-icons arrow-icon grey-text text-lighten-2">keyboard_arrow_down</i>
+                    </div>
+                </div>
+                <div id="detail-{batch.id}" class="consumption-pane"></div>
+            </div>
+            {/for}
+        </div>
+
+        <div class="row" style="margin-top: 3rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:ProductionBatchController.batch()}?page={page - 1}&q={q ?: ''}" hx-target="#batchListContainer"><i class="material-icons">chevron_left</i></a>
+                    </li>
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
+                        <a hx-get="{uri:ProductionBatchController.batch()}?page={i}&q={q ?: ''}" hx-target="#batchListContainer">{i}</a>
+                    </li>
+                    {/for}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:ProductionBatchController.batch()}?page={page + 1}&q={q ?: ''}" hx-target="#batchListContainer"><i class="material-icons">chevron_right</i></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {/fragment}
+    </div>
+</div>
+
+<style>
+    .batch-card.active-card { background-color: #fffde7 !important; box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important; transform: scale(1.005); }
+    .batch-card.active-card .arrow-icon { transform: rotate(180deg); color: #fbc02d !important; }
+    .consumption-pane { animation: fadeIn 0.4s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+</style>
+
+<script>
+    function toggleActive(btn) {
+        const card = btn.closest('.batch-card');
+        const wasActive = card.classList.contains('active-card');
+        const detailPane = document.getElementById(card.id.replace('card-', 'detail-'));
+
+        // Collapse all other cards
+        document.querySelectorAll('.batch-card').forEach(c => {
+            c.classList.remove('active-card');
+            if (c !== card) {
+                const det = document.getElementById(c.id.replace('card-', 'detail-'));
+                if (det) det.innerHTML = '';
+            }
+        });
+
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            if (detailPane) detailPane.innerHTML = '';
+        } else {
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', btn.dataset.url, {
+                target: btn.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
+    }
+</script>
+{/body}
+{/include}

@@ -1,0 +1,160 @@
+{#include "/layout.html"}
+    {#title}Production Consumption{/title}
+
+    {#body}
+        <div class="container" style="margin-top: 2rem; width: 90%; max-width: 1100px;">
+            <div class="row">
+                <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Production Consumption</h4>
+                        <p class="grey-text" style="margin: 5px 0 0 0;">Track raw material usage against production batches</p>
+                    </div>
+                    <button class="btn-floating btn-large waves-effect waves-light blue darken-2 modal-trigger z-depth-3"
+                            data-target="addConsumptionModal">
+                        <i class="material-icons">add</i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="consumptionListContainer">
+                {#fragment id="rows"}
+                    <div id="consumptionContainer">
+                        {#for c in consumptions}
+                            <div class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                                <div class="card-content" style="padding: 1.5rem;">
+                                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                                        <div class="col s3">
+                                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Production Batch</span>
+                                            <span class="blue-text text-darken-2" style="font-weight: 700; font-size: 1.1rem;">
+                                                {c.batch.batchCode}
+                                            </span>
+                                        </div>
+
+                                        <div class="col s4">
+                                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Raw Material</span>
+                                            <span style="font-weight: 500; color: #444;">{c.rawItem.itemName}</span>
+                                        </div>
+
+                                        <div class="col s3 center-align">
+                                            <div style="display: inline-block; text-align: left;">
+                                                <span class="grey-text" style="font-size: 0.8rem; display: block;">Consumed Qty</span>
+                                                <span class="chip orange lighten-5 orange-text text-darken-4" style="font-weight: 700; font-size: 1.1rem; border-radius: 4px;">
+                                                    {c.consumedQty}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="col s2 right-align">
+                                            <form hx-post="{uri:ProductionConsumptionController.delete(c.id)}"
+                                                  hx-target="#consumptionListContainer"
+                                                  hx-confirm="Delete this consumption entry?">
+                                                {#authenticityToken/}
+                                                <input type="hidden" name="page" value="{page}">
+                                                <button class="btn-flat red-text waves-effect waves-circle" type="submit">
+                                                    <i class="material-icons">delete_outline</i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {/for}
+                    </div>
+
+                    <div class="row" style="margin-top: 2rem;">
+                        <div class="col s12 center-align">
+                            <ul class="pagination custom-pagination">
+                                <li class="{page.isFirst ? 'disabled' : 'waves-effect'}">
+                                    <a {#if !page.isFirst} hx-get="{uri:ProductionConsumptionController.index()}?page={page.minus(1)}" hx-target="#consumptionListContainer" {/if} style="cursor: pointer;">
+                                        <i class="material-icons">chevron_left</i>
+                                    </a>
+                                </li>
+
+                                {#for i in totalPages.range}
+                                    <li class="{page.is(i, 'active blue darken-2', 'waves-effect')}">
+                                        <a hx-get="{uri:ProductionConsumptionController.index()}?page={i}" hx-target="#consumptionListContainer" style="cursor: pointer;">{i}</a>
+                                    </li>
+                                {/for}
+
+                                <li class="{page.isLast(totalPages) ? 'disabled' : 'waves-effect'}">
+                                    <a {#if !page.isLast(totalPages)} hx-get="{uri:ProductionConsumptionController.index()}?page={page.plus(1)}" hx-target="#consumptionListContainer" {/if} style="cursor: pointer;">
+                                        <i class="material-icons">chevron_right</i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                {/fragment}
+            </div>
+        </div>
+
+        <div id="addConsumptionModal" class="modal modal-fixed-footer" style="border-radius: 16px; max-width: 600px;">
+            <form hx-post="{uri:ProductionConsumptionController.add()}"
+                  hx-target="#consumptionListContainer"
+                  hx-swap="innerHTML"
+                  hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(document.getElementById('addConsumptionModal')).close(); this.reset(); }">
+                {#authenticityToken/}
+                <div class="modal-content" style="padding: 2.5rem;">
+                    <h4 class="blue-text text-darken-2" style="font-weight: 300;">Record Consumption</h4>
+
+                    <div class="row" style="margin-top: 2rem;">
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">precision_manufacturing</i>
+                            <select name="batchId" required>
+                                <option value="" disabled selected>Select Production Batch</option>
+                                {#for b in batches}
+                                    <option value="{b.id}">{b.batchCode} ({b.productionDate})</option>
+                                {/for}
+                            </select>
+                            <label>Production Batch</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="input-field col s8">
+                            <i class="material-icons prefix">inventory</i>
+                            <select name="rawItemId" required>
+                                <option value="" disabled selected>Select Raw Material</option>
+                                {#for item in rawItems}
+                                    <option value="{item.id}">{item.itemName}</option>
+                                {/for}
+                            </select>
+                            <label>Raw Material</label>
+                        </div>
+                        <div class="input-field col s4">
+                            <input name="consumedQty" type="number" step="0.01" required>
+                            <label>Quantity</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="background: #fcfcfc; padding: 0 2.5rem 2.5rem 0; border: none; height: 100px;">
+                    <a href="#!" class="modal-close waves-effect btn-flat" style="margin-right: 1rem;">Cancel</a>
+                    <button type="submit" class="btn-large blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px;">
+                        Save Entry
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <style>
+            .br-12 { border-radius: 12px; }
+            .custom-pagination li.active a { color: white !important; }
+            .input-field .prefix { color: #9e9e9e; }
+        </style>
+
+        <script>
+            function initUI() {
+                M.Modal.init(document.querySelectorAll('.modal'));
+                M.FormSelect.init(document.querySelectorAll('select'));
+                M.updateTextFields();
+            }
+
+            document.addEventListener('DOMContentLoaded', initUI);
+
+            // Re-initialize for HTMX swaps
+            document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+                initUI();
+            });
+        </script>
+    {/body}
+{/include}

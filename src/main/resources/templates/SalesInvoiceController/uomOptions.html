@@ -1,0 +1,4 @@
+<option value="" disabled selected>UOM</option>
+{#for uom in uoms}
+    <option value="{uom.id}">{uom.uomCode} {#if uom.isBase}(Base){/if}</option>
+{/for}

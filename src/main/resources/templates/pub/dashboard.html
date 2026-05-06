@@ -1,147 +1,217 @@
-<!DOCTYPE html>
-<html>
 {#include "/layout.html"}
-{#title}UOM Management{/title}
+  {#title}Operational Dashboard{/title}
 
-{#body}
-
-
-
-  <h4 class="center-align">Dashboard</h4>
-
-  <!-- KPI Cards -->
-  <div class="row">
-    <div class="col s12 m6 l3">
-      <div class="card blue lighten-2 white-text center-align">
-        <div class="card-content">
-          <span class="card-title">Total Stock</span>
-          <h5>{totalStock}</h5>
+  {#body}
+    <div style="margin-top: 2rem;">
+      <div class="row">
+        <div class="col s12">
+          <h4 class="grey-text text-darken-4" style="font-weight: 200; margin: 0;">Operations Overview</h4>
+          <p class="grey-text">Real-time inventory and production status</p>
         </div>
       </div>
-    </div>
-    <div class="col s12 m6 l3">
-      <div class="card red lighten-2 white-text center-align">
-        <div class="card-content">
-          <span class="card-title">Low Stock Items</span>
-          <h5>{lowStock}</h5>
+
+      <!-- KPI Cards -->
+      <div class="row">
+
+        <!-- 1: Finished goods stock value -->
+        <div class="col s12 m6 l2">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Finished Goods Value</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#1e293b;font-size:1.3rem;">GHS {finishedGoodsValue}</h5>
+                </div>
+                <i class="material-icons blue-text text-lighten-3" style="font-size:2rem;">inventory_2</i>
+              </div>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Stock on hand × WAC</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="col s12 m6 l3">
-      <div class="card green lighten-2 white-text center-align">
-        <div class="card-content">
-          <span class="card-title">Today's Sales</span>
-          <h5>{todaysSales}</h5>
+
+        <!-- 2: Low stock -->
+        <div class="col s12 m6 l2">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Low Stock Items</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#e11d48;font-size:1.3rem;">{lowStock}</h5>
+                </div>
+                <i class="material-icons red-text text-lighten-3" style="font-size:2rem;">error_outline</i>
+              </div>
+              <p class="red-text text-darken-1" style="font-size:0.75rem;margin:0;">Below reorder level</p>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    <div class="col s12 m6 l3">
-      <div class="card orange lighten-2 white-text center-align">
-        <div class="card-content">
-          <span class="card-title">Pending Production</span>
-          <h5>{pendingProduction}</h5>
+
+        <!-- 3: Today's revenue -->
+        <div class="col s12 m6 l3">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Today's Revenue</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#059669;font-size:1.3rem;">GHS {todaysRevenue}</h5>
+                </div>
+                <i class="material-icons green-text text-lighten-3" style="font-size:2rem;">payments</i>
+              </div>
+              <p class="green-text" style="font-size:0.75rem;margin:0;">Confirmed invoices today</p>
+            </div>
+          </div>
         </div>
+
+        <!-- 4: Pending deliveries -->
+        <div class="col s12 m6 l2">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Pending Deliveries</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#d97706;font-size:1.3rem;">{pendingDeliveries}</h5>
+                </div>
+                <i class="material-icons orange-text text-lighten-3" style="font-size:2rem;">local_shipping</i>
+              </div>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Confirmed, not delivered</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5: Outstanding credit -->
+        <div class="col s12 m6 l3">
+          <div class="card br-12 z-soft hoverable">
+            <div class="card-content" style="padding:1.2rem 1.5rem;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+                <div>
+                  <span class="grey-text" style="font-size:0.75rem;font-weight:600;text-transform:uppercase;">Outstanding Credit</span>
+                  <h5 style="margin:0.4rem 0;font-weight:700;color:#7c3aed;font-size:1.3rem;">GHS {outstandingCredit}</h5>
+                </div>
+                <i class="material-icons purple-text text-lighten-3" style="font-size:2rem;">account_balance_wallet</i>
+              </div>
+              <p class="grey-text" style="font-size:0.75rem;margin:0;">Unpaid credit invoices</p>
+            </div>
+          </div>
+        </div>
+
       </div>
-    </div>
-  </div>
 
-  <!-- Quick Actions -->
-  <div class="section">
-    <h5>Quick Actions</h5>
-    <a class="waves-effect waves-light btn" href="/items/create">Add Item</a>
-    <a class="waves-effect waves-light btn" href="/sales/create">Create Invoice</a>
-    <a class="waves-effect waves-light btn" href="/production/create">Start Production</a>
-    <a class="waves-effect waves-light btn" href="/stock/opening">Record Stock</a>
-  </div>
-
-  <!-- Recent Stock Transactions -->
-  <div class="section">
-    <div class="card">
-      <div class="card-content">
-
-      <span class="card-title">
-        Recent Stock Transactions
-      </span>
-
-        <table class="highlight striped responsive-table">
-          <thead>
-          <tr>
-            <th>Date</th>
-            <th>Item</th>
-            <th>Type</th>
-            <th class="right-align">Quantity</th>
-          </tr>
-          </thead>
-
-          <tbody>
-          {#each recentTransactions}
-            <tr>
-            <td>{it.transactionDate}</td>
-
-            <td>{it.item.itemName}</td>
-
-            <td>
-              <span class="chip grey lighten-3 grey-text text-darken-3">
-                {it.transactionType}
+      <!-- Expiry alert banner — only show if there are expiring batches -->
+      {#if expiringCount > 0}
+        <div class="row">
+          <div class="col s12">
+            <div class="card br-12" style="background:#fff7ed;border-left:4px solid #f59e0b;margin-bottom:0;">
+              <div class="card-content" style="padding:1rem 1.5rem;display:flex;align-items:center;gap:12px;">
+                <i class="material-icons" style="color:#f59e0b;">warning_amber</i>
+                <span style="font-weight:600;color:#92400e;">
+                {expiringCount} batch(es) expiring within 7 days — review stock write-offs
               </span>
-            </td>
+                <a href="/production/batch" class="btn-flat orange-text" style="margin-left:auto;font-weight:600;">View →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
 
-            <td class="right-align">
-            <strong>{it.quantity}</strong>
-            </td>
-            </tr>
-          {/each}
-          </tbody>
-        </table>
+      <div class="row">
 
+        <!-- Recent Activity -->
+        <div class="col s12 l7">
+          <div class="card br-12 z-soft">
+            <div class="card-content">
+              <span class="card-title" style="font-weight:600;font-size:1.1rem;display:flex;align-items:center;">
+                <i class="material-icons blue-text" style="margin-right:10px;">history</i> Recent Activity
+              </span>
+              <table class="highlight responsive-table" style="margin-top:1.5rem;">
+                <thead>
+                <tr class="grey-text">
+                  <th>Date</th>
+                  <th>Item</th>
+                  <th>Type</th>
+                  <th>Dir</th>
+                  <th class="right-align">Qty</th>
+                </tr>
+                </thead>
+                <tbody>
+                {#each recentTransactions}
+                  <tr>
+                    <td class="grey-text text-darken-1" style="font-size:0.9rem;">{it.transactionDate}</td>
+                    <td style="font-weight:500;">{it.item.itemName}</td>
+                    <td>
+                      <span class="chip" style="border-radius:4px;font-weight:600;font-size:0.75rem;
+                              background:{it.direction.name() == 'IN' ? '#f0fdf4' : '#fff1f2'};
+                              color:{it.direction.name() == 'IN' ? '#15803d' : '#be123c'};">
+                        {it.transactionType.name()}
+                      </span>
+                    </td>
+                    <td>
+                      {#if it.direction.name() == 'IN'}
+                        <i class="material-icons green-text" style="font-size:1rem;">arrow_downward</i>
+                      {#else}
+                        <i class="material-icons red-text" style="font-size:1rem;">arrow_upward</i>
+                      {/if}
+                    </td>
+                    <td class="right-align">
+                      <strong style="color:#1e293b;">{it.quantity}</strong>
+                    </td>
+                  </tr>
+                {/each}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="col s12 l5">
+
+          <!-- Quick Actions -->
+          <div class="card br-12 z-soft" style="background:linear-gradient(45deg,#1e293b 0%,#334155 100%);">
+            <div class="card-content white-text">
+              <span class="card-title" style="font-weight:500;">Quick Actions</span>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:1.5rem;">
+                <a href="/items" class="btn white blue-text text-darken-4 waves-effect" style="border-radius:8px;font-weight:600;">Stock</a>
+                <a href="/production/batch" class="btn white blue-text text-darken-4 waves-effect" style="border-radius:8px;font-weight:600;">Produce</a>
+                <a href="/invoices" class="btn transparent white-text waves-effect" style="border-radius:8px;border:1px solid white;">Invoice</a>
+                <a href="/customers" class="btn transparent white-text waves-effect" style="border-radius:8px;border:1px solid white;">Clients</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Production Queue -->
+          <div class="card br-12 z-soft">
+            <div class="card-content">
+              <span class="card-title" style="font-weight:600;font-size:1.1rem;display:flex;align-items:center;">
+                <i class="material-icons orange-text" style="margin-right:8px;">factory</i> Production Queue
+              </span>
+              {#if pendingBatches.isEmpty()}
+                <p class="grey-text" style="text-align:center;padding:1rem 0;">No open batches</p>
+              {#else}
+                <ul class="collection" style="border:none;margin-top:1rem;">
+                  {#each pendingBatches}
+                    <li class="collection-item" style="padding:10px 0;border-bottom:1px solid #f1f5f9;">
+                      <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                          <span style="font-weight:600;display:block;">{it.batchCode}</span>
+                          <span class="grey-text" style="font-size:0.8rem;">{it.finishedItem.itemName}</span>
+                        </div>
+                        <div class="right-align">
+                          <span class="blue-text" style="font-weight:700;">{it.outputQty}</span>
+                          <span class="grey-text" style="display:block;font-size:0.7rem;">{it.productionDate}</span>
+                        </div>
+                      </div>
+                    </li>
+                  {/each}
+                </ul>
+              {/if}
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
-  </div>
 
-
-  <!-- Pending Production Batches -->
-  <div class="section">
-    <div class="card">
-      <div class="card-content">
-    <span class="card-title">
-      Pending Production Batches
-    </span>
-
-        <table class="highlight striped responsive-table">
-          <thead>
-          <tr>
-            <th>Batch Code</th>
-            <th>Finished Item</th>
-            <th class="right-align">Output Qty</th>
-            <th>Production Date</th>
-          </tr>
-          </thead>
-
-          <tbody>
-          {#each pendingBatches}
-            <tr>
-            <td>
-            <span class="chip blue lighten-4 blue-text text-darken-3">
-              {it.batchCode}
-            </span>
-            </td>
-
-            <td>{it.finishedItem.itemName}</td>
-
-            <td class="right-align">
-              <strong>{it.outputQty}</strong>
-            </td>
-
-            <td>{it.productionDate}</td>
-            </tr>
-          {/each}
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-
-
-{/body}
+    <style>
+      .z-soft { box-shadow: 0 4px 20px 0 rgba(0,0,0,0.05) !important; }
+      .br-12  { border-radius: 12px !important; }
+    </style>
+  {/body}
 {/include}

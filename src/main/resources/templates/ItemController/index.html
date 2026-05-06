@@ -1,0 +1,123 @@
+{#include "/layout.html"}
+{#title}Item Master{/title}
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1200px;">
+    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+        <div>
+            <h4 class="blue-text text-darken-4" style="font-weight: 800; margin: 0;">Item Master</h4>
+            <p class="grey-text">Configure products and unit conversions</p>
+        </div>
+
+        <button hx-get="{uri:ItemController.getFormFragment()}?page={page}"
+                hx-target="#insertion-point"
+                class="btn-floating btn-large waves-effect waves-light blue darken-2 z-depth-3">
+            <i class="material-icons">add</i>
+        </button>
+    </div>
+
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:ItemController.index()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#itemListContainer"
+                   placeholder="Search items..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
+    <div id="itemListContainer">
+        {#fragment id="rows"}
+        <div id="insertion-point"></div>
+
+        <div id="itemContainer">
+            {#for item in items}
+            <div class="item-card" id="card-{item.id}"
+                 style="background: white; border-radius: 16px; margin-bottom: 1.2rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden;">
+
+                <div style="padding: 1.5rem 2rem; display: flex; align-items: center; cursor: pointer;"
+                     onclick="toggleItemActive(this)"
+                     data-url="{uri:ItemController.getDetails(item.id)}"
+                     data-target="#detail-{item.id}">
+
+                    <div style="background: #e1f5fe; color: #0288d1; padding: 10px; border-radius: 12px; margin-right: 20px;">
+                        <i class="material-icons">inventory_2</i>
+                    </div>
+
+                    <div style="flex-grow: 1;">
+                        <span class="grey-text" style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase;">{item.itemCode}</span>
+                        <h6 style="margin: 0; font-weight: 700; color: #37474f;">{item.itemName}</h6>
+                    </div>
+
+                    <div style="margin-right: 30px;">
+                        <span class="chip">{item.itemType.itemTypeCode}</span>
+                    </div>
+
+                    <i class="material-icons grey-text arrow-icon" style="transition: transform 0.3s;">expand_more</i>
+                </div>
+
+                <div id="detail-{item.id}" class="detail-slot"></div>
+            </div>
+            {/for}
+        </div>
+
+        <div class="row" style="margin-top: 3rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:ItemController.index()}?page={page - 1}&q={q ?: ''}" hx-target="#itemListContainer">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
+                        <a hx-get="{uri:ItemController.index()}?page={i}&q={q ?: ''}" hx-target="#itemListContainer">{i}</a>
+                    </li>
+                    {/for}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:ItemController.index()}?page={page + 1}&q={q ?: ''}" hx-target="#itemListContainer">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {/fragment}
+    </div>
+</div>
+
+<script>
+    function toggleItemActive(el) {
+        const card = el.closest('.item-card');
+        const wasActive = card.classList.contains('active-card');
+        const detailPane = card.querySelector('.detail-slot');
+
+        // Collapse all other cards
+        document.querySelectorAll('.item-card').forEach(c => {
+            c.classList.remove('active-card');
+            if (c !== card) {
+                const slot = c.querySelector('.detail-slot');
+                if (slot) slot.innerHTML = '';
+            }
+        });
+
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            if (detailPane) detailPane.innerHTML = '';
+        } else {
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', el.dataset.url, {
+                target: el.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
+    }
+</script>
+<style>
+    .item-card.active-card { border: 1px solid #2196f3; box-shadow: 0 8px 25px rgba(33, 150, 243, 0.1) !important; }
+    .item-card.active-card .arrow-icon { transform: rotate(180deg); color: #2196f3 !important; }
+</style>
+{/body}
+{/include}

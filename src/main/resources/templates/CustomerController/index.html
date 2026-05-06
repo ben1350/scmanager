@@ -1,0 +1,164 @@
+{#include "/layout.html"}
+{#title}Customer Dashboard{/title}
+
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1300px;">
+    <div class="row">
+        <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Customers</h4>
+                <p class="grey-text" style="margin: 5px 0 0 0;">Manage client base and branch networks</p>
+            </div>
+            <button class="btn-floating btn-large waves-effect waves-light blue darken-2 z-depth-3"
+                    hx-get="{uri:CustomerController.getFormFragment()}"
+                    hx-target="#insertion-point"
+                    hx-swap="innerHTML">
+                <i class="material-icons">add</i>
+            </button>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:CustomerController.index()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#customerListContainer"
+                   placeholder="Search customers..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
+    <div id="customerListContainer">
+        {#fragment id="rows"}
+        <div id="insertion-point"></div>
+
+        <div id="customerContainer">
+            {#for customer in customers}
+            <div id="card-{customer.id}"
+                 class="card customer-card"
+                 style="border-radius: 16px; margin-bottom: 1.5rem; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); overflow: hidden;">
+
+                <div class="card-content"
+                     onclick="toggleCardActive(this)"
+                     data-url="{uri:CustomerController.getBranches(customer.id)}"
+                     data-target="#detail-{customer.id}"
+                     style="cursor: pointer; padding: 1.8rem;">
+
+                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                        <div class="col s1 center-align">
+                            <i class="material-icons blue-text text-lighten-3" style="font-size: 2rem;">business</i>
+                        </div>
+                        <div class="col s3">
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <span class="grey-text text-darken-4" style="font-weight: 700; font-size: 1.15rem;">{customer.name}</span>
+                                <span style="padding:2px 8px;border-radius:50px;font-size:0.62rem;font-weight:800;text-transform:uppercase;
+                                    background:{customer.customerType.name() == 'CREDIT' ? '#e3f2fd' : '#f1f8e9'};
+                                    color:{customer.customerType.name() == 'CREDIT' ? '#1565c0' : '#33691e'};">
+                                    {customer.customerType.name()}
+                                    {#if customer.customerType.name() == 'CREDIT' && customer.creditLimit != null}
+                                        · GHS {customer.creditLimit}
+                                    {/if}
+                                </span>
+                            </div>
+                            <p class="grey-text" style="font-size: 0.85rem; margin-top: 4px; font-weight: 500;">{customer.customerCode}</p>
+                        </div>
+                        <div class="col s6">
+                            <span class="grey-text text-darken-1" style="font-size: 0.95rem;">
+                                <i class="material-icons tiny" style="vertical-align: middle; margin-right: 4px;">location_on</i>
+                                {customer.address ?: 'No address registered'}
+                            </span>
+                        </div>
+                        <div class="col s2 right-align">
+                            <i class="material-icons arrow-icon grey-text text-lighten-2">keyboard_arrow_down</i>
+                        </div>
+                    </div>
+                </div>
+                <div id="detail-{customer.id}" class="card-reveal-custom"></div>
+            </div>
+            {/for}
+        </div>
+
+        <div class="row" style="margin-top: 3rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination custom-pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:CustomerController.index()}?page={page - 1}&q={q ?: ''}" hx-target="#customerListContainer">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
+                        <a hx-get="{uri:CustomerController.index()}?page={i}&q={q ?: ''}" hx-target="#customerListContainer">{i}</a>
+                    </li>
+                    {/for}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a hx-get="{uri:CustomerController.index()}?page={page + 1}&q={q ?: ''}" hx-target="#customerListContainer">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {/fragment}
+    </div>
+</div>
+
+<style>
+    /* REMOVE EDGES & ADD SHADOW HOVER */
+    .customer-card:hover {
+        box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important;
+        transform: translateY(-2px);
+    }
+
+    /* THE YELLOW ACTIVE STATE */
+    .customer-card.active-card {
+        background-color: #fffde7 !important; /* Soft Yellow */
+        box-shadow: 0 12px 30px rgba(253, 216, 53, 0.2) !important;
+        transform: scale(1.01);
+    }
+
+    .customer-card.active-card .arrow-icon {
+        transform: rotate(180deg);
+        color: #fbc02d !important; /* Golden Yellow arrow */
+    }
+
+    .custom-pagination li.active a { color: white !important; border-radius: 8px; }
+    .card-reveal-custom { animation: fadeIn 0.4s ease-out; }
+    .inline-form-card { animation: slideDown 0.3s ease-out; border: 2px dashed #f44336 !important; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+<script>
+    function toggleCardActive(element) {
+        const card = element.closest('.customer-card');
+        const wasActive = card.classList.contains('active-card');
+        const detailId = card.id.replace('card-', 'detail-');
+        const detailPane = document.getElementById(detailId);
+
+        // Collapse all other cards
+        document.querySelectorAll('.customer-card').forEach(c => {
+            c.classList.remove('active-card');
+            if (c !== card) {
+                document.getElementById(c.id.replace('card-', 'detail-')).innerHTML = '';
+            }
+        });
+
+        if (wasActive) {
+            // Already open — collapse, no htmx request
+            detailPane.innerHTML = '';
+        } else {
+            // Opening — activate and fire htmx manually
+            card.classList.add('active-card');
+            htmx.ajax('GET', element.dataset.url, {
+                target: element.dataset.target,
+                swap: 'innerHTML'
+            });
+        }
+    }
+</script>
+{/body}
+{/include}

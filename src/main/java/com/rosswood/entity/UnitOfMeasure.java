@@ -25,4 +25,6 @@ public class UnitOfMeasure extends AuditableEntity {
         this.uomCode = uomCode;
         this.description = description;
     }
+
+
 }

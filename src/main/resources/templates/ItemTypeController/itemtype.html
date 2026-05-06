@@ -1,0 +1,75 @@
+{#include "/layout.html"}
+{#body}
+<div class="container" style="margin-top: 2rem; max-width: 800px;">
+    <h4 class="blue-text text-darken-4" style="font-weight: 800;">Item Types</h4>
+
+    <div class="card" style="border-radius: 50px; padding: 5px 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 2rem;">
+        <form hx-post="{uri:ItemTypeController.add()}" hx-target="#type-list-body">
+            {#authenticityToken/}
+            <div style="display: flex; align-items: center; gap: 15px;">
+                <i class="material-icons blue-text">label</i>
+                <input name="itemTypeCode" type="text" placeholder="Add New Type (e.g. RAW_MATERIAL)" required style="border: none !important; flex-grow: 1; margin: 0; height: 45px;">
+                <button type="submit" class="btn blue darken-2" style="border-radius: 50px;">Add</button>
+            </div>
+        </form>
+    </div>
+
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" id="type-search"
+                   placeholder="Filter item types..."
+                   oninput="filterTypeTable(this.value)"
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
+    <div class="card" style="border-radius: 16px; overflow: hidden;">
+        <table class="highlight">
+            <tbody id="type-list-body">
+                {#fragment id="rows"}
+                    {#for it in itemTypes}
+                        {#include itemtype$row_readonly it=it /}
+                    {/for}
+                {/fragment}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{#fragment id="row_readonly"}
+    {@com.rosswood.entity.ItemType it}
+    <tr id="type-row-{it.id}">
+        <td style="padding-left: 2rem; font-weight: 700;">{it.itemTypeCode}</td>
+        <td class="right-align">
+            <button hx-get="{uri:ItemTypeController.edit(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML" class="btn-flat grey-text"><i class="material-icons">edit</i></button>
+            <button hx-post="{uri:ItemTypeController.delete(it.id)}" hx-target="#type-list-body" class="btn-flat red-text text-lighten-4"><i class="material-icons">delete</i></button>
+        </td>
+    </tr>
+{/fragment}
+
+{#fragment id="row_edit"}
+    {@com.rosswood.entity.ItemType it}
+    <tr id="type-row-{it.id}" class="blue lighten-5">
+        <td>
+            <form id="edit-{it.id}" hx-post="{uri:ItemTypeController.update(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML">
+                {#authenticityToken/}
+                <input name="itemTypeCode" value="{it.itemTypeCode}" style="margin:0;">
+            </form>
+        </td>
+        <td class="right-align">
+            <button form="edit-{it.id}" class="btn-small green">Save</button>
+            <button hx-get="{uri:ItemTypeController.cancel(it.id)}" hx-target="#type-row-{it.id}" hx-swap="outerHTML" class="btn-flat">Cancel</button>
+        </td>
+    </tr>
+{/fragment}
+<script>
+function filterTypeTable(q) {
+    const term = q.toLowerCase();
+    document.querySelectorAll('#type-list-body tr').forEach(function(row) {
+        row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+}
+</script>
+{/body}
+{/include}

@@ -1,0 +1,180 @@
+{#include "/layout.html"}
+{#title}Stock Opening Balances{/title}
+
+{#body}
+<div class="container" style="margin-top: 2rem; width: 90%; max-width: 1200px;">
+    <div class="row">
+        <div class="col s12" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <div>
+                <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Stock Opening</h4>
+                <p class="grey-text" style="margin: 5px 0 0 0;">Initialize starting inventory levels for items</p>
+            </div>
+            <button class="btn-floating btn-large waves-effect waves-light blue darken-2 modal-trigger z-depth-3"
+                    data-target="addOpeningModal">
+                <i class="material-icons">add</i>
+            </button>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 1rem; max-width: 400px;">
+        <div class="input-field" style="margin: 0;">
+            <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
+            <input type="text" name="q" value="{q ?: ''}"
+                   hx-get="{uri:StockOpeningController.opening()}"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#openingListContainer"
+                   placeholder="Search stock openings..."
+                   style="margin-left: 2.5rem;">
+        </div>
+    </div>
+
+    <div id="openingListContainer">
+        {#fragment id="rows"}
+        <div id="openingContainer">
+            {#for opening in openings}
+            <div class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
+                <div class="card-content" style="padding: 1.5rem;">
+                    <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
+                        <div class="col s3">
+                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Opening Date</span>
+                            <span style="font-weight: 500;">{opening.stockDate}</span>
+                        </div>
+
+                        <div class="col s4">
+                                            <span class="blue-text text-darken-2" style="font-weight: 700; font-size: 1.1rem;">
+                                                {opening.item.itemName}
+                                            </span>
+                            <p class="grey-text" style="font-size: 0.85rem;">Code: {opening.item.itemCode}</p>
+                        </div>
+
+                        <div class="col s3 center-align">
+                            <span class="grey-text" style="font-size: 0.8rem; display: block;">Opening Quantity</span>
+                            <span style="font-size: 1.2rem; font-weight: 600;">
+                                                {opening.openingQty} <small class="grey-text" style="font-size: 0.7rem;">{opening.item.uom.uomCode}</small>
+                                            </span>
+                        </div>
+
+                        <div class="col s2 right-align">
+                            <form hx-post="{uri:StockOpeningController.delete(opening.id)}"
+                                  hx-target="#openingListContainer"
+                                  hx-confirm="Delete this opening balance?">
+                                {#authenticityToken/}
+                                <input type="hidden" name="page" value="{page}">
+                                <button class="btn-flat red-text waves-effect waves-circle" type="submit">
+                                    <i class="material-icons">delete_outline</i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/for}
+        </div>
+
+        <div class="row" style="margin-top: 2rem;">
+            <div class="col s12 center-align">
+                <ul class="pagination custom-pagination">
+                    <li class="{page == 1 ? 'disabled' : 'waves-effect'}">
+                        <a {#if page > 1}
+                                hx-get="{uri:StockOpeningController.opening()}?page={page - 1}&q={q ?: ''}"
+                                hx-target="#openingListContainer"
+                                {/if} style="cursor: pointer;">
+                            <i class="material-icons">chevron_left</i>
+                        </a>
+                    </li>
+                    {#for i in totalPages.range}
+                    <li class="{page == i ? 'active blue darken-2' : 'waves-effect'}">
+                        <a hx-get="{uri:StockOpeningController.opening()}?page={i}&q={q ?: ''}"
+                           hx-target="#openingListContainer"
+                           style="cursor: pointer;">{i}</a>
+                    </li>
+                    {/for}
+                    <li class="{page == totalPages ? 'disabled' : 'waves-effect'}">
+                        <a {#if page < totalPages}
+                                hx-get="{uri:StockOpeningController.opening()}?page={page + 1}&q={q ?: ''}"
+                                hx-target="#openingListContainer"
+                                {/if} style="cursor: pointer;">
+                            <i class="material-icons">chevron_right</i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        {/fragment}
+    </div>
+</div>
+
+<div id="addOpeningModal" class="modal modal-fixed-footer" style="border-radius: 16px; max-width: 600px;">
+    <form hx-post="{uri:StockOpeningController.add()}"
+          hx-target="#openingListContainer"
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) { M.Modal.getInstance(document.getElementById('addOpeningModal')).close(); this.reset(); }">
+        {#authenticityToken/}
+        <div class="modal-content" style="padding: 2.5rem;">
+            <h4 class="blue-text text-darken-2" style="font-weight: 300;">New Opening Stock</h4>
+
+            <div class="row" style="margin-top: 2rem;">
+                <div class="input-field col s12">
+                    <i class="material-icons prefix">event</i>
+                    <input name="stockDate" id="stockDate" type="text" class="datepicker" required>
+                    <label for="stockDate" class="active">Opening Date</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-field col s6">
+                    <i class="material-icons prefix">inventory_2</i>
+                    <select name="itemId" id="itemId" required>
+                        <option value="" disabled selected>Select Item</option>
+                        {#for item in items}
+                        <option value="{item.id}">{item.itemName} ({item.itemCode})</option>
+                        {/for}
+                    </select>
+                    <label>Item</label>
+                </div>
+                <div class="input-field col s3">
+                    <input name="openingQty" id="openingQty" type="number" step="0.01" required>
+                    <label for="openingQty">Opening Quantity</label>
+                </div>
+                <div class="input-field col s3">
+                    <input name="unitCost" id="unitCost" type="number" step="0.0001" min="0">
+                    <label for="unitCost">Unit Cost</label>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer" style="background: #fcfcfc; padding: 0 2.5rem 2.5rem 0; border: none; height: 100px;">
+            <a href="#!" class="modal-close waves-effect btn-flat" style="margin-right: 1rem;">Cancel</a>
+            <button type="submit" class="btn-large blue darken-2 waves-effect waves-light z-depth-2" style="border-radius: 8px;">
+                Save Opening Balance
+            </button>
+        </div>
+    </form>
+</div>
+
+<style>
+    .br-12 { border-radius: 12px; }
+    .custom-pagination li.active a { color: white !important; }
+    .modal-fixed-footer { height: 60% !important; }
+    .input-field .prefix { color: #9e9e9e; font-size: 1.5rem; }
+</style>
+
+<script>
+    function initUI() {
+        M.Modal.init(document.querySelectorAll('.modal'));
+        M.FormSelect.init(document.querySelectorAll('select'));
+        M.updateTextFields();
+        M.Datepicker.init(document.querySelectorAll('.datepicker'), {
+            format: 'yyyy-mm-dd',
+            autoClose: true,
+            container: document.body,
+            defaultDate: new Date(),
+            setDefaultDate: true
+        });
+    }
+    document.addEventListener('DOMContentLoaded', initUI);
+    document.body.addEventListener('htmx:afterOnLoad', function(evt) {
+        initUI();
+    });
+</script>
+{/body}
+{/include}

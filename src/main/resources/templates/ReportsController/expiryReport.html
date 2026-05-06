@@ -1,0 +1,97 @@
+{! expiryReport.html !}
+{#include "/layout.html"}
+{#title}Expiry Report{/title}
+{#body}
+<style>
+  .rpt { padding:1.5rem 0 4rem; }
+  .rpt-back { display:flex; align-items:center; gap:4px; color:#64748b; text-decoration:none; font-size:0.8rem; font-weight:600; margin-bottom:1.5rem; }
+  .rpt-title { font-size:1.3rem; font-weight:800; color:#0f172a; margin:0 0 4px; letter-spacing:-0.3px; }
+  .rpt-subtitle { font-size:0.78rem; color:#94a3b8; }
+
+  .exp-section { margin-bottom:1.5rem; }
+  .exp-section-hd { display:flex; align-items:center; gap:8px; margin-bottom:0.8rem; }
+  .exp-section-hd h6 { font-size:0.78rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; margin:0; }
+  .exp-badge { font-size:0.7rem; font-weight:700; padding:2px 10px; border-radius:50px; }
+
+  .exp-card {
+    background:white; border:1px solid #e2e8f0; border-radius:14px;
+    overflow:hidden;
+  }
+  .exp-row { display:flex; align-items:center; padding:0.9rem 1.2rem; border-bottom:1px solid #f1f5f9; gap:12px; transition:background 0.1s; }
+  .exp-row:last-child { border-bottom:none; }
+  .exp-row:hover { background:#f8fafc; }
+  .exp-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .exp-info { flex:1; }
+  .exp-code { font-size:0.85rem; font-weight:700; color:#0f172a; }
+  .exp-item { font-size:0.75rem; color:#64748b; }
+  .exp-qty  { font-size:0.85rem; font-weight:700; color:#2563eb; }
+  .exp-date-badge { font-size:0.72rem; font-weight:700; padding:3px 10px; border-radius:50px; }
+  .exp-urgent { background:#fef2f2; color:#dc2626; }
+  .exp-soon   { background:#fffbeb; color:#d97706; }
+
+  .exp-empty { padding:2rem; text-align:center; color:#94a3b8; font-size:0.82rem; background:white; border:1px solid #e2e8f0; border-radius:14px; }
+</style>
+
+<div class="rpt container">
+  <a href="/reports" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
+  <p class="rpt-title">Expiry Report</p>
+  <p class="rpt-subtitle">Finished goods batches expiring soon — action required</p>
+
+  <div style="height:1.5rem;"></div>
+
+  <!-- Expiring in 7 days -->
+  <div class="exp-section">
+    <div class="exp-section-hd">
+      <h6 style="color:#dc2626;">Expiring within 7 days</h6>
+      <span class="exp-badge exp-urgent">{expiring7.size()} batch(es)</span>
+    </div>
+    {#if expiring7.isEmpty()}
+      <div class="exp-empty"><i class="material-icons" style="font-size:2rem;color:#e2e8f0;display:block;">check_circle_outline</i>No batches expiring within 7 days</div>
+    {#else}
+      <div class="exp-card">
+        {#for b in expiring7}
+          <div class="exp-row">
+            <div class="exp-dot" style="background:#dc2626;box-shadow:0 0 0 3px rgba(220,38,38,0.15);"></div>
+            <div class="exp-info">
+              <div class="exp-code">{b.batchCode}</div>
+              <div class="exp-item">{b.finishedItem.itemName}</div>
+            </div>
+            <div class="exp-qty">{b.outputQty} {b.finishedItem.uom.uomCode}</div>
+            <span class="exp-date-badge exp-urgent">{b.expiryDate}</span>
+            <a href="/reports/trace?batchCode={b.batchCode}" class="btn-flat red-text" style="font-size:0.75rem;font-weight:700;padding:0 8px;">Trace</a>
+          </div>
+        {/for}
+      </div>
+    {/if}
+  </div>
+
+  <!-- Expiring in 8–30 days -->
+  <div class="exp-section">
+    <div class="exp-section-hd">
+      <h6 style="color:#d97706;">Expiring 8–30 days</h6>
+      <span class="exp-badge exp-soon">{expiring30.size() - expiring7.size()} batch(es)</span>
+    </div>
+    {#if expiring30.isEmpty()}
+      <div class="exp-empty"><i class="material-icons" style="font-size:2rem;color:#e2e8f0;display:block;">check_circle_outline</i>No batches expiring within 30 days</div>
+    {#else}
+      <div class="exp-card">
+        {#for b in expiring30}
+          {#if !expiring7.contains(b)}
+          <div class="exp-row">
+            <div class="exp-dot" style="background:#d97706;box-shadow:0 0 0 3px rgba(217,119,6,0.15);"></div>
+            <div class="exp-info">
+              <div class="exp-code">{b.batchCode}</div>
+              <div class="exp-item">{b.finishedItem.itemName}</div>
+            </div>
+            <div class="exp-qty">{b.outputQty} {b.finishedItem.uom.uomCode}</div>
+            <span class="exp-date-badge exp-soon">{b.expiryDate}</span>
+            <a href="/reports/trace?batchCode={b.batchCode}" class="btn-flat orange-text" style="font-size:0.75rem;font-weight:700;padding:0 8px;">Trace</a>
+          </div>
+          {/if}
+        {/for}
+      </div>
+    {/if}
+  </div>
+</div>
+{/body}
+{/include}

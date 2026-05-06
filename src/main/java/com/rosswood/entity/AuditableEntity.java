@@ -1,9 +1,10 @@
 package com.rosswood.entity;
 
+import io.quarkus.arc.Arc;
+import io.quarkus.arc.InjectableInstance;
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.MappedSuperclass;
-import jakarta.persistence.PreUpdate;
+import io.quarkus.security.identity.SecurityIdentity;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -14,7 +15,7 @@ public abstract class AuditableEntity extends PanacheEntity {
     public String createdBy;
 
     @Column(name = "created_at", updatable = false)
-    public LocalDateTime createdAt = LocalDateTime.now();
+    public LocalDateTime createdAt;
 
     @Column(name = "updated_by")
     public String updatedBy;
@@ -22,10 +23,31 @@ public abstract class AuditableEntity extends PanacheEntity {
     @Column(name = "updated_at")
     public LocalDateTime updatedAt;
 
+    @PrePersist
+    public void onPersist() {
+        this.createdAt = LocalDateTime.now();
+        this.createdBy = currentUser();
+    }
+
     @PreUpdate
     public void onUpdate() {
         this.updatedAt = LocalDateTime.now();
-        // If using security, you'd get the username here
-        // this.updatedBy = SecurityIdentity.getPrincipal().getName();
+        this.updatedBy = currentUser();
+    }
+
+    private static String currentUser() {
+        try {
+            InjectableInstance<SecurityIdentity> instance =
+                    Arc.container().select(SecurityIdentity.class);
+            if (instance.isResolvable()) {
+                SecurityIdentity identity = instance.get();
+                if (identity != null && !identity.isAnonymous()) {
+                    return identity.getPrincipal().getName();
+                }
+            }
+        } catch (Exception ignored) {
+            // Not in a request context (startup, migration, tests)
+        }
+        return null;
     }
 }

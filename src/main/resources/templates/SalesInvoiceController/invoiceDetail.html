@@ -1,0 +1,199 @@
+{@com.rosswood.entity.SalesInvoice invoice}
+{@java.util.List<com.rosswood.entity.Item> availableItems}
+<div class="invoice-detail-pane" style="padding: 1.5rem 2.5rem 2.5rem 2.5rem; border-top: 1px solid rgba(0,0,0,0.05);">
+    <h6 style="color: #9e9e9e; font-size: 0.7rem; letter-spacing: 1.5px; font-weight: 800; text-transform: uppercase; margin-bottom: 1.2rem;">Line Items</h6>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem;">
+        {#for item in invoice.items}
+            <div style="background: white; border-radius: 12px; padding: 1rem; display: flex; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                <div style="background: #e8f5e9; color: #2e7d32; padding: 8px; border-radius: 8px; margin-right: 12px;">
+                    <i class="material-icons" style="font-size: 1.2rem;">shopping_bag</i>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 700; color: #333; font-size: 0.9rem;">{item.item.itemName}</div>
+                    <div style="color: #757575; font-size: 0.8rem;">
+                        {item.quantity} {item.uom.uomCode} &times; GHS {item.unitPriceExVat}
+                        {#if item.discountPct != null && item.discountPct > 0}
+                            <span style="color: #e65100; font-weight: 700; margin-left: 4px;">-{item.discountPct}%</span>
+                        {/if}
+                    </div>
+                    {#if item.vatRate != null && item.vatRate > 0}
+                        <div style="color: #9e9e9e; font-size: 0.75rem;">
+                            VAT ({item.vatRate}%): GHS {item.vatAmount}
+                        </div>
+                    {/if}
+                    {#if item.batchCode != null}
+                        <div style="color: #90a4ae; font-size: 0.72rem; margin-top: 2px;">
+                            Batch: {item.batchCode}
+                        </div>
+                    {/if}
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: 800; color: #1e88e5;">GHS {item.lineTotalIncVat}</div>
+                    <div style="font-size: 0.72rem; color: #9e9e9e;">ex-VAT: {item.lineTotal}</div>
+                </div>
+            </div>
+        {/for}
+    </div>
+
+    <!-- Add line item form -->
+    {#if invoice.status.name() == 'DRAFT'}
+    <div style="margin-top: 2rem; background: #fafafa; padding: 1.2rem; border-radius: 12px; border: 1px dashed #e0e0e0;">
+        <form hx-post="{uri:SalesInvoiceController.addInvoiceItem(invoice.id)}" hx-target="#detail-{invoice.id}">
+                {#authenticityToken/}
+            <div style="display: flex; gap: 12px; align-items: center; background: white; padding: 8px; border-radius: 50px; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">
+
+                <!-- Searchable product picker -->
+                <div style="flex:2; position:relative;" id="picker-wrap-{invoice.id}">
+                    <input type="text" id="item-search-{invoice.id}"
+                           placeholder="Search product..."
+                           autocomplete="off"
+                           style="border:none !important; box-shadow:none !important; width:100%;
+                                  height:35px; padding-left:10px; font-weight:600; background:none;
+                                  font-size:0.9rem;"
+                           oninput="filterProducts_{invoice.id}(this.value)"
+                           onfocus="showDropdown_{invoice.id}()"
+                           onblur="hideDropdown_{invoice.id}()">
+                    <input type="hidden" name="itemId" id="item-id-{invoice.id}" required>
+                    <div id="item-dropdown-{invoice.id}"
+                         style="display:none; position:absolute; top:38px; left:0; right:0;
+                                background:white; border:1px solid #e0e0e0; border-radius:10px;
+                                box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:9999;
+                                max-height:220px; overflow-y:auto;">
+                        {#for ai in availableItems}
+                        <div class="prod-opt-{invoice.id}"
+                             data-id="{ai.id}"
+                             data-name="{ai.itemName}"
+                             data-price="{ai.sellingPriceExVat ?: ''}"
+                             data-vat="{ai.vatRate ?: ''}"
+                             onmousedown="selectProduct_{invoice.id}(this)"
+                             style="padding:9px 14px; cursor:pointer; font-size:0.85rem;
+                                    font-weight:600; color:#37474f; border-bottom:1px solid #f5f5f5;">
+                            {ai.itemName}
+                        </div>
+                        {/for}
+                    </div>
+                </div>
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <select name="uomId" id="uom-select-{invoice.id}" required
+                        style="border: none; flex: 1; height: 35px; font-weight: 600; background: none;">
+                    <option value="" disabled selected>UOM</option>
+                </select>
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="quantity" type="number" step="0.01" placeholder="Qty" required
+                       style="border: none !important; box-shadow: none !important; flex: 0.6; margin: 0; height: 35px;">
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="unitPriceExVat" id="price-{invoice.id}" type="number" step="0.0001" placeholder="Price (ex-VAT)" required
+                       style="border: none !important; box-shadow: none !important; flex: 0.8; margin: 0; height: 35px;">
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="discountPct" type="number" step="0.01" min="0" max="100" placeholder="Disc %"
+                       style="border: none !important; box-shadow: none !important; flex: 0.5; margin: 0; height: 35px; color: #e65100;">
+
+                <div style="width: 1px; height: 20px; background: #eee;"></div>
+
+                <input name="vatRate" id="vat-{invoice.id}" type="number" step="0.01" placeholder="VAT %" value="20"
+                       style="border: none !important; box-shadow: none !important; flex: 0.5; margin: 0; height: 35px;">
+
+                <button type="submit" hx-disabled-elt="this" class="btn blue darken-2"
+                        style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add</button>
+            </div>
+        </form>
+    </div>
+    <script>
+    (function() {
+        function filterProducts_{invoice.id}(term) {
+            var items = document.querySelectorAll('.prod-opt-{invoice.id}');
+            var q = term.toLowerCase();
+            items.forEach(function(el) {
+                el.style.display = el.getAttribute('data-name').toLowerCase().includes(q) ? '' : 'none';
+            });
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'block';
+        }
+        function showDropdown_{invoice.id}() {
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'block';
+        }
+        function hideDropdown_{invoice.id}() {
+            setTimeout(function() {
+                document.getElementById('item-dropdown-{invoice.id}').style.display = 'none';
+            }, 150);
+        }
+        function selectProduct_{invoice.id}(el) {
+            var id    = el.getAttribute('data-id');
+            var name  = el.getAttribute('data-name');
+            var price = el.getAttribute('data-price');
+            var vat   = el.getAttribute('data-vat');
+            document.getElementById('item-search-{invoice.id}').value = name;
+            document.getElementById('item-id-{invoice.id}').value     = id;
+            document.getElementById('item-dropdown-{invoice.id}').style.display = 'none';
+            // Auto-fill price and VAT
+            var priceEl = document.getElementById('price-{invoice.id}');
+            var vatEl   = document.getElementById('vat-{invoice.id}');
+            if (priceEl && price) priceEl.value = price;
+            if (vatEl   && vat)   vatEl.value   = vat;
+            // Load UOMs for selected item
+            htmx.ajax('GET', '/invoices/item/uoms?itemId=' + id, {
+                target: '#uom-select-{invoice.id}',
+                swap: 'innerHTML'
+            });
+        }
+        // Expose to global scope for inline handlers
+        window['filterProducts_{invoice.id}']  = filterProducts_{invoice.id};
+        window['showDropdown_{invoice.id}']    = showDropdown_{invoice.id};
+        window['hideDropdown_{invoice.id}']    = hideDropdown_{invoice.id};
+        window['selectProduct_{invoice.id}']   = selectProduct_{invoice.id};
+    })();
+    </script>
+    {#else}
+    <div style="margin-top: 1.5rem; padding: 0.8rem 1rem; background: rgba(0,0,0,0.03); border-radius: 10px; text-align: center;" class="grey-text">
+        <i class="material-icons" style="vertical-align: middle; font-size: 1.1rem; margin-right: 6px;">lock</i>
+        Line items are locked — invoice status is {invoice.status.name()}.
+    </div>
+    {/if}
+
+    <!-- Totals summary -->
+    <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+        <div style="background: white; border-radius: 12px; padding: 1rem 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); min-width: 240px;">
+            {#if invoice.paymentRef != null || invoice.paymentInfo != null || invoice.paymentDate != null}
+            <div style="padding-bottom:10px;margin-bottom:8px;border-bottom:1px dashed #e2e8f0;font-size:0.8rem;color:#64748b;">
+                <div style="font-weight:700;text-transform:uppercase;font-size:0.65rem;letter-spacing:.08em;color:#94a3b8;margin-bottom:4px;">
+                    {invoice.paymentMethod.name()} Details
+                </div>
+                {#if invoice.paymentRef != null}
+                <div>{invoice.paymentMethod.name() == 'MOMO' ? 'Ref' : 'Cheque No'}: <b>{invoice.paymentRef}</b></div>
+                {/if}
+                {#if invoice.paymentInfo != null}
+                <div>{invoice.paymentMethod.name() == 'MOMO' ? 'Phone' : 'Bank'}: <b>{invoice.paymentInfo}</b></div>
+                {/if}
+                {#if invoice.paymentDate != null}
+                <div>Date: <b>{invoice.paymentDate}</b></div>
+                {/if}
+            </div>
+            {/if}
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #757575; margin-bottom: 6px;">
+                <span>Subtotal (ex-VAT)</span>
+                <span>GHS {invoice.totalAmountExVat}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #757575; margin-bottom: 8px;">
+                <span>VAT</span>
+                <span>GHS {invoice.vatAmount}</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1rem; font-weight: 800; color: #1e88e5; border-top: 1px solid #f1f5f9; padding-top: 8px;">
+                <span>Total</span>
+                <span id="total-inline-{invoice.id}">GHS {invoice.totalAmount}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- OOB swap to update the total in the invoice card header -->
+<div id="total-{invoice.id}" hx-swap-oob="true" style="font-weight: 800; color: #1e88e5; font-size: 1.1rem;">
+    GHS {invoice.totalAmount}
+</div>

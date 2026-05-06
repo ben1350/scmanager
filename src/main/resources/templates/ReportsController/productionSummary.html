@@ -1,0 +1,141 @@
+Productionsummary · HTML
+Copy
+
+{#include "/layout.html"}
+{#title}Production Summary{/title}
+{#body}
+<style>
+  .rpt { padding:1.5rem 0 4rem; }
+  .rpt-back { display:flex; align-items:center; gap:4px; color:#64748b; text-decoration:none; font-size:0.8rem; font-weight:600; margin-bottom:1.5rem; }
+  .rpt-title { font-size:1.3rem; font-weight:800; color:#0f172a; margin:0 0 4px; letter-spacing:-0.3px; }
+  .rpt-subtitle { font-size:0.78rem; color:#94a3b8; }
+
+  .date-filter { display:flex; align-items:center; gap:8px; background:white; border:1px solid #e2e8f0; border-radius:10px; padding:8px 14px; }
+  .date-filter label { font-size:0.7rem; font-weight:700; color:#94a3b8; text-transform:uppercase; }
+  .date-filter input { border:none; font-size:0.82rem; color:#1e293b; font-family:inherit; outline:none; width:120px; }
+  .date-filter button { background:#2563eb; color:white; border:none; border-radius:7px; padding:5px 14px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:inherit; }
+
+  .topbar { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; }
+
+  .kpi-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
+  .kpi-tile { background:white; border:1px solid #e2e8f0; border-radius:14px; padding:1.1rem 1.2rem; }
+  .kpi-lbl { font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; }
+  .kpi-val { font-size:1.6rem; font-weight:800; letter-spacing:-1px; margin-top:4px; }
+
+  .prod-grid { display:grid; grid-template-columns:1fr 340px; gap:1rem; }
+
+  .panel { background:white; border:1px solid #e2e8f0; border-radius:16px; overflow:hidden; }
+  .panel-hd { padding:0.9rem 1.2rem; border-bottom:1px solid #f1f5f9; font-size:0.82rem; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:7px; }
+  .panel-hd i { font-size:1rem; color:#d97706; }
+
+  .rpt-table { width:100%; border-collapse:collapse; }
+  .rpt-table th { padding:0.6rem 1.2rem; font-size:0.62rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#94a3b8; background:#f8fafc; border-bottom:1px solid #e2e8f0; text-align:left; }
+  .rpt-table th.r { text-align:right; }
+  .rpt-table td { padding:0.8rem 1.2rem; font-size:0.82rem; color:#1e293b; border-bottom:1px solid #f8fafc; vertical-align:middle; }
+  .rpt-table tr:last-child td { border-bottom:none; }
+  .rpt-table tr:hover td { background:#f8fafc; }
+  .rpt-table td.r { text-align:right; font-weight:700; }
+  .rpt-table td.muted { color:#94a3b8; font-size:0.75rem; }
+  .rpt-table td.bold { font-weight:700; }
+
+  .s-open     { background:#fffbeb; color:#d97706; padding:2px 9px; border-radius:50px; font-size:0.65rem; font-weight:700; }
+  .s-finished { background:#f0fdf4; color:#059669; padding:2px 9px; border-radius:50px; font-size:0.65rem; font-weight:700; }
+  .s-cancelled{ background:#fef2f2; color:#dc2626; padding:2px 9px; border-radius:50px; font-size:0.65rem; font-weight:700; }
+
+  .mat-row { display:flex; align-items:center; gap:10px; padding:0.8rem 1.2rem; border-bottom:1px solid #f8fafc; }
+  .mat-row:last-child { border-bottom:none; }
+  .mat-rank { width:22px; height:22px; border-radius:50%; background:#fffbeb; color:#d97706; font-size:0.7rem; font-weight:800; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+  .mat-name { font-size:0.83rem; font-weight:700; color:#0f172a; flex:1; }
+  .mat-uom  { font-size:0.72rem; color:#94a3b8; }
+  .mat-qty  { font-size:0.88rem; font-weight:800; color:#d97706; }
+
+  @media(max-width:960px) {
+    .kpi-strip { grid-template-columns:repeat(2,1fr); }
+    .prod-grid { grid-template-columns:1fr; }
+  }
+</style>
+
+<div class="rpt container">
+  <div class="topbar">
+    <div>
+      <a href="/reports" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
+      <p class="rpt-title">Production Summary</p>
+      <p class="rpt-subtitle">{from} — {to}</p>
+    </div>
+    <form method="GET" action="/reports/production" class="date-filter">
+      <label>From</label>
+      <input type="date" name="from" value="{from}">
+      <label>To</label>
+      <input type="date" name="to" value="{to}">
+      <button type="submit">Apply</button>
+    </form>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-strip">
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Batches</div>
+      <div class="kpi-val" style="color:#d97706;">{batches.size()}</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Finished</div>
+      <div class="kpi-val" style="color:#059669;">{finishedCount}</div>
+    </div>
+    <div class="kpi-tile">
+      <div class="kpi-lbl">Materials Used</div>
+      <div class="kpi-val" style="color:#64748b;">{consumption.size()}</div>
+    </div>
+  </div>
+
+  <div class="prod-grid">
+    <!-- Batch list -->
+    <div class="panel">
+      <div class="panel-hd"><i class="material-icons">precision_manufacturing</i> Production Batches</div>
+      <table class="rpt-table">
+        <thead>
+        <tr>
+          <th>Batch</th>
+          <th>Product</th>
+          <th>Date</th>
+          <th>Expiry</th>
+          <th>Status</th>
+          <th class="r">Output Qty</th>
+        </tr>
+        </thead>
+        <tbody>
+        {#for b in batches}
+        <tr>
+          <td class="bold">{b.batchCode}</td>
+          <td>{b.finishedItem.itemName}</td>
+          <td class="muted">{b.productionDate}</td>
+          <td class="muted">{b.expiryDate ?: '—'}</td>
+          <td><span class="{b.status.name() == 'FINISHED' ? 's-finished' : b.status.name() == 'CANCELLED' ? 's-cancelled' : 's-open'}">{b.status.name()}</span></td>
+          <td class="r">{b.outputQty}</td>
+        </tr>
+        {/for}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Material consumption -->
+    <div class="panel">
+      <div class="panel-hd"><i class="material-icons">inventory_2</i> Material Consumption</div>
+      {#if consumption.isEmpty()}
+      <div style="padding:2rem;text-align:center;color:#94a3b8;font-size:0.8rem;">No consumption data</div>
+      {#else}
+      {#for m in consumption}
+      <div class="mat-row">
+        <div class="mat-rank">{consumption.indexOf(m) + 1}</div>
+        <div style="flex:1;">
+          <div class="mat-name">{m.item().itemName}</div>
+          <div class="mat-uom">{m.item().uom.uomCode}</div>
+        </div>
+        <div class="mat-qty">{m.totalConsumed()}</div>
+      </div>
+      {/for}
+      {/if}
+    </div>
+  </div>
+</div>
+{/body}
+{/include}
