@@ -39,21 +39,22 @@
             {#authenticityToken/}
 
             <!-- Row 1: Product search + UOM -->
-            <div class="inv-add-row">
-                <!-- Searchable product picker -->
-                <div class="inv-add-field" style="flex:3; min-width:160px; position:relative;" id="picker-wrap-{invoice.id}">
-                    <label class="inv-add-label">Product</label>
-                    <input type="text" id="item-search-{invoice.id}"
-                           placeholder="Search product..."
-                           autocomplete="off"
-                           class="inv-add-input"
-                           oninput="filterProducts_{invoice.id}(this.value)"
-                           onfocus="showDropdown_{invoice.id}()"
-                           onblur="hideDropdown_{invoice.id}()">
-                    <input type="hidden" name="itemId" id="item-id-{invoice.id}" required>
+            <div class="row" style="margin-bottom:0;">
+                <!-- Custom product picker (needs JS dropdown — cannot use standard Materialize) -->
+                <div class="col s12 m7 l8" style="position:relative;" id="picker-wrap-{invoice.id}">
+                    <div class="input-field" style="margin-top:0;">
+                        <i class="material-icons prefix" style="font-size:1.2rem;top:0.6rem;color:#90a4ae;">search</i>
+                        <input type="text" id="item-search-{invoice.id}"
+                               autocomplete="off"
+                               oninput="filterProducts_{invoice.id}(this.value)"
+                               onfocus="showDropdown_{invoice.id}()"
+                               onblur="hideDropdown_{invoice.id}()">
+                        <label for="item-search-{invoice.id}" style="margin-left:3rem;">Search product&hellip;</label>
+                        <input type="hidden" name="itemId" id="item-id-{invoice.id}" required>
+                    </div>
                     <div id="item-dropdown-{invoice.id}"
-                         style="display:none; position:absolute; top:100%; left:0; right:0;
-                                background:white; border:1px solid #e0e0e0; border-radius:10px;
+                         style="display:none; position:absolute; top:56px; left:0; right:0;
+                                background:white; border:1px solid #e0e0e0; border-radius:8px;
                                 box-shadow:0 8px 24px rgba(0,0,0,0.12); z-index:9999;
                                 max-height:220px; overflow-y:auto;">
                         {#for ai in availableItems}
@@ -63,49 +64,55 @@
                              data-price="{ai.sellingPriceExVat ?: ''}"
                              data-vat="{ai.vatRate ?: ''}"
                              onmousedown="selectProduct_{invoice.id}(this)"
-                             style="padding:9px 14px; cursor:pointer; font-size:0.85rem;
-                                    font-weight:600; color:#37474f; border-bottom:1px solid #f5f5f5;">
+                             style="padding:10px 16px; cursor:pointer; font-size:0.85rem;
+                                    font-weight:500; color:#37474f; border-bottom:1px solid #f5f5f5;">
                             {ai.itemName}
                         </div>
                         {/for}
                     </div>
                 </div>
 
-                <div class="inv-add-field" style="flex:1; min-width:100px;">
-                    <label class="inv-add-label">UOM</label>
-                    <select name="uomId" id="uom-select-{invoice.id}" required class="inv-add-select">
-                        <option value="" disabled selected>Select</option>
-                    </select>
+                <div class="col s12 m5 l4">
+                    <div class="input-field" style="margin-top:0;">
+                        <select name="uomId" id="uom-select-{invoice.id}" required class="browser-default uom-select-field">
+                            <option value="" disabled selected>— UOM —</option>
+                        </select>
+                        <label style="font-size:0.75rem;color:#9e9e9e;display:block;margin-bottom:2px;">Unit of Measure</label>
+                    </div>
                 </div>
             </div>
 
-            <!-- Row 2: Qty + Price + Disc + VAT -->
-            <div class="inv-add-row" style="margin-top:8px;">
-                <div class="inv-add-field" style="flex:1; min-width:80px;">
-                    <label class="inv-add-label">Qty</label>
-                    <input name="quantity" type="number" step="0.01" placeholder="0" required class="inv-add-input">
+            <!-- Row 2: Qty · Price · Disc% · VAT% -->
+            <div class="row" style="margin-bottom:0;">
+                <div class="input-field col s6 m2">
+                    <input name="quantity" id="qty-{invoice.id}" type="number" step="0.01" min="0" required>
+                    <label for="qty-{invoice.id}">Quantity</label>
                 </div>
-                <div class="inv-add-field" style="flex:2; min-width:110px;">
-                    <label class="inv-add-label">Price (ex-VAT)</label>
-                    <input name="unitPriceExVat" id="price-{invoice.id}" type="number" step="0.0001" placeholder="0.00" required class="inv-add-input">
+                <div class="input-field col s6 m4">
+                    <i class="material-icons prefix" style="font-size:1rem;top:0.65rem;color:#90a4ae;">attach_money</i>
+                    <input name="unitPriceExVat" id="price-{invoice.id}" type="number" step="0.0001" min="0" required>
+                    <label for="price-{invoice.id}">Price (ex-VAT)</label>
                 </div>
-                <div class="inv-add-field" style="flex:1; min-width:75px;">
-                    <label class="inv-add-label">Disc %</label>
-                    <input name="discountPct" type="number" step="0.01" min="0" max="100" placeholder="0"
-                           class="inv-add-input" style="color:#e65100;">
+                <div class="input-field col s6 m3">
+                    <input name="discountPct" id="disc-{invoice.id}" type="number" step="0.01" min="0" max="100"
+                           style="color:#e65100;">
+                    <label for="disc-{invoice.id}">Discount %</label>
                 </div>
-                <div class="inv-add-field" style="flex:1; min-width:75px;">
-                    <label class="inv-add-label">VAT %</label>
-                    <input name="vatRate" id="vat-{invoice.id}" type="number" step="0.01" placeholder="0" value="20" class="inv-add-input">
+                <div class="input-field col s6 m3">
+                    <input name="vatRate" id="vat-{invoice.id}" type="number" step="0.01" min="0" value="20">
+                    <label for="vat-{invoice.id}" class="active">VAT %</label>
                 </div>
             </div>
 
-            <div style="margin-top:10px;">
-                <button type="submit" hx-disabled-elt="this"
-                        class="btn blue darken-2 waves-effect"
-                        style="border-radius:8px; text-transform:none; font-weight:600; width:100%;">
-                    <i class="material-icons left">add_shopping_cart</i>Add Line Item
-                </button>
+            <!-- Submit -->
+            <div class="row" style="margin-bottom:0;">
+                <div class="col s12" style="display:flex; justify-content:flex-end; padding-top:4px;">
+                    <button type="submit" hx-disabled-elt="this"
+                            class="btn blue darken-2 waves-effect waves-light"
+                            style="text-transform:none; font-weight:600; border-radius:8px; padding:0 28px;">
+                        <i class="material-icons left">add_shopping_cart</i>Add Line Item
+                    </button>
+                </div>
             </div>
         </form>
     </div>
@@ -147,6 +154,8 @@
         window['filterProducts_{invoice.id}']  = filterProducts_{invoice.id};
         window['showDropdown_{invoice.id}']    = showDropdown_{invoice.id};
         window['hideDropdown_{invoice.id}']    = hideDropdown_{invoice.id};
+        // Ensure Materialize floating labels are in correct state
+        M.updateTextFields();
         window['selectProduct_{invoice.id}']   = selectProduct_{invoice.id};
     })();
     </script>
@@ -198,50 +207,27 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
 }
-/* Add-item form rows */
-.inv-add-row {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    align-items: flex-end;
-}
-.inv-add-field {
-    display: flex;
-    flex-direction: column;
-}
-.inv-add-label {
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #64748b;
-    margin-bottom: 3px;
-}
-.inv-add-input {
-    height: 36px;
-    border: 1.5px solid #e2e8f0 !important;
-    border-radius: 8px !important;
-    padding: 0 10px !important;
-    font-size: 0.85rem !important;
-    background: white !important;
-    box-shadow: none !important;
-    margin: 0 !important;
+/* UOM browser-default select — match Materialize underline style */
+.uom-select-field {
+    display: block;
     width: 100%;
+    border: none;
+    border-bottom: 1px solid #9e9e9e;
+    border-radius: 0;
+    background: transparent;
+    font-size: 1rem;
+    color: #333;
+    padding: 0 0 6px 0;
+    height: 3rem;
+    outline: none;
+    box-shadow: none;
+    margin-top: 20px;
 }
-.inv-add-select {
-    height: 36px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 0 8px;
-    font-size: 0.85rem;
-    background: white;
-    width: 100%;
-}
+.uom-select-field:focus { border-bottom: 2px solid #1565c0; }
 
 /* Mobile: single-column items grid */
 @media (max-width: 600px) {
-    .inv-items-grid {
-        grid-template-columns: 1fr;
-    }
-    .inv-add-field { min-width: calc(50% - 8px); }
+    .inv-items-grid { grid-template-columns: 1fr; }
     .invoice-detail-pane { padding: 1rem !important; }
 }
 </style>
