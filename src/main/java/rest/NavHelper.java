@@ -70,4 +70,13 @@ public class NavHelper {
         User u = currentUser();
         return u != null && u.isAdmin;
     }
+
+    /**
+     * Can change a customer's type (CASH ↔ CREDIT) or set credit limits.
+     * Sales reps may only create CASH customers — they cannot touch credit settings.
+     */
+    public boolean canManageCustomerType() {
+        User u = currentUser();
+        return u != null && (u.isAdmin || u.hasRole("customer_manager") || u.hasRole("finance"));
+    }
 }

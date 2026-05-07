@@ -7,6 +7,7 @@ import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
 import io.quarkus.security.Authenticated;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.ws.rs.*;
@@ -24,6 +25,9 @@ import java.util.Optional;
 public class CustomerController extends HxController {
 
     private static final int PAGE_SIZE = 10;
+
+    @Inject
+    NavHelper nav;
 
     @CheckedTemplate
     public static class Templates {
@@ -71,9 +75,14 @@ public class CustomerController extends HxController {
         customer.address = address;
         customer.email = email;
         customer.phone = phone;
-        customer.customerType = (customerType != null && customerType.equals("CREDIT"))
-                ? CustomerType.CREDIT : CustomerType.CASH;
-        customer.creditLimit = (customer.customerType == CustomerType.CREDIT) ? creditLimit : null;
+        // Sales reps can only create CASH customers — ignore any submitted type
+        if (nav.canManageCustomerType() && "CREDIT".equals(customerType)) {
+            customer.customerType = CustomerType.CREDIT;
+            customer.creditLimit  = creditLimit;
+        } else {
+            customer.customerType = CustomerType.CASH;
+            customer.creditLimit  = null;
+        }
         customer.persist();
 
         // Refresh only the rows fragment; #insertion-point will naturally be empty again
@@ -91,6 +100,10 @@ public class CustomerController extends HxController {
         onlyHxRequest();
         Customer customer = Customer.findById(id);
         if (customer == null) throw new NotFoundException();
+        // Sales reps cannot change customer type — silently return unchanged
+        if (!nav.canManageCustomerType()) {
+            return Templates.branchDetail(customer);
+        }
         customer.customerType = "CREDIT".equals(customerType) ? CustomerType.CREDIT : CustomerType.CASH;
         customer.creditLimit  = (customer.customerType == CustomerType.CREDIT) ? creditLimit : null;
         customer.persist();

@@ -19,11 +19,13 @@
         {/if}
       </div>
     </div>
+    {#if inject:nav.canManageCustomerType}
     <button type="button" onclick="toggleCreditEdit('{customer.id}')"
             style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;
                    cursor:pointer;font-size:0.75rem;font-weight:700;color:#1565c0;">
       ✎ Edit
     </button>
+    {/if}
   </div>
 
   <!-- Inline credit edit form — hidden by default -->
