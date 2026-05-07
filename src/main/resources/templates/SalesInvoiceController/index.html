@@ -1,11 +1,11 @@
 {#include "/layout.html"}
 {#title}Sales Management{/title}
 {#body}
-<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1200px;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem;">
+<div class="container inv-container">
+    <div class="inv-page-header">
         <div>
             <h4 class="blue-text text-darken-4" style="font-weight: 800; margin: 0;">Sales Invoices</h4>
-            <p class="grey-text">Manage customer billing and order fulfillment</p>
+            <p class="grey-text inv-sub">Manage customer billing and order fulfillment</p>
         </div>
         <button hx-get="{uri:SalesInvoiceController.getFormFragment()}"
                 hx-target="#insertion-point"
@@ -14,8 +14,8 @@
         </button>
     </div>
 
-    <div style="margin-bottom: 1rem; max-width: 400px;">
-        <div class="input-field" style="margin: 0;">
+    <div style="margin-bottom: 1rem;">
+        <div class="input-field inv-search-wrap">
             <i class="material-icons prefix" style="color:#1565C0; top: 0.7rem;">search</i>
             <input type="text" name="q" value="{q ?: ''}"
                    hx-get="{uri:SalesInvoiceController.index()}"
@@ -29,7 +29,7 @@
     <div id="invoiceListContainer">
         {#fragment id="rows"}
         {#if errorMessage != null}
-        <div style="background:#fce4ec;border:1px solid #ef9a9a;border-radius:10px;padding:12px 18px;margin-bottom:1rem;display:flex;align-items:center;gap:10px;">
+        <div class="inv-error-banner">
             <i class="material-icons" style="color:#c62828;">error_outline</i>
             <span style="color:#c62828;font-weight:600;font-size:0.9rem;">{errorMessage}</span>
         </div>
@@ -38,79 +38,74 @@
 
         <div id="invoiceContainer">
             {#for inv in invoices}
-            <div class="invoice-card" id="card-{inv.id}"
-                 style="background: white; border-radius: 16px; margin-bottom: 1.5rem; box-shadow: 0 2px 12px rgba(0,0,0,0.05); transition: all 0.3s ease; overflow: hidden;">
+            <div class="invoice-card" id="card-{inv.id}">
 
-                <div style="padding: 1.4rem 1.8rem; display: flex; align-items: center; cursor: pointer;"
+                <!-- ── Card header (clickable) ── -->
+                <div class="inv-card-header"
                      onclick="toggleInvoiceActive(this)"
                      data-url="{uri:SalesInvoiceController.getItems(inv.id)}"
                      data-target="#detail-{inv.id}">
 
-                    <!-- Icon -->
-                    <div style="flex: 0 0 50px;">
-                        <div style="width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center;
-                                background: {inv.status.name() == 'CONFIRMED' ? '#e8f5e9' : inv.status.name() == 'DELIVERED' ? '#e3f2fd' : inv.status.name() == 'CANCELLED' ? '#fce4ec' : '#fff8e1'};">
-                            <i class="material-icons" style="font-size:1.2rem;
-                                    color: {inv.status.name() == 'CONFIRMED' ? '#2e7d32' : inv.status.name() == 'DELIVERED' ? '#1565c0' : inv.status.name() == 'CANCELLED' ? '#c62828' : '#f57f17'};">
+                    <!-- Status icon -->
+                    <div class="inv-icon-wrap">
+                        <div class="inv-icon"
+                             style="background:{inv.status.name() == 'CONFIRMED' ? '#e8f5e9' : inv.status.name() == 'DELIVERED' ? '#e3f2fd' : inv.status.name() == 'CANCELLED' ? '#fce4ec' : '#fff8e1'};">
+                            <i class="material-icons"
+                               style="font-size:1.2rem; color:{inv.status.name() == 'CONFIRMED' ? '#2e7d32' : inv.status.name() == 'DELIVERED' ? '#1565c0' : inv.status.name() == 'CANCELLED' ? '#c62828' : '#f57f17'};">
                                 {inv.status.name() == 'CONFIRMED' ? 'check_circle' : inv.status.name() == 'DELIVERED' ? 'local_shipping' : inv.status.name() == 'CANCELLED' ? 'cancel' : 'receipt'}
                             </i>
                         </div>
                     </div>
 
-                    <!-- Invoice info -->
-                    <div style="flex: 1.5; padding-left: 0.5rem;">
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 3px;">
-                            <span style="font-weight: 800; font-size: 1rem; color: #2c3e50;">{inv.invoiceNo}</span>
-                            <!-- Status badge -->
-                            <span style="padding: 2px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 800; text-transform: uppercase;
-                                    background: {inv.status.name() == 'CONFIRMED' ? '#e8f5e9' : inv.status.name() == 'DELIVERED' ? '#e3f2fd' : inv.status.name() == 'CANCELLED' ? '#fce4ec' : '#fff8e1'};
-                                    color: {inv.status.name() == 'CONFIRMED' ? '#2e7d32' : inv.status.name() == 'DELIVERED' ? '#1565c0' : inv.status.name() == 'CANCELLED' ? '#c62828' : '#f57f17'};">
+                    <!-- Invoice no + badges + customer -->
+                    <div class="inv-info">
+                        <div class="inv-badges-row">
+                            <span class="inv-no">{inv.invoiceNo}</span>
+                            <span class="inv-badge-status"
+                                  style="background:{inv.status.name() == 'CONFIRMED' ? '#e8f5e9' : inv.status.name() == 'DELIVERED' ? '#e3f2fd' : inv.status.name() == 'CANCELLED' ? '#fce4ec' : '#fff8e1'};
+                                         color:{inv.status.name() == 'CONFIRMED' ? '#2e7d32' : inv.status.name() == 'DELIVERED' ? '#1565c0' : inv.status.name() == 'CANCELLED' ? '#c62828' : '#f57f17'};">
                                 {inv.status.name()}
                             </span>
-                            <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
-                                    background: {inv.paymentMethod.name() == 'CREDIT' ? '#e3f2fd' : inv.paymentMethod.name() == 'MOMO' ? '#f3e5f5' : inv.paymentMethod.name() == 'CHEQUE' ? '#fff8e1' : '#f1f8e9'};
-                                    color: {inv.paymentMethod.name() == 'CREDIT' ? '#1565c0' : inv.paymentMethod.name() == 'MOMO' ? '#6a1b9a' : inv.paymentMethod.name() == 'CHEQUE' ? '#f57f17' : '#33691e'};">
+                            <span class="inv-badge-pay"
+                                  style="background:{inv.paymentMethod.name() == 'CREDIT' ? '#e3f2fd' : inv.paymentMethod.name() == 'MOMO' ? '#f3e5f5' : inv.paymentMethod.name() == 'CHEQUE' ? '#fff8e1' : '#f1f8e9'};
+                                         color:{inv.paymentMethod.name() == 'CREDIT' ? '#1565c0' : inv.paymentMethod.name() == 'MOMO' ? '#6a1b9a' : inv.paymentMethod.name() == 'CHEQUE' ? '#f57f17' : '#33691e'};">
                                 {inv.paymentMethod.name()}
                             </span>
                             {#if inv.vatInvoiceNo}
-                            <span style="background: #f3e5f5; color: #6a1b9a; padding: 2px 8px; border-radius: 4px; font-size: 0.65rem; font-weight: 700;">
-                                VAT: {inv.vatInvoiceNo}
-                            </span>
+                            <span class="inv-badge-vat">VAT: {inv.vatInvoiceNo}</span>
                             {/if}
                         </div>
-                        <span class="grey-text" style="font-size: 0.82rem; font-weight: 500;">
-                            {inv.customerBranch.customer.name} — {inv.customerBranch.branchName}
-                        </span>
+                        <div class="inv-customer">{inv.customerBranch.customer.name} — {inv.customerBranch.branchName}</div>
                     </div>
 
-                    <!-- Dates -->
-                    <div style="flex: 1; font-size: 0.78rem; color: #90a4ae;">
-                        <div><i class="material-icons" style="font-size:0.85rem;vertical-align:middle;">event</i> {inv.invoiceDate}</div>
-                        {#if inv.deliveryDate}
-                        <div style="margin-top:2px;"><i class="material-icons" style="font-size:0.85rem;vertical-align:middle;">local_shipping</i> {inv.deliveryDate}</div>
-                        {/if}
-                        {#if inv.deliveryNoteNo}
-                        <div style="margin-top:2px; color:#78909c; font-size:0.72rem;">DN: {inv.deliveryNoteNo}</div>
-                        {/if}
+                    <!-- Dates + Total (right side) -->
+                    <div class="inv-right">
+                        <div class="inv-dates">
+                            <div class="inv-date-row"><i class="material-icons inv-date-icon">event</i>{inv.invoiceDate}</div>
+                            {#if inv.deliveryDate}
+                            <div class="inv-date-row"><i class="material-icons inv-date-icon">local_shipping</i>{inv.deliveryDate}</div>
+                            {/if}
+                            {#if inv.deliveryNoteNo}
+                            <div class="inv-dn">DN: {inv.deliveryNoteNo}</div>
+                            {/if}
+                        </div>
+                        <div class="inv-total-wrap">
+                            <span class="inv-total-label">Total</span>
+                            <div id="total-{inv.id}" class="inv-total-amt">GHS {inv.totalAmount ?: 0}</div>
+                        </div>
                     </div>
 
-                    <!-- Total -->
-                    <div style="flex: 0 0 160px; text-align: right;">
-                        <span style="display: block; color: #90a4ae; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em;">Total Amount</span>
-                        <div id="total-{inv.id}" style="font-weight: 800; color: #1e88e5; font-size: 1.05rem;">GHS {inv.totalAmount ?: 0}</div>
-                    </div>
-
-                    <i class="material-icons grey-text arrow-icon" style="margin-left: 16px; transition: transform 0.3s;">expand_more</i>
+                    <i class="material-icons grey-text arrow-icon inv-arrow">expand_more</i>
                 </div>
 
-                <!-- Action bar — shown below header, above detail pane -->
-                <div id="actions-{inv.id}" style="padding: 0 1.8rem 1rem; display: flex; gap: 8px; align-items: center;" onclick="event.stopPropagation()">
+                <!-- ── Action bar ── -->
+                <div id="actions-{inv.id}" class="inv-actions" onclick="event.stopPropagation()">
                     {#if inv.status.name() == 'DRAFT'}
                     <form hx-post="{uri:SalesInvoiceController.confirm(inv.id)}?page={page}"
                           hx-target="#invoiceListContainer"
                           hx-confirm="Confirm this invoice? Stock transactions will be posted and the invoice will be locked.">
                         {#authenticityToken/}
-                        <button type="submit" class="btn-small green darken-1 waves-effect" style="border-radius:6px;text-transform:none;font-weight:600;">
+                        <button type="submit" class="btn-small green darken-1 waves-effect inv-action-btn">
                             <i class="material-icons left" style="font-size:1rem;">check_circle</i>Confirm
                         </button>
                     </form>
@@ -118,21 +113,18 @@
                           hx-target="#invoiceListContainer"
                           hx-confirm="Cancel this invoice?">
                         {#authenticityToken/}
-                        <button type="submit" class="btn-small red lighten-1 waves-effect" style="border-radius:6px;text-transform:none;font-weight:600;">
+                        <button type="submit" class="btn-small red lighten-1 waves-effect inv-action-btn">
                             <i class="material-icons left" style="font-size:1rem;">cancel</i>Cancel
                         </button>
                     </form>
-                    <button class="btn-small grey darken-1 waves-effect"
-                            style="border-radius:6px;text-transform:none;font-weight:600;"
+                    <button class="btn-small grey darken-1 waves-effect inv-action-btn"
                             onclick="togglePaymentForm('{inv.id}')">
                         <i class="material-icons left" style="font-size:1rem;">payment</i>Payment
                     </button>
                     {/if}
 
                     {#if inv.status.name() == 'CONFIRMED'}
-                    <!-- Mark as delivered — opens inline delivery form -->
-                    <button class="btn-small blue darken-1 waves-effect"
-                            style="border-radius:6px;text-transform:none;font-weight:600;"
+                    <button class="btn-small blue darken-1 waves-effect inv-action-btn"
                             onclick="toggleDeliveryForm('{inv.id}')">
                         <i class="material-icons left" style="font-size:1rem;">local_shipping</i>Mark Delivered
                     </button>
@@ -140,100 +132,106 @@
                           hx-target="#invoiceListContainer"
                           hx-confirm="Cancel this confirmed invoice? Stock will be reversed.">
                         {#authenticityToken/}
-                        <button type="submit" class="btn-small red lighten-1 waves-effect" style="border-radius:6px;text-transform:none;font-weight:600;">
+                        <button type="submit" class="btn-small red lighten-1 waves-effect inv-action-btn">
                             <i class="material-icons left" style="font-size:1rem;">cancel</i>Cancel
                         </button>
                     </form>
                     {/if}
                 </div>
 
-                <!-- Delivery form — hidden until "Mark Delivered" clicked -->
-                <div id="delivery-form-{inv.id}" style="display:none; padding: 0 1.8rem 1rem;">
+                <!-- ── Delivery form ── -->
+                <div id="delivery-form-{inv.id}" style="display:none;" class="inv-subform-wrap">
                     <form hx-post="{uri:SalesInvoiceController.deliver(inv.id)}?page={page}"
                           hx-target="#invoiceListContainer"
-                          style="display:flex;gap:10px;align-items:center;background:#f8fafc;padding:10px 16px;border-radius:10px;border:1px solid #e2e8f0;">
+                          class="inv-subform">
                         {#authenticityToken/}
-                        <input name="deliveryDate" type="text" class="datepicker"
-                               placeholder="Delivery Date" required
-                               style="border:none;background:transparent;font-size:0.85rem;width:140px;">
-                        <input name="deliveryNoteNo" type="text"
-                               placeholder="Delivery Note No"
-                               style="border:none;background:transparent;font-size:0.85rem;flex:1;">
-                        <button type="submit" class="btn-small blue darken-2 waves-effect"
-                                style="border-radius:6px;text-transform:none;font-weight:600;">
-                            <i class="material-icons left" style="font-size:1rem;">done</i>Save
-                        </button>
-                        <button type="button" class="btn-flat grey-text"
-                                onclick="toggleDeliveryForm('{inv.id}')">Cancel</button>
+                        <div class="inv-subform-fields">
+                            <div class="inv-field-group">
+                                <label class="inv-field-label">Delivery Date</label>
+                                <input name="deliveryDate" type="text" class="datepicker inv-field-input"
+                                       placeholder="YYYY-MM-DD" required>
+                            </div>
+                            <div class="inv-field-group" style="flex:2;">
+                                <label class="inv-field-label">Delivery Note No</label>
+                                <input name="deliveryNoteNo" type="text" class="inv-field-input"
+                                       placeholder="Waybill / note reference">
+                            </div>
+                        </div>
+                        <div class="inv-subform-btns">
+                            <button type="submit" class="btn-small blue darken-2 waves-effect inv-action-btn">
+                                <i class="material-icons left" style="font-size:1rem;">done</i>Save
+                            </button>
+                            <button type="button" class="btn-flat grey-text"
+                                    onclick="toggleDeliveryForm('{inv.id}')">Cancel</button>
+                        </div>
                     </form>
                 </div>
 
-                <!-- Payment form — hidden until "Payment" clicked -->
-                <div id="payment-form-{inv.id}" style="display:none; padding: 0 1.8rem 1rem;">
+                <!-- ── Payment form ── -->
+                <div id="payment-form-{inv.id}" style="display:none;" class="inv-subform-wrap">
                     <form hx-post="{uri:SalesInvoiceController.updatePayment(inv.id)}?page={page}"
                           hx-target="#invoiceListContainer"
-                          style="background:#f8fafc;padding:14px 16px;border-radius:10px;border:1px solid #e2e8f0;">
+                          class="inv-subform">
                         {#authenticityToken/}
-                        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
 
-                            <div style="flex:0 0 130px;">
-                                <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Method</label>
-                                <select name="paymentMethod" id="pm-sel-{inv.id}"
-                                        onchange="onPaymentMethodChange('{inv.id}', this.value)"
-                                        style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;font-size:0.85rem;background:white;">
-                                    <option value="CASH"   {inv.paymentMethod.name() == 'CASH'   ? 'selected' : ''}>Cash</option>
-                                    <option value="MOMO"   {inv.paymentMethod.name() == 'MOMO'   ? 'selected' : ''}>MoMo</option>
-                                    <option value="CHEQUE" {inv.paymentMethod.name() == 'CHEQUE' ? 'selected' : ''}>Cheque</option>
-                                    {#if inv.customerBranch.customer.customerType.name() == 'CREDIT'}
-                                    <option value="CREDIT" {inv.paymentMethod.name() == 'CREDIT' ? 'selected' : ''}>Credit</option>
-                                    {/if}
-                                </select>
+                        <!-- Method select -->
+                        <div class="inv-field-group" style="flex:0 0 140px;">
+                            <label class="inv-field-label">Payment Method</label>
+                            <select name="paymentMethod" id="pm-sel-{inv.id}"
+                                    onchange="onPaymentMethodChange('{inv.id}', this.value)"
+                                    class="inv-select">
+                                <option value="CASH"   {inv.paymentMethod.name() == 'CASH'   ? 'selected' : ''}>Cash</option>
+                                <option value="MOMO"   {inv.paymentMethod.name() == 'MOMO'   ? 'selected' : ''}>MoMo</option>
+                                <option value="CHEQUE" {inv.paymentMethod.name() == 'CHEQUE' ? 'selected' : ''}>Cheque</option>
+                                {#if inv.customerBranch.customer.customerType.name() == 'CREDIT'}
+                                <option value="CREDIT" {inv.paymentMethod.name() == 'CREDIT' ? 'selected' : ''}>Credit</option>
+                                {/if}
+                            </select>
+                        </div>
+
+                        <!-- MoMo fields -->
+                        <div id="momo-fields-{inv.id}" class="inv-detail-fields" style="display:none;">
+                            <div class="inv-field-group">
+                                <label class="inv-field-label">Transaction Ref</label>
+                                <input name="momoRef" value="{inv.paymentRef ?: ''}" placeholder="e.g. GHS-12345678"
+                                       class="inv-field-input">
                             </div>
-
-                            <!-- MoMo fields -->
-                            <div id="momo-fields-{inv.id}" style="display:none;gap:10px;flex:1;">
-                                <div style="flex:1;">
-                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Transaction Ref</label>
-                                    <input name="momoRef" value="{inv.paymentRef ?: ''}" placeholder="e.g. GHS-12345678"
-                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
-                                </div>
-                                <div style="flex:1;">
-                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Sender Phone</label>
-                                    <input name="momoInfo" value="{inv.paymentInfo ?: ''}" placeholder="e.g. 024XXXXXXX"
-                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
-                                </div>
+                            <div class="inv-field-group">
+                                <label class="inv-field-label">Sender Phone</label>
+                                <input name="momoInfo" value="{inv.paymentInfo ?: ''}" placeholder="e.g. 024XXXXXXX"
+                                       class="inv-field-input">
                             </div>
+                        </div>
 
-                            <!-- Cheque fields -->
-                            <div id="cheque-fields-{inv.id}" style="display:none;gap:10px;flex:1;">
-                                <div style="flex:1;">
-                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Cheque No</label>
-                                    <input name="chequeRef" value="{inv.paymentRef ?: ''}" placeholder="Cheque number"
-                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
-                                </div>
-                                <div style="flex:1;">
-                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Bank</label>
-                                    <input name="chequeInfo" value="{inv.paymentInfo ?: ''}" placeholder="Bank name"
-                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 10px;font-size:0.85rem;background:white;">
-                                </div>
-                                <div style="flex:0 0 140px;">
-                                    <label style="font-size:0.72rem;font-weight:700;color:#64748b;display:block;margin-bottom:4px;">Cheque Date</label>
-                                    <input name="chequeDate" type="date" value="{inv.paymentDate ?: ''}"
-                                           style="width:100%;height:36px;border:1.5px solid #e2e8f0;border-radius:8px;padding:0 8px;font-size:0.85rem;background:white;">
-                                </div>
+                        <!-- Cheque fields -->
+                        <div id="cheque-fields-{inv.id}" class="inv-detail-fields" style="display:none;">
+                            <div class="inv-field-group">
+                                <label class="inv-field-label">Cheque No</label>
+                                <input name="chequeRef" value="{inv.paymentRef ?: ''}" placeholder="Cheque number"
+                                       class="inv-field-input">
                             </div>
+                            <div class="inv-field-group">
+                                <label class="inv-field-label">Bank</label>
+                                <input name="chequeInfo" value="{inv.paymentInfo ?: ''}" placeholder="Bank name"
+                                       class="inv-field-input">
+                            </div>
+                            <div class="inv-field-group" style="flex:0 0 160px;">
+                                <label class="inv-field-label">Cheque Date</label>
+                                <input name="chequeDate" type="date" value="{inv.paymentDate ?: ''}"
+                                       class="inv-field-input">
+                            </div>
+                        </div>
 
-                            <!-- Hidden inputs carry the active group's values on submit -->
-                            <input type="hidden" name="paymentRef"  id="paymentRef-{inv.id}">
-                            <input type="hidden" name="paymentInfo" id="paymentInfo-{inv.id}">
-                            <input type="hidden" name="paymentDate" id="paymentDate-{inv.id}">
+                        <!-- Hidden carriers -->
+                        <input type="hidden" name="paymentRef"  id="paymentRef-{inv.id}">
+                        <input type="hidden" name="paymentInfo" id="paymentInfo-{inv.id}">
+                        <input type="hidden" name="paymentDate" id="paymentDate-{inv.id}">
 
-                            <button type="submit" class="btn-small blue darken-2 waves-effect"
-                                    style="border-radius:6px;text-transform:none;font-weight:600;height:36px;align-self:flex-end;">
+                        <div class="inv-subform-btns">
+                            <button type="submit" class="btn-small blue darken-2 waves-effect inv-action-btn">
                                 <i class="material-icons left" style="font-size:1rem;">save</i>Save
                             </button>
                             <button type="button" class="btn-flat grey-text"
-                                    style="align-self:flex-end;"
                                     onclick="togglePaymentForm('{inv.id}')">Cancel</button>
                         </div>
                     </form>
@@ -244,6 +242,7 @@
             {/for}
         </div>
 
+        <!-- Pagination -->
         <div class="row" style="margin-top: 2rem;">
             <div class="col s12 center-align">
                 <ul class="pagination">
@@ -270,10 +269,202 @@
 </div>
 
 <style>
-    .invoice-card.active-card { background-color: #f1f8fe !important; box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important; }
-    .invoice-card.active-card .arrow-icon { transform: rotate(180deg); color: #1e88e5 !important; }
-    .invoice-pane { animation: fadeIn 0.4s ease-out; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+/* ── Page shell ── */
+.inv-container { margin-top: 2rem; width: 95%; max-width: 1200px; }
+.inv-page-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2rem; }
+.inv-sub { margin: 0; }
+.inv-search-wrap { margin: 0; max-width: 400px; }
+.inv-error-banner {
+    background:#fce4ec; border:1px solid #ef9a9a; border-radius:10px;
+    padding:12px 18px; margin-bottom:1rem; display:flex; align-items:center; gap:10px;
+}
+
+/* ── Card shell ── */
+.invoice-card {
+    background: white;
+    border-radius: 16px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+.invoice-card.active-card { background-color: #f1f8fe !important; box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important; }
+.invoice-card.active-card .arrow-icon { transform: rotate(180deg); color: #1e88e5 !important; }
+
+/* ── Card header ── */
+.inv-card-header {
+    padding: 1.2rem 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    flex-wrap: wrap;
+}
+
+.inv-icon-wrap { flex-shrink: 0; }
+.inv-icon {
+    width: 42px; height: 42px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+}
+
+/* Invoice info block — grows to fill space */
+.inv-info { flex: 1; min-width: 0; }
+.inv-badges-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 3px;
+}
+.inv-no { font-weight: 800; font-size: 1rem; color: #2c3e50; white-space: nowrap; }
+.inv-badge-status, .inv-badge-pay, .inv-badge-vat {
+    padding: 2px 8px;
+    border-radius: 50px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.inv-badge-vat { background: #f3e5f5; color: #6a1b9a; }
+.inv-customer { color: #78909c; font-size: 0.82rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Right block: dates + total */
+.inv-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-shrink: 0;
+}
+.inv-dates { font-size: 0.78rem; color: #90a4ae; }
+.inv-date-row { display: flex; align-items: center; gap: 3px; }
+.inv-date-icon { font-size: 0.85rem; }
+.inv-dn { font-size: 0.72rem; color: #78909c; }
+.inv-total-wrap { text-align: right; }
+.inv-total-label { display: block; color: #90a4ae; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.inv-total-amt { font-weight: 800; color: #1e88e5; font-size: 1rem; }
+
+.inv-arrow { margin-left: 4px; transition: transform 0.3s; flex-shrink: 0; }
+
+/* ── Action bar ── */
+.inv-actions {
+    padding: 0 1.2rem 0.8rem;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.inv-action-btn { border-radius: 6px !important; text-transform: none !important; font-weight: 600 !important; }
+
+/* ── Sub-forms (delivery / payment) ── */
+.inv-subform-wrap { padding: 0 1.2rem 1rem; }
+.inv-subform {
+    background: #f8fafc;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+.inv-subform-fields {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    margin-bottom: 10px;
+}
+/* Payment detail field groups sit below method selector, also flex-wrap */
+.inv-detail-fields {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
+}
+.inv-field-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 130px;
+}
+.inv-field-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #64748b;
+    margin-bottom: 4px;
+}
+.inv-field-input {
+    height: 36px;
+    border: 1.5px solid #e2e8f0 !important;
+    border-radius: 8px !important;
+    padding: 0 10px !important;
+    font-size: 0.85rem !important;
+    background: white !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    width: 100%;
+}
+.inv-select {
+    height: 36px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0 8px;
+    font-size: 0.85rem;
+    background: white;
+    width: 100%;
+}
+.inv-subform-btns {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+/* ── Detail pane ── */
+.invoice-pane { animation: fadeIn 0.4s ease-out; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ════════════════════════════
+   MOBILE  (≤ 600 px)
+   ════════════════════════════ */
+@media (max-width: 600px) {
+    .inv-container { width: 100%; margin-top: 1rem; }
+    .inv-page-header { margin-bottom: 1.2rem; }
+    .inv-sub { display: none; }
+    .inv-search-wrap { max-width: 100%; }
+
+    /* Card header: stack dates/total below the main row */
+    .inv-card-header { padding: 1rem; gap: 10px; }
+    .inv-right {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        padding-top: 6px;
+        border-top: 1px solid #f1f5f9;
+        gap: 8px;
+        order: 10; /* push below info row */
+    }
+    .inv-arrow { order: 5; } /* keep arrow at end of first row */
+    .inv-dates { font-size: 0.72rem; }
+    .inv-total-amt { font-size: 0.9rem; }
+    .inv-no { font-size: 0.9rem; }
+    .inv-customer { font-size: 0.75rem; }
+
+    /* Action buttons: full-width row, small */
+    .inv-actions { padding: 0 1rem 0.8rem; }
+    .inv-actions .btn-small { font-size: 0.72rem !important; padding: 0 10px !important; }
+
+    /* Sub-forms: all fields stack to full width */
+    .inv-field-group { min-width: 100%; flex: none; }
+    .inv-detail-fields { flex-direction: column; }
+    .inv-subform-fields { flex-direction: column; }
+}
+
+/* ════════════════════════════
+   TABLET  (601 – 900 px)
+   ════════════════════════════ */
+@media (max-width: 900px) and (min-width: 601px) {
+    .inv-right { flex-direction: column; align-items: flex-end; gap: 4px; }
+    .inv-field-group { min-width: 140px; }
+}
 </style>
 
 <script>
@@ -302,13 +493,11 @@
     }
 
     function toggleDeliveryForm(id) {
-        // Close payment form if open
         var pf = document.getElementById('payment-form-' + id);
         if (pf) pf.style.display = 'none';
         const form = document.getElementById('delivery-form-' + id);
         if (form) {
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
-            // Init datepicker on the newly shown input
             const dp = form.querySelectorAll('.datepicker');
             M.Datepicker.init(dp, { format: 'yyyy-mm-dd', autoClose: true, container: 'body' });
         }
@@ -318,7 +507,6 @@
         var form = document.getElementById('payment-form-' + id);
         if (!form) return;
         var isHidden = form.style.display === 'none';
-        // Close delivery form if open
         var deliveryForm = document.getElementById('delivery-form-' + id);
         if (deliveryForm) deliveryForm.style.display = 'none';
         form.style.display = isHidden ? 'block' : 'none';
@@ -337,8 +525,6 @@
 
     // On submit, copy visible group's values into the hidden named inputs
     document.addEventListener('htmx:configRequest', function(e) {
-        var form = e.target.closest ? e.target.closest('form[id]') : null;
-        // Find all payment forms and sync hidden fields before submission
         document.querySelectorAll('[id^="payment-form-"]').forEach(function(pf) {
             var f = pf.querySelector('form');
             if (!f || f !== e.target) return;
