@@ -74,10 +74,10 @@
 
                 <div class="col s12 m5 l4">
                     <div class="input-field" style="margin-top:0;">
-                        <select name="uomId" id="uom-select-{invoice.id}" required class="browser-default uom-select-field">
-                            <option value="" disabled selected>— UOM —</option>
+                        <select name="uomId" id="uom-select-{invoice.id}" required>
+                            <option value="" disabled selected>Select UOM</option>
                         </select>
-                        <label style="font-size:0.75rem;color:#9e9e9e;display:block;margin-bottom:2px;">Unit of Measure</label>
+                        <label>Unit of Measure</label>
                     </div>
                 </div>
             </div>
@@ -135,28 +135,45 @@
             }, 150);
         }
         function selectProduct_{invoice.id}(el) {
-            var id    = el.getAttribute('data-id');
-            var name  = el.getAttribute('data-name');
-            var price = el.getAttribute('data-price');
-            var vat   = el.getAttribute('data-vat');
+            var itemId = el.getAttribute('data-id');
+            var name   = el.getAttribute('data-name');
+            var price  = el.getAttribute('data-price');
+            var vat    = el.getAttribute('data-vat');
             document.getElementById('item-search-{invoice.id}').value = name;
-            document.getElementById('item-id-{invoice.id}').value     = id;
+            document.getElementById('item-id-{invoice.id}').value     = itemId;
             document.getElementById('item-dropdown-{invoice.id}').style.display = 'none';
             var priceEl = document.getElementById('price-{invoice.id}');
             var vatEl   = document.getElementById('vat-{invoice.id}');
-            if (priceEl && price) priceEl.value = price;
-            if (vatEl   && vat)   vatEl.value   = vat;
-            htmx.ajax('GET', '/invoices/item/uoms?itemId=' + id, {
+            if (priceEl && price) { priceEl.value = price; M.updateTextFields(); }
+            if (vatEl   && vat)   { vatEl.value   = vat;   M.updateTextFields(); }
+            htmx.ajax('GET', '/invoices/item/uoms?itemId=' + itemId, {
                 target: '#uom-select-{invoice.id}',
                 swap: 'innerHTML'
             });
         }
+
+        // Reinitialize Materialize select whenever HTMX swaps UOM options in
+        function reinitUom_{invoice.id}() {
+            var sel = document.getElementById('uom-select-{invoice.id}');
+            if (!sel) return;
+            var inst = M.FormSelect.getInstance(sel);
+            if (inst) inst.destroy();
+            M.FormSelect.init(sel);
+        }
+        document.addEventListener('htmx:afterSwap', function(e) {
+            if (e.detail && e.detail.target && e.detail.target.id === 'uom-select-{invoice.id}') {
+                reinitUom_{invoice.id}();
+            }
+        });
+
         window['filterProducts_{invoice.id}']  = filterProducts_{invoice.id};
         window['showDropdown_{invoice.id}']    = showDropdown_{invoice.id};
         window['hideDropdown_{invoice.id}']    = hideDropdown_{invoice.id};
-        // Ensure Materialize floating labels are in correct state
-        M.updateTextFields();
         window['selectProduct_{invoice.id}']   = selectProduct_{invoice.id};
+
+        // Initialize UOM select and floating labels on first render
+        reinitUom_{invoice.id}();
+        M.updateTextFields();
     })();
     </script>
     {#else}
@@ -207,24 +224,6 @@
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
 }
-/* UOM browser-default select — match Materialize underline style */
-.uom-select-field {
-    display: block;
-    width: 100%;
-    border: none;
-    border-bottom: 1px solid #9e9e9e;
-    border-radius: 0;
-    background: transparent;
-    font-size: 1rem;
-    color: #333;
-    padding: 0 0 6px 0;
-    height: 3rem;
-    outline: none;
-    box-shadow: none;
-    margin-top: 20px;
-}
-.uom-select-field:focus { border-bottom: 2px solid #1565c0; }
-
 /* Mobile: single-column items grid */
 @media (max-width: 600px) {
     .inv-items-grid { grid-template-columns: 1fr; }
