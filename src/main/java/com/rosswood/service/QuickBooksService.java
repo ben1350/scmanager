@@ -20,7 +20,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Direct QuickBooks Online integration service.
@@ -99,8 +98,8 @@ public class QuickBooksService {
 
         JsonNode resp = postForm(QBO_TOKEN_URL, body, true);
 
-        QuickBooksConfig cfg = Optional.ofNullable(QuickBooksConfig.<QuickBooksConfig>find("id = 1").firstResult())
-                .orElseGet(QuickBooksConfig::new);
+        QuickBooksConfig cfg = QuickBooksConfig.getInstance();
+        if (cfg == null) cfg = new QuickBooksConfig();
 
         cfg.realmId      = realmId;
         cfg.accessToken  = resp.get("access_token").asText();
