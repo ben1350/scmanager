@@ -31,9 +31,11 @@
   <div class="card br-12 z-soft" style="margin-bottom:1.5rem;">
     <div class="card-content">
       <span class="card-title" style="font-weight:700;font-size:1rem;display:flex;align-items:center;gap:8px;">
-        <i class="material-icons" style="font-size:1.2rem;color:{config != null && config.isConnected() ? '#2e7d32' : '#b0bec5'};">
-          {config != null && config.isConnected() ? 'link' : 'link_off'}
-        </i>
+        {#if config != null && config.isConnected()}
+        <i class="material-icons" style="font-size:1.2rem;color:#2e7d32;">link</i>
+        {#else}
+        <i class="material-icons" style="font-size:1.2rem;color:#b0bec5;">link_off</i>
+        {/if}
         Connection Status
       </span>
 
