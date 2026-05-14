@@ -6,13 +6,12 @@ import com.rosswood.service.QuickBooksService;
 import io.quarkiverse.renarde.htmx.HxController;
 import io.quarkus.qute.CheckedTemplate;
 import io.quarkus.qute.TemplateInstance;
+import com.rosswood.entity.User;
 import io.quarkus.security.Authenticated;
 import io.quarkus.security.identity.SecurityIdentity;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.jboss.resteasy.reactive.RestQuery;
 
@@ -20,7 +19,7 @@ import java.net.URI;
 import java.util.UUID;
 
 @Path("/quickbooks")
-@RolesAllowed("admin")
+@Authenticated
 public class QuickBooksController extends HxController {
 
     @Inject
@@ -40,10 +39,19 @@ public class QuickBooksController extends HxController {
         );
     }
 
+    // ── Admin guard ───────────────────────────────────────────────────────
+
+    /** Throws 403 if the logged-in user is not an admin. */
+    private void requireAdmin() {
+        User u = User.find("userName", identity.getPrincipal().getName()).firstResult();
+        if (u == null || !u.isAdmin) throw new ForbiddenException("Admin access required.");
+    }
+
     // ── Dashboard ─────────────────────────────────────────────────────────
 
     @GET
     public TemplateInstance index(@RestQuery String flash) {
+        requireAdmin();
         QuickBooksConfig cfg = QuickBooksConfig.getInstance();
         long customers = QuickBooksEntityMap.countSynced(QuickBooksEntityMap.EntityType.CUSTOMER);
         long invoices  = QuickBooksEntityMap.countSynced(QuickBooksEntityMap.EntityType.INVOICE);
@@ -56,6 +64,7 @@ public class QuickBooksController extends HxController {
     @GET
     @Path("/connect")
     public Response connect() {
+        requireAdmin();
         String state   = UUID.randomUUID().toString();
         String authUrl = qboService.buildAuthUrl(state);
         return Response.seeOther(URI.create(authUrl)).build();
@@ -68,6 +77,7 @@ public class QuickBooksController extends HxController {
                              @RestQuery String realmId,
                              @RestQuery String state,
                              @RestQuery String error) {
+        requireAdmin();
         if (error != null || code == null || realmId == null) {
             String msg = error != null ? error : "Authorization was cancelled or failed.";
             return redirect("index", "error=" + encode(msg));
@@ -86,6 +96,7 @@ public class QuickBooksController extends HxController {
     @Path("/disconnect")
     @Transactional
     public Response disconnect() {
+        requireAdmin();
         try {
             qboService.disconnect(identity.getPrincipal().getName());
             return redirect("index", "flash=Disconnected+from+QuickBooks.");
@@ -100,6 +111,7 @@ public class QuickBooksController extends HxController {
     @Path("/sync/customers")
     @Transactional
     public Response syncCustomers() {
+        requireAdmin();
         try {
             int n = qboService.syncAllCustomers();
             return redirect("index", "flash=Synced+" + n + "+customer(s)+to+QuickBooks.");
@@ -114,6 +126,7 @@ public class QuickBooksController extends HxController {
     @Path("/sync/invoices")
     @Transactional
     public Response syncInvoices() {
+        requireAdmin();
         try {
             int n = qboService.syncAllInvoices();
             return redirect("index", "flash=Synced+" + n + "+invoice(s)+to+QuickBooks.");
@@ -128,6 +141,7 @@ public class QuickBooksController extends HxController {
     @Path("/sync/payments")
     @Transactional
     public Response syncPayments() {
+        requireAdmin();
         try {
             int n = qboService.syncAllPayments();
             return redirect("index", "flash=Synced+" + n + "+payment(s)+to+QuickBooks.");
