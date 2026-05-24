@@ -301,20 +301,27 @@ public class QuickBooksService {
         }
 
         // Build line items
+        // QBO strictly validates: Amount == UnitPrice * Qty.
+        // We use lineTotal (ex-VAT, post-discount) as Amount and derive an effective
+        // UnitPrice = lineTotal / qty so the equation always holds exactly.
         ArrayNode lines = node.putArray("Line");
         if (invoice.items != null && !invoice.items.isEmpty()) {
             for (SalesInvoiceItem item : invoice.items) {
                 ObjectNode line = lines.addObject();
-                BigDecimal amount = item.lineTotalIncVat != null ? item.lineTotalIncVat : BigDecimal.ZERO;
+
+                BigDecimal qty    = item.quantity != null && item.quantity.compareTo(BigDecimal.ZERO) != 0
+                        ? item.quantity : BigDecimal.ONE;
+                BigDecimal amount = item.lineTotal != null ? item.lineTotal : BigDecimal.ZERO;
+                // Effective unit price = lineTotal / qty — satisfies QBO's Amount == UnitPrice * Qty check
+                BigDecimal unitPrice = amount.divide(qty, 4, java.math.RoundingMode.HALF_UP);
+
                 line.put("Amount", amount);
                 line.put("DetailType", "SalesItemLineDetail");
-                ObjectNode detail = line.putObject("SalesItemLineDetail");
-                // Use QBO's built-in "Services" item (Id=1) as a generic line item
-                detail.putObject("ItemRef").put("value", "1").put("name", "Services");
-                detail.put("Qty", item.quantity != null ? item.quantity : BigDecimal.ONE);
-                detail.put("UnitPrice", item.unitPriceExVat != null ? item.unitPriceExVat : BigDecimal.ZERO);
-                // Description from item name
                 line.put("Description", item.item != null ? item.item.itemName : "");
+                ObjectNode detail = line.putObject("SalesItemLineDetail");
+                detail.putObject("ItemRef").put("value", "1").put("name", "Services");
+                detail.put("Qty", qty);
+                detail.put("UnitPrice", unitPrice);
             }
         } else {
             // QBO requires at least one line — use invoice total if no items loaded
