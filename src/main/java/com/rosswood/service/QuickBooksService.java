@@ -287,9 +287,15 @@ public class QuickBooksService {
                 SalesInvoice.InvoiceStatus.DELIVERED);
         int count = 0;
         for (SalesInvoice inv : invoices) {
-            // Skip invoices already synced to QBO
-            if (QuickBooksEntityMap.findMapping(QuickBooksEntityMap.EntityType.INVOICE, inv.id) != null)
-                continue;
+            QuickBooksEntityMap mapping = QuickBooksEntityMap.findMapping(
+                    QuickBooksEntityMap.EntityType.INVOICE, inv.id);
+            // Skip if already synced AND not modified since last sync.
+            // Use updatedAt if set, otherwise fall back to createdAt.
+            if (mapping != null && mapping.syncedAt != null) {
+                java.time.LocalDateTime lastModified = inv.updatedAt != null ? inv.updatedAt : inv.createdAt;
+                if (lastModified == null || !lastModified.isAfter(mapping.syncedAt))
+                    continue;
+            }
             try {
                 syncInvoice(inv, cfg);
                 count++;
