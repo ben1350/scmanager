@@ -66,6 +66,7 @@
         <div>
           <form method="POST" action="{uri:QuickBooksController.disconnect()}"
                 onsubmit="return confirm('Disconnect from QuickBooks? Existing sync mappings will be preserved.');">
+            {#authenticityToken/}
             <button type="submit" class="btn red lighten-1 waves-effect waves-light"
                     style="border-radius:8px;text-transform:none;font-weight:600;">
               <i class="material-icons left">link_off</i>Disconnect
@@ -112,6 +113,7 @@
             Existing records are updated (upsert).
           </p>
           <form method="POST" action="{uri:QuickBooksController.syncCustomers()}">
+            {#authenticityToken/}
             <button type="submit" class="btn blue darken-2 waves-effect waves-light btn-block"
                     style="border-radius:8px;text-transform:none;font-weight:600;width:100%;">
               <i class="material-icons left">sync</i>Sync Customers
@@ -139,6 +141,7 @@
             Push CONFIRMED and DELIVERED invoices to QBO. Customers must be synced first.
           </p>
           <form method="POST" action="{uri:QuickBooksController.syncInvoices()}">
+            {#authenticityToken/}
             <button type="submit" class="btn purple darken-2 waves-effect waves-light"
                     style="border-radius:8px;text-transform:none;font-weight:600;width:100%;">
               <i class="material-icons left">sync</i>Sync Invoices
@@ -167,6 +170,7 @@
             Invoices must be synced first.
           </p>
           <form method="POST" action="{uri:QuickBooksController.syncPayments()}">
+            {#authenticityToken/}
             <button type="submit" class="btn green darken-2 waves-effect waves-light"
                     style="border-radius:8px;text-transform:none;font-weight:600;width:100%;">
               <i class="material-icons left">sync</i>Sync Payments
