@@ -207,14 +207,56 @@ public class QuickBooksService {
 
         ObjectNode payload = buildCustomerPayload(customer, existing);
 
-        // HTTP call — no DB connection held
-        JsonNode resp         = postJson(apiBase(cfg) + "customer", payload.toString(), token);
-        JsonNode customerNode = resp.get("Customer");
+        JsonNode customerNode;
+        try {
+            // HTTP call — no DB connection held
+            JsonNode resp = postJson(apiBase(cfg) + "customer", payload.toString(), token);
+            customerNode  = resp.get("Customer");
+        } catch (RuntimeException e) {
+            // QBO 6240 = Duplicate Name: customer already exists in QBO but we have no local mapping.
+            // Query QBO by DisplayName to recover the Id + SyncToken, then retry as an update.
+            if (e.getMessage() != null && e.getMessage().contains("6240")) {
+                customerNode = findQboCustomerByDisplayName(
+                        customer.name + " [" + customer.customerCode + "]", cfg, token);
+                if (customerNode == null)
+                    throw new RuntimeException("Customer exists in QBO but could not be retrieved: " + customer.name);
+                // Retry as update now that we have Id + SyncToken
+                existing = null; // force rebuild with QBO id
+                ObjectNode update = buildCustomerPayload(customer, null);
+                update.put("Id", customerNode.get("Id").asText());
+                update.put("SyncToken", customerNode.get("SyncToken").asText());
+                JsonNode resp2 = postJson(apiBase(cfg) + "customer", update.toString(), token);
+                customerNode   = resp2.get("Customer");
+            } else {
+                throw e;
+            }
+        }
 
-        // Short DB write
         mapRepo.upsertMap(QuickBooksEntityMap.EntityType.CUSTOMER, customer.id,
                 customerNode.get("Id").asText(),
                 customerNode.get("SyncToken").asText());
+    }
+
+    /** Queries QBO for a customer by exact DisplayName. Returns the Customer node or null. */
+    private JsonNode findQboCustomerByDisplayName(String displayName, QuickBooksConfig cfg,
+                                                   String token) throws Exception {
+        String query = "select * from Customer where DisplayName = '"
+                + displayName.replace("'", "\\'") + "'";
+        String url   = apiBase(cfg) + "query?query=" + encode(query) + "&minorversion=65";
+
+        HttpRequest req = HttpRequest.newBuilder(URI.create(url))
+                .header("Authorization", "Bearer " + token)
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+
+        HttpResponse<String> resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+        if (resp.statusCode() < 200 || resp.statusCode() >= 300) return null;
+
+        JsonNode root     = json.readTree(resp.body());
+        JsonNode results  = root.path("QueryResponse").path("Customer");
+        if (results.isArray() && results.size() > 0) return results.get(0);
+        return null;
     }
 
     private ObjectNode buildCustomerPayload(Customer customer, QuickBooksEntityMap existing) {
