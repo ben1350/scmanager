@@ -287,6 +287,9 @@ public class QuickBooksService {
                 SalesInvoice.InvoiceStatus.DELIVERED);
         int count = 0;
         for (SalesInvoice inv : invoices) {
+            // Skip invoices already synced to QBO
+            if (QuickBooksEntityMap.findMapping(QuickBooksEntityMap.EntityType.INVOICE, inv.id) != null)
+                continue;
             try {
                 syncInvoice(inv, cfg);
                 count++;
