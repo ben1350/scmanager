@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.rosswood.entity.*;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -55,6 +56,9 @@ public class QuickBooksService {
     private static final String QBO_SCOPES    = "com.intuit.quickbooks.accounting";
     private static final String API_LIVE      = "https://quickbooks.api.intuit.com/v3/company/";
     private static final String API_SANDBOX   = "https://sandbox-quickbooks.api.intuit.com/v3/company/";
+
+    @Inject
+    QuickBooksMapRepository mapRepo;
 
     private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper json = new ObjectMapper();
@@ -208,7 +212,7 @@ public class QuickBooksService {
         JsonNode customerNode = resp.get("Customer");
 
         // Short DB write
-        upsertMap(QuickBooksEntityMap.EntityType.CUSTOMER, customer.id,
+        mapRepo.upsertMap(QuickBooksEntityMap.EntityType.CUSTOMER, customer.id,
                 customerNode.get("Id").asText(),
                 customerNode.get("SyncToken").asText());
     }
@@ -271,7 +275,7 @@ public class QuickBooksService {
         JsonNode invoiceNode = resp.get("Invoice");
 
         // Short DB write
-        upsertMap(QuickBooksEntityMap.EntityType.INVOICE, invoice.id,
+        mapRepo.upsertMap(QuickBooksEntityMap.EntityType.INVOICE, invoice.id,
                 invoiceNode.get("Id").asText(),
                 invoiceNode.get("SyncToken").asText());
     }
@@ -360,7 +364,7 @@ public class QuickBooksService {
         JsonNode paymentNode = resp.get("Payment");
 
         // Short DB write
-        upsertMap(QuickBooksEntityMap.EntityType.PAYMENT, invoice.id,
+        mapRepo.upsertMap(QuickBooksEntityMap.EntityType.PAYMENT, invoice.id,
                 paymentNode.get("Id").asText(),
                 paymentNode.get("SyncToken").asText());
     }
@@ -415,24 +419,6 @@ public class QuickBooksService {
 
     private static String encode(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
-    }
-
-    // ── Map persistence — short-lived transaction, public so Arc proxy works ──
-
-    @Transactional
-    public void upsertMap(QuickBooksEntityMap.EntityType type, Long localId,
-                          String qboId, String syncToken) {
-        QuickBooksEntityMap map = QuickBooksEntityMap.findMapping(type, localId);
-        if (map == null) {
-            map = new QuickBooksEntityMap();
-            map.entityType = type;
-            map.localId    = localId;
-        }
-        map.qboId        = qboId;
-        map.qboSyncToken = syncToken;
-        map.syncedAt     = LocalDateTime.now();
-        if (map.id == null) map.persistAndFlush();
-        else map.persist();
     }
 
     // ── Inner types ───────────────────────────────────────────────────────
