@@ -235,6 +235,7 @@
     <li><a href="/itemtype"><i class="material-icons">category</i> Item Types</a></li>
     <li class="divider"></li>
     <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i> Users</a></li>
+    <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i> QuickBooks</a></li>
   </ul>
 
   <div class="navbar-fixed">
@@ -307,7 +308,8 @@
     {#if inject:nav.showSetup}<li class="section-label">Setup</li>
     <li><a href="/uom"><i class="material-icons">straighten</i>Units of Measure</a></li>
     <li><a href="/itemtype"><i class="material-icons">category</i>Item Types</a></li>
-    <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i>Users</a></li>{/if}
+    <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i>Users</a></li>
+    <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i>QuickBooks</a></li>{/if}
     <li class="divider"></li>
     <li>
       <form action="/_renarde/security/logout" method="GET" style="padding:12px 1.5rem;">
