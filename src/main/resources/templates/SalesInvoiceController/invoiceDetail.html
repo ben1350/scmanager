@@ -21,7 +21,14 @@
                         <div style="color: #9e9e9e; font-size: 0.75rem;">VAT ({item.vatRate}%): GHS {item.vatAmount}</div>
                     {/if}
                     {#if item.batchCode != null}
-                        <div style="color: #90a4ae; font-size: 0.72rem; margin-top: 2px;">Batch: {item.batchCode}</div>
+                        <div style="color: #546e7a; font-size: 0.72rem; margin-top: 3px; display:inline-flex; align-items:center; gap:4px;">
+                            <i class="material-icons" style="font-size:0.85rem;">qr_code</i>
+                            <span style="font-weight:600;">{item.batchCode}</span>
+                        </div>
+                    {#else}
+                        <div style="color:#e65100; font-size:0.7rem; margin-top:3px; display:inline-flex; align-items:center; gap:3px; font-weight:700;">
+                            <i class="material-icons" style="font-size:0.8rem;">warning</i> No batch code
+                        </div>
                     {/if}
                 </div>
                 <div style="text-align: right; flex-shrink:0;">
@@ -82,7 +89,21 @@
                 </div>
             </div>
 
-            <!-- Row 2: Qty · Price · Disc% · VAT% -->
+            <!-- Row 2: Batch Code -->
+            <div class="row" style="margin-bottom:0;">
+                <div class="input-field col s12 m6 l5" style="margin-top:0;">
+                    <i class="material-icons prefix" style="font-size:1.2rem;top:0.6rem;color:#90a4ae;">qr_code</i>
+                    <input type="text"
+                           name="batchCode"
+                           id="batch-{invoice.id}"
+                           autocomplete="off">
+                    <label for="batch-{invoice.id}" style="margin-left:3rem;">Batch Code
+                        <span style="color:#e65100;font-size:0.7rem;font-weight:700;margin-left:4px;">&mdash; required for traceability</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Row 3: Qty · Price · Disc% · VAT% -->
             <div class="row" style="margin-bottom:0;">
                 <div class="input-field col s6 m2">
                     <input name="quantity" id="qty-{invoice.id}" type="number" step="0.01" min="0" required>
