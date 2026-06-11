@@ -234,7 +234,8 @@
     <li><a href="/uom"><i class="material-icons">straighten</i> Units of Measure</a></li>
     <li><a href="/itemtype"><i class="material-icons">category</i> Item Types</a></li>
     <li class="divider"></li>
-    <li><a href="/admin/users"><i class="material-icons">manage_accounts</i> Users</a></li>
+    <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i> Users</a></li>
+    <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i> QuickBooks</a></li>
   </ul>
 
   <div class="navbar-fixed">
@@ -250,26 +251,26 @@
 
         <ul class="right hide-on-med-and-down" style="display:flex;align-items:center;gap:4px;">
           <li><a href="/d"><i class="material-icons left" style="font-size:1rem;">dashboard</i>Dashboard</a></li>
-          <li><a href="/items/index"><i class="material-icons left" style="font-size:1rem;">inventory_2</i>Items</a></li>
-          <li><a href="/production/batch"><i class="material-icons left" style="font-size:1rem;">precision_manufacturing</i>Production</a></li>
-          <li><a href="/invoices/index"><i class="material-icons left" style="font-size:1rem;">receipt_long</i>Sales</a></li>
-          <li><a href="/customers/index"><i class="material-icons left" style="font-size:1rem;">group</i>Customers</a></li>
-          <li>
+          {#if inject:nav.showItems}<li><a href="/items/index"><i class="material-icons left" style="font-size:1rem;">inventory_2</i>Items</a></li>{/if}
+          {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons left" style="font-size:1rem;">precision_manufacturing</i>Production</a></li>{/if}
+          {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons left" style="font-size:1rem;">receipt_long</i>Sales</a></li>{/if}
+          {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons left" style="font-size:1rem;">group</i>Customers</a></li>{/if}
+          {#if inject:nav.showReports}<li>
             <a class="dropdown-trigger" href="#!" data-target="dropdown-reports">
               <i class="material-icons left" style="font-size:1rem;">bar_chart</i>Reports
               <i class="material-icons right" style="font-size:1rem;">arrow_drop_down</i>
             </a>
-          </li>
-          <li>
+          </li>{/if}
+          {#if inject:nav.showSetup}<li>
             <a class="dropdown-trigger" href="#!" data-target="dropdown-setup">
               <i class="material-icons left" style="font-size:1rem;">tune</i>Setup
               <i class="material-icons right" style="font-size:1rem;">expand_more</i>
             </a>
-          </li>
+          </li>{/if}
           <li style="display:flex;align-items:center;padding:0 8px;">
             <div class="user-chip">
               <div class="user-avatar"><i class="material-icons">person</i></div>
-              <span class="user-name">Admin</span>
+              <span class="user-name">{inject:nav.displayName}</span>
             </div>
           </li>
           <li style="display:flex;align-items:center;padding:0 4px;">
@@ -293,21 +294,22 @@
     </li>
     <li class="section-label">Main</li>
     <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
-    <li><a href="/items"><i class="material-icons">inventory_2</i>Items</a></li>
-    <li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>
-    <li><a href="/invoices"><i class="material-icons">receipt_long</i>Sales</a></li>
-    <li><a href="/customers"><i class="material-icons">group</i>Customers</a></li>
-    <li class="section-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;padding:8px 1.5rem 2px;">Reports</li>
+    {#if inject:nav.showItems}<li><a href="/items"><i class="material-icons">inventory_2</i>Items</a></li>{/if}
+    {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>{/if}
+    {#if inject:nav.showSales}<li><a href="/invoices"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
+    {#if inject:nav.showCustomers}<li><a href="/customers"><i class="material-icons">group</i>Customers</a></li>{/if}
+    {#if inject:nav.showReports}<li class="section-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;padding:8px 1.5rem 2px;">Reports</li>
     <li><a href="/reports/stock"><i class="material-icons">inventory_2</i>Stock on Hand</a></li>
     <li><a href="/reports/sales"><i class="material-icons">receipt_long</i>Sales Summary</a></li>
     <li><a href="/reports/production"><i class="material-icons">precision_manufacturing</i>Production Summary</a></li>
     <li><a href="/reports/expiry"><i class="material-icons">schedule</i>Expiry Report</a></li>
-    <li><a href="/reports/trace"><i class="material-icons">manage_search</i>Batch Traceability</a></li>
+    <li><a href="/reports/trace"><i class="material-icons">manage_search</i>Batch Traceability</a></li>{/if}
     <li class="divider"></li>
-    <li class="section-label">Setup</li>
+    {#if inject:nav.showSetup}<li class="section-label">Setup</li>
     <li><a href="/uom"><i class="material-icons">straighten</i>Units of Measure</a></li>
     <li><a href="/itemtype"><i class="material-icons">category</i>Item Types</a></li>
-    <li><a href="/admin/users"><i class="material-icons">manage_accounts</i>Users</a></li>
+    <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i>Users</a></li>
+    <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i>QuickBooks</a></li>{/if}
     <li class="divider"></li>
     <li>
       <form action="/_renarde/security/logout" method="GET" style="padding:12px 1.5rem;">
