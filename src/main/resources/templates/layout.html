@@ -216,6 +216,21 @@
     /* Utilities */
     .br-12 { border-radius: 12px !important; }
     .z-soft { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07) !important; }
+
+    /* ── Mobile responsiveness for report / list pages ───────────────── */
+    @media only screen and (max-width: 600px) {
+      /* Stat tiles (3–4 across) are too cramped on phones → 2 across */
+      .summary-strip, .kpi-strip { grid-template-columns: repeat(2, 1fr) !important; }
+
+      /* Wide data tables: scroll horizontally instead of clipping/overflowing.
+         Per-report style blocks load after this one, so !important is required. */
+      .soh-table, .lot-table, .rpt-table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
   </style>
 </head>
 <body>
