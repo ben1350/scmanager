@@ -35,17 +35,17 @@
                             <div class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
                                 <div class="card-content" style="padding: 1.5rem;">
                                     <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                                        <div class="col s2">
+                                        <div class="col s12 m2">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Date</span>
                                             <span style="font-weight: 600;">{tx.transactionDate}</span>
                                         </div>
 
-                                        <div class="col s3">
+                                        <div class="col s12 m3">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Item</span>
                                             <span class="blue-text text-darken-2" style="font-weight: 700;">{tx.item.itemName}</span>
                                         </div>
 
-                                        <div class="col s2">
+                                        <div class="col s12 m2">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Type</span>
                                             <span class="badge new {tx.transactionType == 'PURCHASE' ? 'blue' : (tx.transactionType == 'SALE' ? 'green' : 'orange')}"
                                                   data-badge-caption="" style="float: none; margin-left: 0; border-radius: 4px;">
@@ -53,7 +53,7 @@
                                             </span>
                                         </div>
 
-                                        <div class="col s2 center-align">
+                                        <div class="col s12 m2 center-align">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Quantity</span>
                                             <span style="font-weight: 700; font-size: 1.1rem;">{tx.quantity}</span>
                                             <span style="font-size:0.7rem; font-weight:700; color:#1565c0;
@@ -62,12 +62,12 @@
                                             </span>
                                         </div>
 
-                                        <div class="col s2">
+                                        <div class="col s12 m2">
                                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Ref No</span>
                                             <span class="truncate" title="{tx.remarks}">{tx.referenceNo ?: 'N/A'}</span>
                                         </div>
 
-                                        <div class="col s1 right-align">
+                                        <div class="col s12 m1 right-align">
                                             <form hx-post="{uri:StockTransactionController.delete(tx.id)}"
                                                   hx-target="#transactionListContainer"
                                                   hx-confirm="Delete this transaction record?">
@@ -119,13 +119,13 @@
                     <h4 class="blue-text text-darken-2" style="font-weight: 300;">Record Transaction</h4>
 
                     <div class="row" style="margin-top: 2rem;">
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <i class="material-icons prefix">calendar_today</i>
                             <input name="transactionDate" type="text" id="transactionDatePicker"
                                    class="datepicker" placeholder="Pick a date" required autocomplete="off">
                             <label for="transactionDatePicker">Transaction Date</label>
                         </div>
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <i class="material-icons prefix">tag</i>
                             <select name="transactionType" required>
                                 <option value="PURCHASE">PURCHASE</option>
@@ -139,7 +139,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <i class="material-icons prefix">inventory_2</i>
                             <select name="itemId" id="itemSelect" required>
                                 <option value="" disabled selected>Select Item</option>
@@ -150,7 +150,7 @@
                             </select>
                             <label>Item</label>
                         </div>
-                        <div class="input-field col s3">
+                        <div class="input-field col s12 m3">
                             <input name="quantity" type="number" step="0.01" required>
                             <label>Quantity</label>
                             <span id="uomLabel" style="font-size:0.75rem; font-weight:700; color:#1565c0;
@@ -159,18 +159,18 @@
                                 —
                             </span>
                         </div>
-                        <div class="input-field col s3" id="unitCostField" style="display:none;">
+                        <div class="input-field col s12 m3" id="unitCostField" style="display:none;">
                             <input name="unitCost" id="unitCostInput" type="number" step="0.0001" min="0">
                             <label for="unitCostInput">Unit Cost</label>
                         </div>
                     </div>
 
                     <div class="row">
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <input name="referenceNo" type="text">
                             <label>Reference No (Invoice/Batch)</label>
                         </div>
-                        <div class="input-field col s6">
+                        <div class="input-field col s12 m6">
                             <input name="remarks" type="text">
                             <label>Remarks</label>
                         </div>

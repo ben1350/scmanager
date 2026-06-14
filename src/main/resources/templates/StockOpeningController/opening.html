@@ -35,26 +35,26 @@
             <div class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 15px rgba(0,0,0,0.03);">
                 <div class="card-content" style="padding: 1.5rem;">
                     <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                        <div class="col s3">
+                        <div class="col s12 m3">
                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Opening Date</span>
                             <span style="font-weight: 500;">{opening.stockDate}</span>
                         </div>
 
-                        <div class="col s4">
+                        <div class="col s12 m4">
                                             <span class="blue-text text-darken-2" style="font-weight: 700; font-size: 1.1rem;">
                                                 {opening.item.itemName}
                                             </span>
                             <p class="grey-text" style="font-size: 0.85rem;">Code: {opening.item.itemCode}</p>
                         </div>
 
-                        <div class="col s3 center-align">
+                        <div class="col s12 m3 center-align">
                             <span class="grey-text" style="font-size: 0.8rem; display: block;">Opening Quantity</span>
                             <span style="font-size: 1.2rem; font-weight: 600;">
                                                 {opening.openingQty} <small class="grey-text" style="font-size: 0.7rem;">{opening.item.uom.uomCode}</small>
                                             </span>
                         </div>
 
-                        <div class="col s2 right-align">
+                        <div class="col s12 m2 right-align">
                             <form hx-post="{uri:StockOpeningController.delete(opening.id)}"
                                   hx-target="#openingListContainer"
                                   hx-confirm="Delete this opening balance?">
@@ -122,7 +122,7 @@
             </div>
 
             <div class="row">
-                <div class="input-field col s6">
+                <div class="input-field col s12 m6">
                     <i class="material-icons prefix">inventory_2</i>
                     <select name="itemId" id="itemId" required>
                         <option value="" disabled selected>Select Item</option>
@@ -132,11 +132,11 @@
                     </select>
                     <label>Item</label>
                 </div>
-                <div class="input-field col s3">
+                <div class="input-field col s12 m3">
                     <input name="openingQty" id="openingQty" type="number" step="0.01" required>
                     <label for="openingQty">Opening Quantity</label>
                 </div>
-                <div class="input-field col s3">
+                <div class="input-field col s12 m3">
                     <input name="unitCost" id="unitCost" type="number" step="0.0001" min="0">
                     <label for="unitCost">Unit Cost</label>
                 </div>

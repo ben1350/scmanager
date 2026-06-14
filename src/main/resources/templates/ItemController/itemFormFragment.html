@@ -5,21 +5,21 @@
         <div class="card-content" style="padding: 2rem;">
             <span class="card-title blue-text text-darken-2" style="font-weight: 600;">New Item Registration</span>
             <div class="row" style="margin-top: 2rem;">
-                <div class="input-field col s2">
+                <div class="input-field col s12 m2">
                     <input name="itemCode" id="item_code" type="text" required style="text-transform: uppercase;">
                     <label for="item_code">Code</label>
                 </div>
-                <div class="input-field col s4">
+                <div class="input-field col s12 m4">
                     <input name="itemName" id="item_name" type="text" required>
                     <label for="item_name">Item Name</label>
                 </div>
-                <div class="input-field col s3">
+                <div class="input-field col s12 m3">
                     <select name="itemTypeId" class="browser-default" style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
                         <option value="" disabled selected>Item Type</option>
                         {#for type in itemTypes}<option value="{type.id}">{type.itemTypeCode}</option>{/for}
                     </select>
                 </div>
-                <div class="input-field col s3">
+                <div class="input-field col s12 m3">
                     <select name="uomId" class="browser-default" style="border: 1px solid #ddd; height: 45px; border-radius: 8px;">
                         <option value="" disabled selected>Base Unit</option>
                         {#for uom in uoms}<option value="{uom.id}">{uom.uomCode}</option>{/for}

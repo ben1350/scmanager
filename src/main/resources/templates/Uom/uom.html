@@ -34,23 +34,23 @@
                                 <div id="uom-{uom.id}" class="card hoverable br-12" style="border-radius: 12px; margin-bottom: 1rem; border: 1px solid #f0f0f0; box-shadow: 0 2px 10px rgba(0,0,0,0.02);">
                                     <div class="card-content" style="padding: 1rem 1.5rem;">
                                         <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                                            <div class="col s1">
+                                            <div class="col s12 m1">
                                                 <span class="grey-text text-lighten-1" style="font-size: 0.75rem; display: block;">ID</span>
                                                 <span class="grey-text" style="font-weight: 500;">#{uom.id}</span>
                                             </div>
 
-                                            <div class="col s3">
+                                            <div class="col s12 m3">
                                                 <span class="chip blue lighten-5 blue-text" style="font-weight: 700; border-radius: 4px; padding: 0 12px;">
                                                     {uom.uomCode}
                                                 </span>
                                             </div>
 
-                                            <div class="col s5">
+                                            <div class="col s12 m5">
                                                 <span class="grey-text" style="font-size: 0.75rem; display: block;">Description</span>
                                                 <span class="grey-text text-darken-3" style="font-weight: 400;">{uom.description}</span>
                                             </div>
 
-                                            <div class="col s3 right-align">
+                                            <div class="col s12 m3 right-align">
                                                 <button class="btn-flat waves-effect blue-text text-darken-2"
                                                         hx-get="{uri:Uom.edit(uom.id)}"
                                                         hx-target="#uom-{uom.id}"
@@ -77,11 +77,11 @@
                 <div class="modal-content" style="padding: 2.5rem;">
                     <h5 class="blue-text text-darken-2" style="font-weight: 300;">New Unit of Measure</h5>
                     <div class="row" style="margin-top: 2rem;">
-                        <div class="input-field col s4">
+                        <div class="input-field col s12 m4">
                             <input id="uomCode" name="uomCode" type="text" class="validate" required>
                             <label for="uomCode">Code (e.g. KG)</label>
                         </div>
-                        <div class="input-field col s8">
+                        <div class="input-field col s12 m8">
                             <input id="description" name="description" type="text" class="validate" required>
                             <label for="description">Full Description</label>
                         </div>
@@ -104,16 +104,16 @@
                               hx-swap="outerHTML">
                                 {#authenticityToken/}
                             <div class="row" style="margin-bottom: 0; display: flex; align-items: center;">
-                                <div class="col s1">
+                                <div class="col s12 m1">
                                     <span class="blue-text" style="font-weight: 700;">#{uom.id}</span>
                                 </div>
-                                <div class="input-field col s3" style="margin: 0;">
+                                <div class="input-field col s12 m3" style="margin: 0;">
                                     <input name="uomCode" value="{uom.uomCode}" type="text" required autofocus>
                                 </div>
-                                <div class="input-field col s5" style="margin: 0;">
+                                <div class="input-field col s12 m5" style="margin: 0;">
                                     <input name="description" value="{uom.description}" type="text" required>
                                 </div>
-                                <div class="col s3 right-align">
+                                <div class="col s12 m3 right-align">
                                     <button type="submit" class="btn-floating btn-small green waves-effect z-depth-1">
                                         <i class="material-icons">check</i>
                                     </button>
