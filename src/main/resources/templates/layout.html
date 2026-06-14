@@ -294,10 +294,10 @@
     </li>
     <li class="section-label">Main</li>
     <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
-    {#if inject:nav.showItems}<li><a href="/items"><i class="material-icons">inventory_2</i>Items</a></li>{/if}
+    {#if inject:nav.showItems}<li><a href="/items/index"><i class="material-icons">inventory_2</i>Items</a></li>{/if}
     {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>{/if}
-    {#if inject:nav.showSales}<li><a href="/invoices"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
-    {#if inject:nav.showCustomers}<li><a href="/customers"><i class="material-icons">group</i>Customers</a></li>{/if}
+    {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
+    {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons">group</i>Customers</a></li>{/if}
     {#if inject:nav.showReports}<li class="section-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;padding:8px 1.5rem 2px;">Reports</li>
     <li><a href="/reports/stock"><i class="material-icons">inventory_2</i>Stock on Hand</a></li>
     <li><a href="/reports/sales"><i class="material-icons">receipt_long</i>Sales Summary</a></li>

@@ -63,7 +63,7 @@
 </style>
 
 <div class="rpt container">
-  <a href="/reports" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
+  <a href="/reports/index" class="rpt-back"><i class="material-icons" style="font-size:1rem;">arrow_back</i> Reports</a>
   <p class="rpt-title">Batch Traceability</p>
   <p class="rpt-subtitle">Track a production batch forward to every customer who received stock from it</p>
   <div style="height:1.2rem;"></div>
@@ -120,7 +120,7 @@
                 <div class="cust-name">{inv.customerBranch.customer.name}</div>
                 <div class="cust-branch">{inv.customerBranch.branchName}</div>
               </div>
-              <a href="/invoices" class="cust-inv">{inv.invoiceNo}</a>
+              <a href="/invoices/index" class="cust-inv">{inv.invoiceNo}</a>
             </div>
           {/for}
         {/if}
