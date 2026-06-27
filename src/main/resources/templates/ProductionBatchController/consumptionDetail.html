@@ -33,16 +33,12 @@
             <form hx-post="{uri:ProductionConsumptionController.add(batch.id)}" hx-target="#detail-{batch.id}">
                     {#authenticityToken/}
                 <div style="display: flex; gap: 10px; background: #fff; padding: 5px 5px 5px 20px; border-radius: 50px; border: 1px solid #cfd8dc; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-                    <div style="position: relative; flex: 2;">
-                        <input id="materialSearch-{batch.id}" type="text" autocomplete="off"
-                               placeholder="Type to search material…"
-                               style="border: none !important; box-shadow: none !important; margin: 0; height: 35px; font-size: 0.85rem;">
-                        <input type="hidden" name="rawItemId" id="rawItemId-{batch.id}">
-                        <ul id="materialList-{batch.id}" class="material-filter-list"
-                            style="display:none; position:fixed; z-index:9999;
-                                   list-style:none; margin:0; padding:4px 0; background:#fff; border:1px solid #e0e0e0;
-                                   border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); max-height:260px; overflow-y:auto;"></ul>
-                    </div>
+                    <select name="rawItemId" style="border: none; flex: 2; font-size: 0.85rem; background: transparent; height: 35px;">
+                        <option value="" disabled selected>Select Material</option>
+                        {#for item in rawItems}
+                            <option value="{item.id}">{item.itemName} ({item.uom.uomCode})</option>
+                        {/for}
+                    </select>
                     <div style="width: 1px; height: 20px; background: #eee;"></div>
                     <input name="consumedQty" type="number" step="0.01" placeholder="Quantity" required style="border: none !important; box-shadow: none !important; flex: 1; margin: 0; height: 35px;">
                     <button type="submit" class="btn blue darken-2" style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add Material</button>
@@ -58,109 +54,31 @@
 </div>
 
 <style>
-    .consumption-detail-pane .material-filter-list li {
-        padding: 10px 16px;
-        cursor: pointer;
-        font-size: 0.85rem;
-        color: #37474f;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+    /* Cap the Materialize material dropdown so long lists scroll instead of
+       running off the card. */
+    .consumption-detail-pane .select-dropdown.dropdown-content {
+        max-height: 280px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
     }
-    .consumption-detail-pane .material-filter-list li:hover,
-    .consumption-detail-pane .material-filter-list li.active {
-        background: #e3f2fd;
-        color: #1565c0;
+    /* Slimmer, always-visible scrollbar for the dropdown */
+    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar {
+        width: 8px;
     }
-    .consumption-detail-pane .material-filter-list li.empty {
-        color: #9e9e9e;
-        cursor: default;
-        font-style: italic;
-    }
-    .consumption-detail-pane .material-filter-list::-webkit-scrollbar { width: 8px; }
-    .consumption-detail-pane .material-filter-list::-webkit-scrollbar-thumb {
-        background: #cfd8dc; border-radius: 4px;
+    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar-thumb {
+        background: #cfd8dc;
+        border-radius: 4px;
     }
 </style>
 <script>
     (function() {
-        var input  = document.getElementById('materialSearch-{batch.id}');
-        var hidden = document.getElementById('rawItemId-{batch.id}');
-        var list   = document.getElementById('materialList-{batch.id}');
-        if (!input || !hidden || !list) return;
-
-        // Raw materials available for this batch (.raw so names with & are not
-        // double-escaped into the JS string)
-        var items = [ ];
-        {#for item in rawItems}
-        items.push({ id: "{item.id}", label: "{item.itemName.raw} ({item.uom.uomCode.raw})" });
-        {/for}
-
-        function closeList() { list.style.display = 'none'; list.innerHTML = ''; }
-
-        // Position the list under the input using fixed coords so it is not
-        // clipped by the card's overflow.
-        function positionList() {
-            var r = input.getBoundingClientRect();
-            list.style.top   = (r.bottom + 4) + 'px';
-            list.style.left  = r.left + 'px';
-            list.style.width = r.width + 'px';
-        }
-
-        function renderList(filter) {
-            var f = (filter || '').trim().toLowerCase();
-            var matches = items.filter(function(it) {
-                return it.label.toLowerCase().indexOf(f) !== -1;
-            });
-            list.innerHTML = '';
-            if (matches.length === 0) {
-                var empty = document.createElement('li');
-                empty.className = 'empty';
-                empty.textContent = 'No matching material';
-                list.appendChild(empty);
-            } else {
-                matches.forEach(function(it) {
-                    var li = document.createElement('li');
-                    li.textContent = it.label;
-                    // mousedown fires before the input blur, so the pick registers
-                    li.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        input.value  = it.label;
-                        hidden.value = it.id;
-                        closeList();
-                    });
-                    list.appendChild(li);
-                });
+        var selectElems = document.querySelectorAll('.consumption-detail-pane select');
+        M.FormSelect.init(selectElems, {
+            dropdownOptions: {
+                coverTrigger: false,   // open below the field, not over it
+                constrainWidth: false  // let long material names show in full
             }
-            positionList();
-            list.style.display = 'block';
-        }
-
-        // Keep the list aligned if the page or a container scrolls/resizes
-        function reposition() { if (list.style.display === 'block') positionList(); }
-        window.addEventListener('scroll', reposition, true);
-        window.addEventListener('resize', reposition);
-
-        input.addEventListener('focus', function() { renderList(input.value); });
-        input.addEventListener('input', function() {
-            hidden.value = '';          // typing invalidates any prior pick
-            renderList(input.value);
         });
-        input.addEventListener('blur', function() {
-            // delay so a click on a list item is processed first
-            setTimeout(closeList, 150);
-        });
-
-        // Guard: only submit when a real material was chosen from the list
-        var form = input.closest('form');
-        if (form) {
-            form.addEventListener('submit', function(e) {
-                if (!hidden.value) {
-                    e.preventDefault();
-                    M.toast({ html: 'Please pick a material from the list' });
-                    input.focus();
-                }
-            });
-        }
+        M.updateTextFields();
     })();
 </script>
