@@ -1,3 +1,16 @@
+<style>
+    /* Cap the finished-product dropdown so long lists scroll instead of
+       overflowing the form. */
+    #new-batch-row .select-dropdown.dropdown-content {
+        max-height: 280px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    #new-batch-row .select-dropdown.dropdown-content::-webkit-scrollbar { width: 8px; }
+    #new-batch-row .select-dropdown.dropdown-content::-webkit-scrollbar-thumb {
+        background: #cfd8dc; border-radius: 4px;
+    }
+</style>
 <div id="new-batch-row" class="card" style="border-radius: 16px; margin-bottom: 2rem; border: 2px dashed #2196f3 !important; background: #fafafa;">
     <form hx-post="{uri:ProductionBatchController.add()}" hx-target="#batchListContainer">
             {#authenticityToken/}
@@ -48,7 +61,9 @@
 
         // Initialize the Select dropdown (fixes the "missing" select box)
         var selectElems = document.querySelectorAll('#new-batch-row select');
-        M.FormSelect.init(selectElems);
+        M.FormSelect.init(selectElems, {
+            dropdownOptions: { coverTrigger: false, constrainWidth: false }
+        });
 
         // Show base UOM next to Target Qty when a finished product is selected
         var finishedSel = document.getElementById('finishedItemSelect');
