@@ -86,8 +86,17 @@
         <div style="background: #e3f2fd; color: #1976d2; padding: 10px; border-radius: 8px; margin-right: 12px;">
           <i class="material-icons" style="display: block;">location_on</i>
         </div>
-        <div style="flex-grow: 1;">
-          <div style="font-weight: 700; color: #37474f; font-size: 0.95rem;">{b.branchName}</div>
+
+        <!-- Display view -->
+        <div id="branch-view-{b.id}" style="flex-grow: 1;">
+          <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:8px;">
+            <div style="font-weight: 700; color: #37474f; font-size: 0.95rem;">{b.branchName}</div>
+            <a class="btn-flat waves-effect grey-text text-darken-1"
+               style="padding:0 6px; min-width:0; height:24px; line-height:24px; border-radius:6px;"
+               onclick="toggleBranchEdit('{b.id}')" title="Edit branch">
+              <i class="material-icons" style="font-size:1.1rem; line-height:24px;">edit</i>
+            </a>
+          </div>
           <div style="color: #78909c; font-size: 0.8rem; line-height: 1.4; margin-top: 4px;">
             {b.branchAddress ?: 'No address registered'}
           </div>
@@ -105,6 +114,40 @@
             {/if}
           </div>
           {/if}
+        </div>
+
+        <!-- Inline edit form (Materialize) — hidden by default -->
+        <div id="branch-edit-{b.id}" style="display:none; flex-grow:1;">
+          <form hx-post="{uri:CustomerController.updateBranch(customer.id, b.id)}"
+                hx-target="#detail-{customer.id}" hx-swap="innerHTML">
+            {#authenticityToken/}
+            <div class="row" style="margin-bottom:0;">
+              <div class="input-field col s12" style="margin:0.5rem 0;">
+                <input id="bn-{b.id}" name="branchName" type="text" class="validate" required value="{b.branchName}">
+                <label for="bn-{b.id}" class="active">Branch name</label>
+              </div>
+              <div class="input-field col s12" style="margin:0.5rem 0;">
+                <input id="ba-{b.id}" name="branchAddress" type="text" value="{b.branchAddress ?: ''}">
+                <label for="ba-{b.id}" class="active">Physical address</label>
+              </div>
+              <div class="input-field col s12" style="margin:0.5rem 0;">
+                <i class="material-icons prefix" style="font-size:1.2rem; line-height:3rem;">person</i>
+                <input id="cp-{b.id}" name="contactPerson" type="text" value="{b.contactPerson ?: ''}">
+                <label for="cp-{b.id}" class="active">Contact name (optional)</label>
+              </div>
+              <div class="input-field col s12" style="margin:0.5rem 0;">
+                <i class="material-icons prefix" style="font-size:1.2rem; line-height:3rem;">phone</i>
+                <input id="ch-{b.id}" name="contactPhone" type="tel" value="{b.contactPhone ?: ''}">
+                <label for="ch-{b.id}" class="active">Phone number (optional)</label>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:6px;">
+              <a class="btn-flat waves-effect grey-text" onclick="toggleBranchEdit('{b.id}')">Cancel</a>
+              <button type="submit" class="btn blue darken-2 waves-effect" style="text-transform:none; font-weight:600;">
+                <i class="material-icons left" style="font-size:1.1rem;">save</i>Save
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     {/for}
@@ -172,6 +215,15 @@
 function toggleCreditEdit(id) {
     var form = document.getElementById('credit-edit-' + id);
     if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+function toggleBranchEdit(bid) {
+    var view = document.getElementById('branch-view-' + bid);
+    var edit = document.getElementById('branch-edit-' + bid);
+    if (!view || !edit) return;
+    var opening = edit.style.display === 'none';
+    view.style.display = opening ? 'none' : 'block';
+    edit.style.display = opening ? 'block' : 'none';
+    if (opening && window.M && M.updateTextFields) M.updateTextFields();
 }
 function toggleCreditLimitEdit_{customer.id}(type) {
     var field = document.getElementById('limit-field-{customer.id}');
