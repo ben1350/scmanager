@@ -91,6 +91,20 @@
           <div style="color: #78909c; font-size: 0.8rem; line-height: 1.4; margin-top: 4px;">
             {b.branchAddress ?: 'No address registered'}
           </div>
+          {#if b.contactPerson || b.contactPhone}
+          <div style="display:flex; align-items:center; gap:10px; margin-top:8px; flex-wrap:wrap;">
+            {#if b.contactPerson}
+            <span style="display:inline-flex; align-items:center; gap:4px; color:#546e7a; font-size:0.78rem;">
+              <i class="material-icons" style="font-size:1rem; color:#90a4ae;">person</i>{b.contactPerson}
+            </span>
+            {/if}
+            {#if b.contactPhone}
+            <a href="tel:{b.contactPhone}" style="display:inline-flex; align-items:center; gap:4px; color:#1976d2; font-size:0.78rem; font-weight:600; text-decoration:none;">
+              <i class="material-icons" style="font-size:1rem;">phone</i>{b.contactPhone}
+            </a>
+            {/if}
+          </div>
+          {/if}
         </div>
       </div>
     {/for}
@@ -121,6 +135,15 @@
           <span>Add</span>
           <i class="material-icons" style="font-size: 1.2rem;">arrow_forward</i>
         </button>
+      </div>
+
+      <!-- Optional branch contact -->
+      <div style="display: flex; gap: 10px; align-items: center; margin: 10px 20px 0;">
+        <i class="material-icons grey-text" style="font-size: 1.1rem;">contact_phone</i>
+        <input name="contactPerson" placeholder="Contact name (optional)"
+               style="border: 1px solid #eceff1 !important; box-shadow: none !important; background:#fafafa; border-radius:8px; margin: 0; height: 34px; padding: 0 12px; font-size: 0.85rem; flex: 1;">
+        <input name="contactPhone" type="tel" placeholder="Phone number (optional)"
+               style="border: 1px solid #eceff1 !important; box-shadow: none !important; background:#fafafa; border-radius:8px; margin: 0; height: 34px; padding: 0 12px; font-size: 0.85rem; flex: 1;">
       </div>
     </form>
   </div>

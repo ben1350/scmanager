@@ -125,7 +125,9 @@ public class CustomerController extends HxController {
     public TemplateInstance addBranch(
             @RestPath Long id,
             @RestForm @NotBlank String branchName,
-            @RestForm String branchAddress
+            @RestForm String branchAddress,
+            @RestForm String contactPerson,
+            @RestForm String contactPhone
     ) {
         onlyHxRequest();
         Customer customer = Customer.findById(id);
@@ -133,6 +135,8 @@ public class CustomerController extends HxController {
         CustomerBranch branch = new CustomerBranch();
         branch.branchName = branchName;
         branch.branchAddress = branchAddress;
+        branch.contactPerson = (contactPerson != null && !contactPerson.isBlank()) ? contactPerson.trim() : null;
+        branch.contactPhone = (contactPhone != null && !contactPhone.isBlank()) ? contactPhone.trim() : null;
 
         customer.addBranch(branch);
         branch.persist();
