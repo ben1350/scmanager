@@ -39,7 +39,7 @@
                                style="border: none !important; box-shadow: none !important; margin: 0; height: 35px; font-size: 0.85rem;">
                         <input type="hidden" name="rawItemId" id="rawItemId-{batch.id}">
                         <ul id="materialList-{batch.id}" class="material-filter-list"
-                            style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:1000;
+                            style="display:none; position:fixed; z-index:9999;
                                    list-style:none; margin:0; padding:4px 0; background:#fff; border:1px solid #e0e0e0;
                                    border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); max-height:260px; overflow-y:auto;"></ul>
                     </div>
@@ -89,13 +89,23 @@
         var list   = document.getElementById('materialList-{batch.id}');
         if (!input || !hidden || !list) return;
 
-        // Raw materials available for this batch
+        // Raw materials available for this batch (.raw so names with & are not
+        // double-escaped into the JS string)
         var items = [ ];
         {#for item in rawItems}
-        items.push({ id: "{item.id}", label: "{item.itemName} ({item.uom.uomCode})" });
+        items.push({ id: "{item.id}", label: "{item.itemName.raw} ({item.uom.uomCode.raw})" });
         {/for}
 
         function closeList() { list.style.display = 'none'; list.innerHTML = ''; }
+
+        // Position the list under the input using fixed coords so it is not
+        // clipped by the card's overflow.
+        function positionList() {
+            var r = input.getBoundingClientRect();
+            list.style.top   = (r.bottom + 4) + 'px';
+            list.style.left  = r.left + 'px';
+            list.style.width = r.width + 'px';
+        }
 
         function renderList(filter) {
             var f = (filter || '').trim().toLowerCase();
@@ -108,23 +118,28 @@
                 empty.className = 'empty';
                 empty.textContent = 'No matching material';
                 list.appendChild(empty);
-                list.style.display = 'block';
-                return;
-            }
-            matches.forEach(function(it) {
-                var li = document.createElement('li');
-                li.textContent = it.label;
-                // mousedown fires before the input blur, so the pick registers
-                li.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    input.value  = it.label;
-                    hidden.value = it.id;
-                    closeList();
+            } else {
+                matches.forEach(function(it) {
+                    var li = document.createElement('li');
+                    li.textContent = it.label;
+                    // mousedown fires before the input blur, so the pick registers
+                    li.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        input.value  = it.label;
+                        hidden.value = it.id;
+                        closeList();
+                    });
+                    list.appendChild(li);
                 });
-                list.appendChild(li);
-            });
+            }
+            positionList();
             list.style.display = 'block';
         }
+
+        // Keep the list aligned if the page or a container scrolls/resizes
+        function reposition() { if (list.style.display === 'block') positionList(); }
+        window.addEventListener('scroll', reposition, true);
+        window.addEventListener('resize', reposition);
 
         input.addEventListener('focus', function() { renderList(input.value); });
         input.addEventListener('input', function() {
