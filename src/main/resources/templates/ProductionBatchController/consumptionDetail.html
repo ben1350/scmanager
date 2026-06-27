@@ -33,12 +33,12 @@
             <form hx-post="{uri:ProductionConsumptionController.add(batch.id)}" hx-target="#detail-{batch.id}">
                     {#authenticityToken/}
                 <div style="display: flex; gap: 10px; background: #fff; padding: 5px 5px 5px 20px; border-radius: 50px; border: 1px solid #cfd8dc; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
-                    <select name="rawItemId" style="border: none; flex: 2; font-size: 0.85rem; background: transparent; height: 35px;">
-                        <option value="" disabled selected>Select Material</option>
-                        {#for item in rawItems}
-                            <option value="{item.id}">{item.itemName} ({item.uom.uomCode})</option>
-                        {/for}
-                    </select>
+                    <div style="position: relative; flex: 2;">
+                        <input id="materialSearch-{batch.id}" type="text" class="autocomplete" autocomplete="off"
+                               placeholder="Type to search material…"
+                               style="border: none !important; box-shadow: none !important; margin: 0; height: 35px; font-size: 0.85rem;">
+                        <input type="hidden" name="rawItemId" id="rawItemId-{batch.id}">
+                    </div>
                     <div style="width: 1px; height: 20px; background: #eee;"></div>
                     <input name="consumedQty" type="number" step="0.01" placeholder="Quantity" required style="border: none !important; box-shadow: none !important; flex: 1; margin: 0; height: 35px;">
                     <button type="submit" class="btn blue darken-2" style="border-radius: 50px; text-transform: none; font-weight: 600; padding: 0 25px;">Add Material</button>
@@ -54,31 +54,61 @@
 </div>
 
 <style>
-    /* Cap the Materialize material dropdown so long lists scroll instead of
+    /* Cap the material autocomplete list so long results scroll instead of
        running off the card. */
-    .consumption-detail-pane .select-dropdown.dropdown-content {
+    .consumption-detail-pane .autocomplete-content.dropdown-content {
         max-height: 280px;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
-    /* Slimmer, always-visible scrollbar for the dropdown */
-    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar {
+    .consumption-detail-pane .autocomplete-content.dropdown-content::-webkit-scrollbar {
         width: 8px;
     }
-    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar-thumb {
+    .consumption-detail-pane .autocomplete-content.dropdown-content::-webkit-scrollbar-thumb {
         background: #cfd8dc;
         border-radius: 4px;
     }
 </style>
 <script>
     (function() {
-        var selectElems = document.querySelectorAll('.consumption-detail-pane select');
-        M.FormSelect.init(selectElems, {
-            dropdownOptions: {
-                coverTrigger: false,   // open below the field, not over it
-                constrainWidth: false  // let long material names show in full
+        var input  = document.getElementById('materialSearch-{batch.id}');
+        var hidden = document.getElementById('rawItemId-{batch.id}');
+        if (!input || !hidden) return;
+
+        // Build label -> id map from the raw materials list
+        var data = { };
+        var byLabel = { };
+        {#for item in rawItems}
+        data["{item.itemName} ({item.uom.uomCode})"] = null;
+        byLabel["{item.itemName} ({item.uom.uomCode})"] = "{item.id}";
+        {/for}
+
+        M.Autocomplete.init(input, {
+            data: data,
+            minLength: 0,          // show the full list on focus, like a dropdown
+            onAutocomplete: function(sel) {
+                var label = Array.isArray(sel) ? sel[0] : sel;
+                hidden.value = byLabel[label] || '';
             }
         });
+
+        // Keep the hidden id in sync; clear it if the text isn't an exact match
+        input.addEventListener('input', function() {
+            hidden.value = byLabel[input.value] || '';
+        });
+
+        // Guard: only submit when a real material was chosen from the list
+        var form = input.closest('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!hidden.value) {
+                    e.preventDefault();
+                    M.toast({ html: 'Please pick a material from the list' });
+                    input.focus();
+                }
+            });
+        }
+
         M.updateTextFields();
     })();
 </script>
