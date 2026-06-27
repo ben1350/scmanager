@@ -34,10 +34,14 @@
                     {#authenticityToken/}
                 <div style="display: flex; gap: 10px; background: #fff; padding: 5px 5px 5px 20px; border-radius: 50px; border: 1px solid #cfd8dc; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04);">
                     <div style="position: relative; flex: 2;">
-                        <input id="materialSearch-{batch.id}" type="text" class="autocomplete" autocomplete="off"
+                        <input id="materialSearch-{batch.id}" type="text" autocomplete="off"
                                placeholder="Type to search material…"
                                style="border: none !important; box-shadow: none !important; margin: 0; height: 35px; font-size: 0.85rem;">
                         <input type="hidden" name="rawItemId" id="rawItemId-{batch.id}">
+                        <ul id="materialList-{batch.id}" class="material-filter-list"
+                            style="display:none; position:absolute; top:calc(100% + 6px); left:0; right:0; z-index:1000;
+                                   list-style:none; margin:0; padding:4px 0; background:#fff; border:1px solid #e0e0e0;
+                                   border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.15); max-height:260px; overflow-y:auto;"></ul>
                     </div>
                     <div style="width: 1px; height: 20px; background: #eee;"></div>
                     <input name="consumedQty" type="number" step="0.01" placeholder="Quantity" required style="border: none !important; box-shadow: none !important; flex: 1; margin: 0; height: 35px;">
@@ -54,47 +58,82 @@
 </div>
 
 <style>
-    /* Cap the material autocomplete list so long results scroll instead of
-       running off the card. */
-    .consumption-detail-pane .autocomplete-content.dropdown-content {
-        max-height: 280px;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+    .consumption-detail-pane .material-filter-list li {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #37474f;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    .consumption-detail-pane .autocomplete-content.dropdown-content::-webkit-scrollbar {
-        width: 8px;
+    .consumption-detail-pane .material-filter-list li:hover,
+    .consumption-detail-pane .material-filter-list li.active {
+        background: #e3f2fd;
+        color: #1565c0;
     }
-    .consumption-detail-pane .autocomplete-content.dropdown-content::-webkit-scrollbar-thumb {
-        background: #cfd8dc;
-        border-radius: 4px;
+    .consumption-detail-pane .material-filter-list li.empty {
+        color: #9e9e9e;
+        cursor: default;
+        font-style: italic;
+    }
+    .consumption-detail-pane .material-filter-list::-webkit-scrollbar { width: 8px; }
+    .consumption-detail-pane .material-filter-list::-webkit-scrollbar-thumb {
+        background: #cfd8dc; border-radius: 4px;
     }
 </style>
 <script>
     (function() {
         var input  = document.getElementById('materialSearch-{batch.id}');
         var hidden = document.getElementById('rawItemId-{batch.id}');
-        if (!input || !hidden) return;
+        var list   = document.getElementById('materialList-{batch.id}');
+        if (!input || !hidden || !list) return;
 
-        // Build label -> id map from the raw materials list
-        var data = { };
-        var byLabel = { };
+        // Raw materials available for this batch
+        var items = [ ];
         {#for item in rawItems}
-        data["{item.itemName} ({item.uom.uomCode})"] = null;
-        byLabel["{item.itemName} ({item.uom.uomCode})"] = "{item.id}";
+        items.push({ id: "{item.id}", label: "{item.itemName} ({item.uom.uomCode})" });
         {/for}
 
-        M.Autocomplete.init(input, {
-            data: data,
-            minLength: 0,          // show the full list on focus, like a dropdown
-            onAutocomplete: function(sel) {
-                var label = Array.isArray(sel) ? sel[0] : sel;
-                hidden.value = byLabel[label] || '';
-            }
-        });
+        function closeList() { list.style.display = 'none'; list.innerHTML = ''; }
 
-        // Keep the hidden id in sync; clear it if the text isn't an exact match
+        function renderList(filter) {
+            var f = (filter || '').trim().toLowerCase();
+            var matches = items.filter(function(it) {
+                return it.label.toLowerCase().indexOf(f) !== -1;
+            });
+            list.innerHTML = '';
+            if (matches.length === 0) {
+                var empty = document.createElement('li');
+                empty.className = 'empty';
+                empty.textContent = 'No matching material';
+                list.appendChild(empty);
+                list.style.display = 'block';
+                return;
+            }
+            matches.forEach(function(it) {
+                var li = document.createElement('li');
+                li.textContent = it.label;
+                // mousedown fires before the input blur, so the pick registers
+                li.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    input.value  = it.label;
+                    hidden.value = it.id;
+                    closeList();
+                });
+                list.appendChild(li);
+            });
+            list.style.display = 'block';
+        }
+
+        input.addEventListener('focus', function() { renderList(input.value); });
         input.addEventListener('input', function() {
-            hidden.value = byLabel[input.value] || '';
+            hidden.value = '';          // typing invalidates any prior pick
+            renderList(input.value);
+        });
+        input.addEventListener('blur', function() {
+            // delay so a click on a list item is processed first
+            setTimeout(closeList, 150);
         });
 
         // Guard: only submit when a real material was chosen from the list
@@ -108,7 +147,5 @@
                 }
             });
         }
-
-        M.updateTextFields();
     })();
 </script>
