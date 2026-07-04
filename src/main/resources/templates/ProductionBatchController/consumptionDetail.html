@@ -53,10 +53,32 @@
     {/if}
 </div>
 
+<style>
+    /* Cap the Materialize material dropdown so long lists scroll instead of
+       running off the card. */
+    .consumption-detail-pane .select-dropdown.dropdown-content {
+        max-height: 280px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Slimmer, always-visible scrollbar for the dropdown */
+    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    .consumption-detail-pane .select-dropdown.dropdown-content::-webkit-scrollbar-thumb {
+        background: #cfd8dc;
+        border-radius: 4px;
+    }
+</style>
 <script>
     (function() {
         var selectElems = document.querySelectorAll('.consumption-detail-pane select');
-        M.FormSelect.init(selectElems);
+        M.FormSelect.init(selectElems, {
+            dropdownOptions: {
+                coverTrigger: false,   // open below the field, not over it
+                constrainWidth: false  // let long material names show in full
+            }
+        });
         M.updateTextFields();
     })();
 </script>

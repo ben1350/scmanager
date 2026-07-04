@@ -125,7 +125,9 @@ public class CustomerController extends HxController {
     public TemplateInstance addBranch(
             @RestPath Long id,
             @RestForm @NotBlank String branchName,
-            @RestForm String branchAddress
+            @RestForm String branchAddress,
+            @RestForm String contactPerson,
+            @RestForm String contactPhone
     ) {
         onlyHxRequest();
         Customer customer = Customer.findById(id);
@@ -133,8 +135,39 @@ public class CustomerController extends HxController {
         CustomerBranch branch = new CustomerBranch();
         branch.branchName = branchName;
         branch.branchAddress = branchAddress;
+        branch.contactPerson = (contactPerson != null && !contactPerson.isBlank()) ? contactPerson.trim() : null;
+        branch.contactPhone = (contactPhone != null && !contactPhone.isBlank()) ? contactPhone.trim() : null;
 
         customer.addBranch(branch);
+        branch.persist();
+
+        return Templates.branchDetail(customer);
+    }
+
+    @POST
+    @Path("/{id}/branches/{branchId}")
+    @Transactional
+    public TemplateInstance updateBranch(
+            @RestPath Long id,
+            @RestPath Long branchId,
+            @RestForm @NotBlank String branchName,
+            @RestForm String branchAddress,
+            @RestForm String contactPerson,
+            @RestForm String contactPhone
+    ) {
+        onlyHxRequest();
+        Customer customer = Customer.findById(id);
+        if (customer == null) throw new NotFoundException();
+
+        CustomerBranch branch = CustomerBranch.findById(branchId);
+        if (branch == null || branch.customer == null || !branch.customer.id.equals(id)) {
+            throw new NotFoundException();
+        }
+
+        branch.branchName = branchName.trim();
+        branch.branchAddress = (branchAddress != null && !branchAddress.isBlank()) ? branchAddress.trim() : null;
+        branch.contactPerson = (contactPerson != null && !contactPerson.isBlank()) ? contactPerson.trim() : null;
+        branch.contactPhone = (contactPhone != null && !contactPhone.isBlank()) ? contactPhone.trim() : null;
         branch.persist();
 
         return Templates.branchDetail(customer);

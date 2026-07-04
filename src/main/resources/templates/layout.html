@@ -216,6 +216,21 @@
     /* Utilities */
     .br-12 { border-radius: 12px !important; }
     .z-soft { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07) !important; }
+
+    /* ── Mobile responsiveness for report / list pages ───────────────── */
+    @media only screen and (max-width: 600px) {
+      /* Stat tiles (3–4 across) are too cramped on phones → 2 across */
+      .summary-strip, .kpi-strip { grid-template-columns: repeat(2, 1fr) !important; }
+
+      /* Wide data tables: scroll horizontally instead of clipping/overflowing.
+         Per-report style blocks load after this one, so !important is required. */
+      .soh-table, .lot-table, .rpt-table {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap;
+        -webkit-overflow-scrolling: touch;
+      }
+    }
   </style>
 </head>
 <body>
@@ -233,6 +248,8 @@
   <ul id="dropdown-setup" class="dropdown-content">
     <li><a href="/uom"><i class="material-icons">straighten</i> Units of Measure</a></li>
     <li><a href="/itemtype"><i class="material-icons">category</i> Item Types</a></li>
+    <li><a href="/stock-opening/opening"><i class="material-icons">inventory</i> Stock Opening</a></li>
+    <li><a href="/stock-transactions/index"><i class="material-icons">swap_vert</i> Stock Transactions</a></li>
     <li class="divider"></li>
     <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i> Users</a></li>
     <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i> QuickBooks</a></li>
@@ -294,10 +311,10 @@
     </li>
     <li class="section-label">Main</li>
     <li><a href="/d"><i class="material-icons">dashboard</i>Dashboard</a></li>
-    {#if inject:nav.showItems}<li><a href="/items"><i class="material-icons">inventory_2</i>Items</a></li>{/if}
+    {#if inject:nav.showItems}<li><a href="/items/index"><i class="material-icons">inventory_2</i>Items</a></li>{/if}
     {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>{/if}
-    {#if inject:nav.showSales}<li><a href="/invoices"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
-    {#if inject:nav.showCustomers}<li><a href="/customers"><i class="material-icons">group</i>Customers</a></li>{/if}
+    {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
+    {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons">group</i>Customers</a></li>{/if}
     {#if inject:nav.showReports}<li class="section-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;padding:8px 1.5rem 2px;">Reports</li>
     <li><a href="/reports/stock"><i class="material-icons">inventory_2</i>Stock on Hand</a></li>
     <li><a href="/reports/sales"><i class="material-icons">receipt_long</i>Sales Summary</a></li>
@@ -308,6 +325,8 @@
     {#if inject:nav.showSetup}<li class="section-label">Setup</li>
     <li><a href="/uom"><i class="material-icons">straighten</i>Units of Measure</a></li>
     <li><a href="/itemtype"><i class="material-icons">category</i>Item Types</a></li>
+    <li><a href="/stock-opening/opening"><i class="material-icons">inventory</i>Stock Opening</a></li>
+    <li><a href="/stock-transactions/index"><i class="material-icons">swap_vert</i>Stock Transactions</a></li>
     <li><a href="{uri:UserController.index()}"><i class="material-icons">manage_accounts</i>Users</a></li>
     <li><a href="{uri:QuickBooksController.index()}"><i class="material-icons">sync_alt</i>QuickBooks</a></li>{/if}
     <li class="divider"></li>

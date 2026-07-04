@@ -109,7 +109,8 @@ public class MobileApiController {
                         b.customer.id, b.customer.customerCode, b.customer.name,
                         b.customer.customerType.name(),
                         b.customer.creditLimit,
-                        b.id, b.branchName, b.branchAddress
+                        b.id, b.branchName, b.branchAddress,
+                        b.contactPerson, b.contactPhone
                 ))
                 .toList();
 
@@ -355,7 +356,8 @@ public class MobileApiController {
     public record CustomerDto(
             Long customerId, String customerCode, String name,
             String customerType, BigDecimal creditLimit,
-            Long branchId, String branchName, String branchAddress) {}
+            Long branchId, String branchName, String branchAddress,
+            String contactPerson, String contactPhone) {}
 
     public record ItemDto(
             Long id, String itemCode, String itemName,

@@ -9,22 +9,22 @@
             </span>
 
             <div class="row" style="margin-top: 1rem;">
-                <div class="input-field col s4">
+                <div class="input-field col s12 m4">
                     <input value="ROSS-XXX" disabled style="color: #9e9e9e; font-weight: 700;">
                     <label class="active">Auto-Generated Code</label>
                 </div>
-                <div class="input-field col s8">
+                <div class="input-field col s12 m8">
                     <input name="name" id="new_cust_name" type="text" required>
                     <label for="new_cust_name">Company Name</label>
                 </div>
             </div>
 
             <div class="row">
-                <div class="input-field col s6">
+                <div class="input-field col s12 m6">
                     <input name="email" id="new_cust_email" type="email">
                     <label for="new_cust_email">Email Address</label>
                 </div>
-                <div class="input-field col s6">
+                <div class="input-field col s12 m6">
                     <input name="phone" id="new_cust_phone" type="text">
                     <label for="new_cust_phone">Phone Number</label>
                 </div>
@@ -39,7 +39,7 @@
 
             {#if inject:nav.canManageCustomerType}
             <div class="row" style="margin-top: 0.5rem;">
-                <div class="col s6">
+                <div class="col s12 m6">
                     <label style="font-size: 0.8rem; color: #9e9e9e; font-weight: 700; display: block; margin-bottom: 8px;">Customer Type</label>
                     <div style="display: flex; gap: 1rem;">
                         <label style="cursor: pointer;">
@@ -56,7 +56,7 @@
                         </label>
                     </div>
                 </div>
-                <div class="input-field col s6" id="creditLimitField" style="display: none;">
+                <div class="input-field col s12 m6" id="creditLimitField" style="display: none;">
                     <i class="material-icons prefix">account_balance</i>
                     <input name="creditLimit" id="new_cust_limit" type="number" step="0.01" min="0">
                     <label for="new_cust_limit">Credit Limit (GHS)</label>

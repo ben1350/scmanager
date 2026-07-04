@@ -1,4 +1,4 @@
-{#include "/layout.html"}
+{#include "layout.html"}
 {#title}Sales Management{/title}
 {#body}
 <div class="container inv-container">
@@ -431,22 +431,25 @@
     .inv-sub { display: none; }
     .inv-search-wrap { max-width: 100%; }
 
-    /* Card header: stack dates/total below the main row */
-    .inv-card-header { padding: 1rem; gap: 10px; }
+    /* Card header: icon top-aligns with the invoice no; dates/total drop below */
+    .inv-card-header { padding: 1rem; gap: 10px; align-items: flex-start; }
     .inv-right {
         width: 100%;
         flex-direction: row;
+        align-items: flex-end;
         justify-content: space-between;
-        padding-top: 6px;
-        border-top: 1px solid #f1f5f9;
+        padding-top: 10px;
+        margin-top: 4px;
+        border-top: 1px solid #eef2f6;
         gap: 8px;
         order: 10; /* push below info row */
     }
-    .inv-arrow { order: 5; } /* keep arrow at end of first row */
-    .inv-dates { font-size: 0.72rem; }
-    .inv-total-amt { font-size: 0.9rem; }
-    .inv-no { font-size: 0.9rem; }
-    .inv-customer { font-size: 0.75rem; }
+    .inv-arrow { order: 5; align-self: center; } /* centered at end of first row */
+    .inv-dates { font-size: 0.72rem; line-height: 1.5; }
+    .inv-total-amt { font-size: 1.05rem; }
+    .inv-no { font-size: 0.95rem; }
+    /* let long customer names wrap instead of getting clipped with an ellipsis */
+    .inv-customer { font-size: 0.78rem; white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.35; margin-top: 2px; }
 
     /* Action buttons: full-width row, small */
     .inv-actions { padding: 0 1rem 0.8rem; }
