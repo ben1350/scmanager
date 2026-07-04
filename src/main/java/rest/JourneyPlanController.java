@@ -50,7 +50,12 @@ public class JourneyPlanController extends HxController {
     }
 
     private List<JourneyPlan> allPlans() {
-        return JourneyPlan.list("order by weekday, name");
+        // Fetch the stops collection eagerly: the template shows a stop count per
+        // plan, and add() is @Transactional, so the session is already closed by
+        // the time Renarde renders — a lazy load there throws LazyInitialization.
+        return JourneyPlan.find(
+                "SELECT DISTINCT p FROM JourneyPlan p LEFT JOIN FETCH p.stops ORDER BY p.weekday, p.name")
+                .list();
     }
 
     private TemplateInstance renderDetail(JourneyPlan plan) {
