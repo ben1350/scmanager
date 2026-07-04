@@ -591,5 +591,21 @@
             }
         });
     });
+
+    // Auto-open a specific invoice when arriving via ?open=<id>
+    // (e.g. the rep just raised a sale from the My Route screen).
+    window.addEventListener('load', function() {
+        try {
+            var openId = new URLSearchParams(window.location.search).get('open');
+            if (!openId) return;
+            var card = document.getElementById('card-' + openId);
+            if (!card) return;
+            var header = card.querySelector('.inv-card-header');
+            if (header) {
+                toggleInvoiceActive(header);
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        } catch (e) { /* ignore */ }
+    });
 </script>
 {/body}

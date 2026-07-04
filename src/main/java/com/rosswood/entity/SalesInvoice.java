@@ -86,6 +86,15 @@ public class SalesInvoice extends AuditableEntity {
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     public List<SalesInvoiceItem> items = new ArrayList<>();
 
+    /**
+     * The route visit that produced this sale, when the invoice was raised from
+     * the rep's "My Route" screen. Null for invoices created off-route.
+     * Links route activity to revenue (Option B).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "journey_visit_id")
+    public JourneyVisit journeyVisit;
+
     // ── Enums ─────────────────────────────────────────────────────────────
     public enum InvoiceStatus {
         /** Being built — editable, no stock impact yet */
@@ -164,6 +173,11 @@ public class SalesInvoice extends AuditableEntity {
 
     public static List<SalesInvoice> findByStatus(InvoiceStatus status) {
         return list("status = ?1 ORDER BY invoiceDate DESC", status);
+    }
+
+    /** Non-cancelled invoices raised from a given route visit (Option B link). */
+    public static List<SalesInvoice> findByVisit(Long visitId) {
+        return list("journeyVisit.id = ?1 and status <> ?2 order by id", visitId, InvoiceStatus.CANCELLED);
     }
 
     public static List<SalesInvoice> findUndelivered() {
