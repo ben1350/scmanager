@@ -1,0 +1,100 @@
+<div style="padding: 0 1.8rem 1.5rem 1.8rem; border-top: 1px solid #f0f0f0;">
+
+    <!-- ── Ordered stops ── -->
+    {#if stops.isEmpty()}
+    <div class="center-align grey-text" style="padding: 1.5rem 1rem;">
+        <i class="material-icons" style="font-size: 2rem; opacity: 0.3;">place</i>
+        <p style="margin: 6px 0 0 0;">No stops yet. Add the first branch below.</p>
+    </div>
+    {#else}
+    <ul class="collection" style="border: none; margin: 1rem 0 0 0;">
+        {#for stop in stops}
+        <li class="collection-item" style="display: flex; align-items: center; gap: 1rem; border-bottom: 1px solid #f5f5f5; padding: 12px 4px;">
+            <div style="background: #1565c0; color: #fff; width: 28px; height: 28px; border-radius: 50%;
+                        display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem; flex-shrink: 0;">
+                {stop_count}
+            </div>
+
+            <div style="flex-grow: 1;">
+                <div style="font-weight: 600; color: #37474f;">
+                    {stop.customerBranch.customer.name} &mdash; {stop.customerBranch.branchName}
+                </div>
+                <div class="grey-text" style="font-size: 0.8rem;">
+                    {#if stop.customerBranch.contactPerson}
+                        <i class="material-icons tiny" style="vertical-align: middle;">person_outline</i> {stop.customerBranch.contactPerson}
+                    {/if}
+                    {#if stop.customerBranch.contactPhone}
+                        <span style="margin: 0 6px; opacity: 0.4;">|</span>
+                        <i class="material-icons tiny" style="vertical-align: middle;">phone</i> {stop.customerBranch.contactPhone}
+                    {/if}
+                </div>
+            </div>
+
+            <!-- move up -->
+            <form hx-post="{uri:JourneyPlanController.moveStop(plan.id, stop.id, 'up')}"
+                  hx-target="#detail-{plan.id}" hx-swap="innerHTML" style="margin: 0;">
+                {#authenticityToken/}
+                <button type="submit" class="btn-flat" style="padding: 0 6px;"
+                        {#if stop_count == 1}disabled{/if}>
+                    <i class="material-icons grey-text {#if stop_count == 1}text-lighten-2{/if}">arrow_upward</i>
+                </button>
+            </form>
+
+            <!-- move down -->
+            <form hx-post="{uri:JourneyPlanController.moveStop(plan.id, stop.id, 'down')}"
+                  hx-target="#detail-{plan.id}" hx-swap="innerHTML" style="margin: 0;">
+                {#authenticityToken/}
+                <button type="submit" class="btn-flat" style="padding: 0 6px;"
+                        {#if !stop_hasNext}disabled{/if}>
+                    <i class="material-icons grey-text {#if !stop_hasNext}text-lighten-2{/if}">arrow_downward</i>
+                </button>
+            </form>
+
+            <!-- remove -->
+            <form hx-post="{uri:JourneyPlanController.removeStop(plan.id, stop.id)}"
+                  hx-target="#detail-{plan.id}" hx-swap="innerHTML"
+                  hx-confirm="Remove this stop from the route?" style="margin: 0;">
+                {#authenticityToken/}
+                <button type="submit" class="btn-flat red-text text-lighten-1" style="padding: 0 6px;">
+                    <i class="material-icons">close</i>
+                </button>
+            </form>
+        </li>
+        {/for}
+    </ul>
+    {/if}
+
+    <!-- ── Add a stop ── -->
+    {#if branches.isEmpty()}
+    <p class="grey-text" style="margin-top: 1.2rem; font-size: 0.85rem;">
+        <i class="material-icons tiny" style="vertical-align: middle;">info_outline</i>
+        Every active branch is already on this route.
+    </p>
+    {#else}
+    <form hx-post="{uri:JourneyPlanController.addStop(plan.id)}"
+          hx-target="#detail-{plan.id}" hx-swap="innerHTML"
+          hx-on::after-request="{|if(event.detail.successful){M.FormSelect.init(this.querySelectorAll('select'));}|}"
+          style="display: flex; align-items: flex-end; gap: 1rem; margin-top: 1.2rem;">
+        {#authenticityToken/}
+        <div class="input-field" style="flex-grow: 1; margin: 0;">
+            <select name="branchId" required
+                    class="journey-branch-select">
+                <option value="" disabled selected>Add a customer branch&hellip;</option>
+                {#for b in branches}
+                    <option value="{b.id}">{b.customer.name} &mdash; {b.branchName}</option>
+                {/for}
+            </select>
+        </div>
+        <button type="submit" class="btn blue darken-2" style="border-radius: 50px; padding: 0 24px;">
+            <i class="material-icons left">add_location_alt</i>Add Stop
+        </button>
+    </form>
+    {/if}
+</div>
+
+<script>
+    (function() {
+        M.FormSelect.init(document.querySelectorAll('#detail-{plan.id} .journey-branch-select'),
+            { dropdownOptions: { coverTrigger: false, constrainWidth: false } });
+    })();
+</script>

@@ -65,6 +65,12 @@ public class NavHelper {
         return currentUser() != null;
     }
 
+    /** Journey Plans — route managers and admins assign recurring rep routes. */
+    public boolean showJourneyPlans() {
+        User u = currentUser();
+        return u != null && (u.isAdmin || u.hasRole("route_manager"));
+    }
+
     /** Setup (UOM, Item Types, Users) — admins only. */
     public boolean showSetup() {
         User u = currentUser();
