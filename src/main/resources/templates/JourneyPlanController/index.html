@@ -1,0 +1,161 @@
+{#include "layout.html"}
+{#title}Journey Plans{/title}
+
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 1100px;">
+    <div class="row">
+        <div class="col s12" style="margin-bottom: 1.5rem;">
+            <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">Journey Plans</h4>
+            <p class="grey-text" style="margin: 5px 0 0 0;">Assign recurring weekly visit routes to your sales reps</p>
+        </div>
+    </div>
+
+    <!-- ── Create route ── -->
+    <div class="card" style="border-radius: 16px; margin-bottom: 2rem; border: 2px dashed #2196f3 !important; background: #fafafa;">
+        <form id="new-route-form"
+              hx-post="{uri:JourneyPlanController.add()}"
+              hx-target="#planListContainer"
+              hx-on::after-request="{|if(event.detail.successful){this.reset(); M.FormSelect.init(this.querySelectorAll('select')); M.updateTextFields();}|}">
+            {#authenticityToken/}
+            <div class="card-content" style="padding: 1.8rem 2rem;">
+                <span class="card-title blue-text text-darken-2" style="font-weight: 600;">New Route</span>
+                <div class="row" style="margin-top: 1.5rem; margin-bottom: 0;">
+                    <div class="input-field col s12 m4">
+                        <input name="name" id="route_name" type="text" required>
+                        <label for="route_name">Route name (e.g. Osu Monday Run)</label>
+                    </div>
+                    <div class="input-field col s12 m4">
+                        <select name="repId" required>
+                            <option value="" disabled selected>Assign to rep</option>
+                            {#for rep in reps}
+                                <option value="{rep.id}">{rep.fullName}</option>
+                            {/for}
+                        </select>
+                        <label>Sales Rep</label>
+                    </div>
+                    <div class="input-field col s12 m4">
+                        <select name="weekday" required>
+                            <option value="" disabled selected>Repeats every</option>
+                            <option value="MONDAY">Monday</option>
+                            <option value="TUESDAY">Tuesday</option>
+                            <option value="WEDNESDAY">Wednesday</option>
+                            <option value="THURSDAY">Thursday</option>
+                            <option value="FRIDAY">Friday</option>
+                            <option value="SATURDAY">Saturday</option>
+                            <option value="SUNDAY">Sunday</option>
+                        </select>
+                        <label>Weekday</label>
+                    </div>
+                </div>
+            </div>
+            <div class="card-action right-align" style="background: transparent; border-top: none;">
+                <button type="submit" class="btn blue darken-2" style="border-radius: 50px; padding: 0 28px;">
+                    <i class="material-icons left">add_road</i>Create Route
+                </button>
+            </div>
+        </form>
+    </div>
+
+    {#if reps.isEmpty()}
+    <div class="card-panel amber lighten-4 grey-text text-darken-2" style="border-radius: 12px;">
+        <i class="material-icons" style="vertical-align: middle;">info</i>
+        No users have the <b>sales</b> role yet, so there are no reps to assign routes to.
+        Add the sales role to a user under Setup &rarr; Users first.
+    </div>
+    {/if}
+
+    <div id="planListContainer">
+        {#fragment id="planList"}
+        {#if plans.isEmpty()}
+        <div class="center-align grey-text" style="padding: 3rem 1rem;">
+            <i class="material-icons" style="font-size: 3rem; opacity: 0.3;">route</i>
+            <p>No routes yet. Create one above to get started.</p>
+        </div>
+        {#else}
+        {#for plan in plans}
+        <div id="card-{plan.id}" class="card journey-card"
+             style="border-radius: 16px; margin-bottom: 1.2rem; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); overflow: hidden;">
+            <div class="card-content"
+                 onclick="toggleRouteActive(this)"
+                 data-url="{uri:JourneyPlanController.getStops(plan.id)}"
+                 data-target="#detail-{plan.id}"
+                 style="cursor: pointer; padding: 1.5rem 1.8rem; display: flex; align-items: center; gap: 1rem;">
+
+                <div style="background: #e3f2fd; color: #1565c0; padding: 10px; border-radius: 12px;">
+                    <i class="material-icons">route</i>
+                </div>
+
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 700; color: #37474f; font-size: 1.05rem;">{plan.name}</div>
+                    <div class="grey-text" style="font-size: 0.85rem; margin-top: 2px;">
+                        <i class="material-icons tiny" style="vertical-align: middle;">person</i> {plan.assignedRep.fullName}
+                        <span style="margin: 0 8px; opacity: 0.4;">|</span>
+                        <span style="text-transform: capitalize;">{plan.weekday.toString().toLowerCase}</span>s
+                        <span style="margin: 0 8px; opacity: 0.4;">|</span>
+                        {plan.stops.size()} stop{#if plan.stops.size() != 1}s{/if}
+                    </div>
+                </div>
+
+                <span style="padding: 3px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800;
+                             text-transform: uppercase; letter-spacing: .05em;
+                             background: {plan.activeFlag ? '#e8f5e9' : '#fce4ec'};
+                             color: {plan.activeFlag ? '#2e7d32' : '#c62828'};">
+                    {plan.activeFlag ? 'Active' : 'Off'}
+                </span>
+
+                <form hx-post="{uri:JourneyPlanController.delete(plan.id)}"
+                      hx-target="#planListContainer"
+                      hx-confirm="Delete this route and all its stops?"
+                      onclick="event.stopPropagation()">
+                    {#authenticityToken/}
+                    <button type="submit" class="btn-flat red-text text-lighten-1" style="padding: 0;">
+                        <i class="material-icons">delete_outline</i>
+                    </button>
+                </form>
+
+                <i class="material-icons grey-text arrow-icon">expand_more</i>
+            </div>
+            <div id="detail-{plan.id}" class="journey-pane"></div>
+        </div>
+        {/for}
+        {/if}
+        {/fragment}
+    </div>
+</div>
+
+<style>
+    .journey-card.active-card { background-color: #fffde7 !important; box-shadow: 0 12px 30px rgba(253, 216, 53, 0.15) !important; }
+    .journey-card.active-card .arrow-icon { transform: rotate(180deg); color: #fbc02d !important; }
+    .arrow-icon { transition: transform 0.3s ease; }
+</style>
+
+<script>
+    (function() {
+        M.FormSelect.init(document.querySelectorAll('#new-route-form select'),
+            { dropdownOptions: { coverTrigger: false, constrainWidth: false } });
+        M.updateTextFields();
+    })();
+
+    function toggleRouteActive(element) {
+        const card = element.closest('.journey-card');
+        const wasActive = card.classList.contains('active-card');
+        const detailPane = document.getElementById(card.id.replace('card-', 'detail-'));
+
+        document.querySelectorAll('.journey-card').forEach(c => {
+            c.classList.remove('active-card');
+            if (c !== card) {
+                const det = document.getElementById(c.id.replace('card-', 'detail-'));
+                if (det) det.innerHTML = '';
+            }
+        });
+
+        if (wasActive) {
+            detailPane.innerHTML = '';
+        } else {
+            card.classList.add('active-card');
+            htmx.ajax('GET', element.dataset.url, { target: element.dataset.target, swap: 'innerHTML' });
+        }
+    }
+</script>
+{/body}
+{/include}

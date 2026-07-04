@@ -59,6 +59,41 @@
     }
     .brand-icon-wrap i { font-size: 1.1rem; color: white; line-height: 1; }
 
+    /* Give the nav more room than Materialize's default 70% container so all
+       the top-level links fit on one row before collapsing to the mobile menu. */
+    .navbar-fixed .nav-wrapper.container {
+      width: 96% !important;
+      max-width: 1600px !important;
+    }
+
+    /* Keep every top-nav link on a single line: icon + label stay inline and
+       never wrap under the floated icon when the row gets tight. */
+    .nav-wrapper ul.right {
+      flex-wrap: nowrap !important;
+    }
+    .nav-wrapper ul.right > li {
+      flex: 0 0 auto !important;
+    }
+    .nav-wrapper ul.right > li > a {
+      display: inline-flex !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      padding: 0 10px !important;
+    }
+    /* Materialize forces nav icons to height:64px (full bar height); with a
+       small line-height the glyph pins to the top of that box and only LOOKS
+       like it is stacked above the label. Collapse the icon box to its glyph
+       so align-items:center lines the icon up with the text. */
+    .nav-wrapper ul.right > li > a > i.material-icons.left {
+      float: none !important;
+      margin: 0 6px 0 0 !important;
+      line-height: 1 !important;
+      height: auto !important;
+      display: inline-flex !important;
+      align-items: center !important;
+    }
+
     /* Nav links */
     nav ul li a {
       color: rgba(255,255,255,0.7) !important;
@@ -272,6 +307,8 @@
           {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons left" style="font-size:1rem;">precision_manufacturing</i>Production</a></li>{/if}
           {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons left" style="font-size:1rem;">receipt_long</i>Sales</a></li>{/if}
           {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons left" style="font-size:1rem;">group</i>Customers</a></li>{/if}
+          {#if inject:nav.showMyRoute}<li><a href="/my-route"><i class="material-icons left" style="font-size:1rem;">near_me</i>My Route</a></li>{/if}
+          {#if inject:nav.showJourneyPlans}<li><a href="/journey-plans"><i class="material-icons left" style="font-size:1rem;">route</i>Journey</a></li>{/if}
           {#if inject:nav.showReports}<li>
             <a class="dropdown-trigger" href="#!" data-target="dropdown-reports">
               <i class="material-icons left" style="font-size:1rem;">bar_chart</i>Reports
@@ -315,6 +352,8 @@
     {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons">precision_manufacturing</i>Production</a></li>{/if}
     {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons">receipt_long</i>Sales</a></li>{/if}
     {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons">group</i>Customers</a></li>{/if}
+    {#if inject:nav.showMyRoute}<li><a href="/my-route"><i class="material-icons">near_me</i>My Route</a></li>{/if}
+    {#if inject:nav.showJourneyPlans}<li><a href="/journey-plans"><i class="material-icons">route</i>Journey Plans</a></li>{/if}
     {#if inject:nav.showReports}<li class="section-label" style="color:rgba(255,255,255,0.4);font-size:0.65rem;padding:8px 1.5rem 2px;">Reports</li>
     <li><a href="/reports/stock"><i class="material-icons">inventory_2</i>Stock on Hand</a></li>
     <li><a href="/reports/sales"><i class="material-icons">receipt_long</i>Sales Summary</a></li>

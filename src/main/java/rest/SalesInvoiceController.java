@@ -60,7 +60,6 @@ public class SalesInvoiceController extends HxController {
     @Transactional
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public TemplateInstance add(
-            @RestForm String vatInvoiceNo,
             @RestForm Long branchId,
             @RestForm String invoiceDate,
             @RestForm String remarks,
@@ -70,9 +69,10 @@ public class SalesInvoiceController extends HxController {
         onlyHxRequest();
 
         SalesInvoice invoice = new SalesInvoice();
-        invoice.vatInvoiceNo = vatInvoiceNo;
-        long count = SalesInvoice.count();
-        invoice.invoiceNo = "RW-INV-" + String.format("%05d", count + 1);
+        // The VAT invoice number is captured on confirm, not at draft creation.
+        // Drafts get a throwaway reference — the official RW-INV number is only
+        // issued on confirm, so abandoned drafts never consume a number.
+        invoice.invoiceNo = "TMP-" + java.util.UUID.randomUUID();
         invoice.customerBranch = CustomerBranch.findById(branchId);
         invoice.invoiceDate = LocalDate.parse(invoiceDate);
         invoice.remarks = remarks;
@@ -86,6 +86,8 @@ public class SalesInvoiceController extends HxController {
             invoice.createdBy = identity.getPrincipal().getName();
         }
         invoice.persistAndFlush();
+        invoice.invoiceNo = SalesInvoice.draftReference(invoice.id);
+        invoice.persist();
 
         return render(Optional.ofNullable(page).orElse(1), true, List.of(), LocalDate.now().toString(), null, null);
     }
@@ -156,7 +158,7 @@ public class SalesInvoiceController extends HxController {
     @POST
     @Path("/{id}/confirm")
     @Transactional
-    public TemplateInstance confirm(@RestPath Long id, @RestForm Integer page) {
+    public TemplateInstance confirm(@RestPath Long id, @RestForm String vatInvoiceNo, @RestForm Integer page) {
         onlyHxRequest();
 
         SalesInvoice invoice = SalesInvoice.findById(id);
@@ -190,6 +192,14 @@ public class SalesInvoiceController extends HxController {
         // Post stock OUT for each line
         invoice.items.forEach(line -> stockService.postSale(invoice, line));
 
+        // Capture the official GRA VAT invoice number entered at confirm time.
+        if (vatInvoiceNo != null && !vatInvoiceNo.isBlank()) {
+            invoice.vatInvoiceNo = vatInvoiceNo.trim();
+        }
+        // Issue the official invoice number now that the sale is real.
+        if (!invoice.hasOfficialNumber()) {
+            invoice.invoiceNo = SalesInvoice.nextOfficialInvoiceNo();
+        }
         invoice.status = SalesInvoice.InvoiceStatus.CONFIRMED;
         invoice.persist();
 

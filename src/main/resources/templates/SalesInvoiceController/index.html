@@ -101,14 +101,10 @@
                 <!-- ── Action bar ── -->
                 <div id="actions-{inv.id}" class="inv-actions" onclick="event.stopPropagation()">
                     {#if inv.status.name() == 'DRAFT'}
-                    <form hx-post="{uri:SalesInvoiceController.confirm(inv.id)}?page={page}"
-                          hx-target="#invoiceListContainer"
-                          hx-confirm="Confirm this invoice? Stock transactions will be posted and the invoice will be locked.">
-                        {#authenticityToken/}
-                        <button type="submit" class="btn-small green darken-1 waves-effect inv-action-btn">
-                            <i class="material-icons left" style="font-size:1rem;">check_circle</i>Confirm
-                        </button>
-                    </form>
+                    <button class="btn-small green darken-1 waves-effect inv-action-btn"
+                            onclick="toggleConfirmForm('{inv.id}')">
+                        <i class="material-icons left" style="font-size:1rem;">check_circle</i>Confirm
+                    </button>
                     <form hx-post="{uri:SalesInvoiceController.cancel(inv.id)}?page={page}"
                           hx-target="#invoiceListContainer"
                           hx-confirm="Cancel this invoice?">
@@ -138,6 +134,33 @@
                     </form>
                     {/if}
                 </div>
+
+                <!-- ── Confirm form (captures VAT invoice no) ── -->
+                {#if inv.status.name() == 'DRAFT'}
+                <div id="confirm-form-{inv.id}" style="display:none;" class="inv-subform-wrap">
+                    <form hx-post="{uri:SalesInvoiceController.confirm(inv.id)}?page={page}"
+                          hx-target="#invoiceListContainer"
+                          class="inv-subform">
+                        {#authenticityToken/}
+                        <div class="inv-field-group" style="flex:2;">
+                            <label class="inv-field-label">VAT Invoice No <span style="color:#9e9e9e; font-weight:400;">(optional)</span></label>
+                            <input name="vatInvoiceNo" type="text" class="inv-field-input"
+                                   value="{inv.vatInvoiceNo ?: ''}" placeholder="Official GRA VAT number">
+                        </div>
+                        <div class="inv-subform-btns">
+                            <button type="submit" class="btn-small green darken-1 waves-effect inv-action-btn">
+                                <i class="material-icons left" style="font-size:1rem;">check_circle</i>Issue Invoice
+                            </button>
+                            <button type="button" class="btn-flat grey-text"
+                                    onclick="toggleConfirmForm('{inv.id}')">Cancel</button>
+                        </div>
+                    </form>
+                    <p style="margin:0.5rem 0 0; font-size:0.75rem; color:#e65100;">
+                        <i class="material-icons" style="font-size:0.9rem; vertical-align:middle;">info</i>
+                        Stock will be posted and the invoice locked once issued. An RW-INV number is assigned automatically.
+                    </p>
+                </div>
+                {/if}
 
                 <!-- ── Delivery form ── -->
                 <div id="delivery-form-{inv.id}" style="display:none;" class="inv-subform-wrap">
@@ -495,9 +518,24 @@
         }
     }
 
+    function toggleConfirmForm(id) {
+        var pf = document.getElementById('payment-form-' + id);
+        if (pf) pf.style.display = 'none';
+        var df = document.getElementById('delivery-form-' + id);
+        if (df) df.style.display = 'none';
+        var form = document.getElementById('confirm-form-' + id);
+        if (form) {
+            var isHidden = form.style.display === 'none';
+            form.style.display = isHidden ? 'block' : 'none';
+            if (isHidden) M.updateTextFields();
+        }
+    }
+
     function toggleDeliveryForm(id) {
         var pf = document.getElementById('payment-form-' + id);
         if (pf) pf.style.display = 'none';
+        var cf = document.getElementById('confirm-form-' + id);
+        if (cf) cf.style.display = 'none';
         const form = document.getElementById('delivery-form-' + id);
         if (form) {
             form.style.display = form.style.display === 'none' ? 'block' : 'none';
@@ -512,6 +550,8 @@
         var isHidden = form.style.display === 'none';
         var deliveryForm = document.getElementById('delivery-form-' + id);
         if (deliveryForm) deliveryForm.style.display = 'none';
+        var cf = document.getElementById('confirm-form-' + id);
+        if (cf) cf.style.display = 'none';
         form.style.display = isHidden ? 'block' : 'none';
         if (isHidden) {
             var sel = document.getElementById('pm-sel-' + id);

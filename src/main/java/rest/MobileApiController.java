@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -189,7 +190,6 @@ public class MobileApiController {
         if (username == null) return unauthorized();
 
         List<SyncResult> results = new ArrayList<>();
-        long baseCount = SalesInvoice.count();
 
         for (int i = 0; i < payload.size(); i++) {
             OfflineInvoice o = payload.get(i);
@@ -201,7 +201,9 @@ public class MobileApiController {
                 }
 
                 SalesInvoice inv = new SalesInvoice();
-                inv.invoiceNo       = "RW-INV-" + String.format("%05d", baseCount + i + 1);
+                // Synced records land as DRAFTs — the official RW-INV number is
+                // only issued when the invoice is confirmed.
+                inv.invoiceNo       = "TMP-" + java.util.UUID.randomUUID();
                 inv.customerBranch  = branch;
                 inv.invoiceDate     = LocalDate.parse(o.invoiceDate());
                 inv.paymentMethod   = SalesInvoice.PaymentMethod.valueOf(o.paymentMethod());
@@ -212,6 +214,7 @@ public class MobileApiController {
                 inv.totalAmount      = BigDecimal.ZERO;
                 inv.createdBy        = username;
                 inv.persistAndFlush();
+                inv.invoiceNo       = SalesInvoice.draftReference(inv.id);
 
                 for (OfflineInvoice.LineItem li : o.items()) {
                     Item item   = Item.findById(li.itemId());
@@ -270,8 +273,9 @@ public class MobileApiController {
     // ── Confirm invoice ──────────────────────────────────────────────────
     @POST
     @Path("/invoices/{id}/confirm")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response confirmInvoice(@PathParam("id") Long id) {
+    public Response confirmInvoice(@PathParam("id") Long id, ConfirmRequest req) {
         if (tokenUser() == null) return unauthorized();
         SalesInvoice inv = SalesInvoice.findById(id);
         if (inv == null) return Response.status(404).entity(Map.of("error","Not found")).type(MediaType.APPLICATION_JSON).build();
@@ -286,9 +290,17 @@ public class MobileApiController {
         }
         // Post stock OUT for each line (mirrors web confirm behaviour)
         inv.items.forEach(line -> stockService.postSale(inv, line));
+        // Capture the official GRA VAT invoice number entered at confirm time.
+        if (req != null && req.vatInvoiceNo != null && !req.vatInvoiceNo.isBlank()) {
+            inv.vatInvoiceNo = req.vatInvoiceNo.trim();
+        }
+        // Issue the official invoice number now that the sale is real.
+        if (!inv.hasOfficialNumber()) {
+            inv.invoiceNo = SalesInvoice.nextOfficialInvoiceNo();
+        }
         inv.status = SalesInvoice.InvoiceStatus.CONFIRMED;
         inv.persist();
-        return Response.ok(Map.of("status", inv.status.name())).build();
+        return Response.ok(Map.of("status", inv.status.name(), "invoiceNo", inv.invoiceNo)).build();
     }
 
     // ── Mark delivered / payment received ────────────────────────────────
@@ -344,6 +356,87 @@ public class MobileApiController {
         )).build();
     }
 
+    // ── My route for today ────────────────────────────────────────────────
+    @GET
+    @Path("/route/today")
+    @Transactional
+    public Response routeToday() {
+        String username = tokenUser();
+        if (username == null) return unauthorized();
+        User user = User.findByUserName(username);
+        if (user == null) return unauthorized();
+
+        LocalDate date  = LocalDate.now();
+        DayOfWeek today = date.getDayOfWeek();
+
+        List<RouteDto> routes = JourneyPlan.findByRepAndDay(user.id, today).stream()
+                .map(plan -> {
+                    List<JourneyStop> stops =
+                            JourneyStop.list("journeyPlan.id = ?1 order by visitOrder", plan.id);
+                    List<RouteStopDto> stopDtos = stops.stream().map(s -> {
+                        JourneyVisit v = JourneyVisit.forStopOnDate(s.id, date);
+                        return new RouteStopDto(
+                                s.id, s.visitOrder,
+                                s.customerBranch.id,
+                                s.customerBranch.customer.name,
+                                s.customerBranch.branchName,
+                                s.customerBranch.branchAddress,
+                                s.customerBranch.contactPerson,
+                                s.customerBranch.contactPhone,
+                                v != null ? v.status.name() : null,
+                                v != null ? v.remarks : null
+                        );
+                    }).toList();
+                    return new RouteDto(plan.id, plan.name, plan.weekday.name(), stopDtos);
+                })
+                .toList();
+
+        return Response.ok(new RouteTodayResponse(date.toString(), today.name(), routes)).build();
+    }
+
+    // ── Check a stop off (visited / skipped) or clear it ──────────────────
+    @POST
+    @Path("/route/visit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response markVisit(VisitRequest req) {
+        String username = tokenUser();
+        if (username == null) return unauthorized();
+        if (req == null || req.stopId == null)
+            return Response.status(400).entity(Map.of("error", "stopId is required")).type(MediaType.APPLICATION_JSON).build();
+
+        JourneyStop stop = JourneyStop.findById(req.stopId);
+        if (stop == null)
+            return Response.status(404).entity(Map.of("error", "Stop not found")).type(MediaType.APPLICATION_JSON).build();
+
+        LocalDate date  = LocalDate.now();
+        JourneyVisit visit = JourneyVisit.forStopOnDate(req.stopId, date);
+
+        // A blank / "PENDING" status clears the visit for today.
+        if (req.status == null || req.status.isBlank() || "PENDING".equalsIgnoreCase(req.status)) {
+            if (visit != null) visit.delete();
+            return Response.ok(Map.of("stopId", req.stopId, "status", "PENDING")).build();
+        }
+
+        JourneyVisit.VisitStatus status;
+        try {
+            status = JourneyVisit.VisitStatus.valueOf(req.status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Response.status(400).entity(Map.of("error", "Invalid status")).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        if (visit == null) {
+            visit = new JourneyVisit();
+            visit.journeyStop = stop;
+            visit.visitDate = date;
+        }
+        visit.status  = status;
+        visit.remarks = (req.remarks != null && !req.remarks.isBlank()) ? req.remarks.trim() : null;
+        visit.persist();
+
+        return Response.ok(Map.of("stopId", req.stopId, "status", visit.status.name())).build();
+    }
+
     // ── DTOs ──────────────────────────────────────────────────────────────
 
     public static class LoginRequest {
@@ -395,6 +488,26 @@ public class MobileApiController {
     }
 
     public record SyncResult(String localId, String invoiceNo, String error) {}
+
+    public record RouteTodayResponse(String date, String weekday, List<RouteDto> routes) {}
+
+    public record RouteDto(Long planId, String name, String weekday, List<RouteStopDto> stops) {}
+
+    public record RouteStopDto(
+            Long stopId, Integer visitOrder,
+            Long branchId, String customerName, String branchName,
+            String branchAddress, String contactPerson, String contactPhone,
+            String visitStatus, String remarks) {}
+
+    public static class VisitRequest {
+        public Long stopId;
+        public String status;   // VISITED, SKIPPED, or blank/PENDING to clear
+        public String remarks;  // optional note
+    }
+
+    public static class ConfirmRequest {
+        public String vatInvoiceNo;    // official GRA VAT invoice number, optional
+    }
 
     public static class DeliverRequest {
         public String deliveryDate;    // YYYY-MM-DD, optional
