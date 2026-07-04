@@ -272,8 +272,9 @@ public class MobileApiController {
     // ── Confirm invoice ──────────────────────────────────────────────────
     @POST
     @Path("/invoices/{id}/confirm")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response confirmInvoice(@PathParam("id") Long id) {
+    public Response confirmInvoice(@PathParam("id") Long id, ConfirmRequest req) {
         if (tokenUser() == null) return unauthorized();
         SalesInvoice inv = SalesInvoice.findById(id);
         if (inv == null) return Response.status(404).entity(Map.of("error","Not found")).type(MediaType.APPLICATION_JSON).build();
@@ -288,6 +289,10 @@ public class MobileApiController {
         }
         // Post stock OUT for each line (mirrors web confirm behaviour)
         inv.items.forEach(line -> stockService.postSale(inv, line));
+        // Capture the official GRA VAT invoice number entered at confirm time.
+        if (req != null && req.vatInvoiceNo != null && !req.vatInvoiceNo.isBlank()) {
+            inv.vatInvoiceNo = req.vatInvoiceNo.trim();
+        }
         // Issue the official invoice number now that the sale is real.
         if (!inv.hasOfficialNumber()) {
             inv.invoiceNo = SalesInvoice.nextOfficialInvoiceNo();
@@ -401,6 +406,10 @@ public class MobileApiController {
     }
 
     public record SyncResult(String localId, String invoiceNo, String error) {}
+
+    public static class ConfirmRequest {
+        public String vatInvoiceNo;    // official GRA VAT invoice number, optional
+    }
 
     public static class DeliverRequest {
         public String deliveryDate;    // YYYY-MM-DD, optional
