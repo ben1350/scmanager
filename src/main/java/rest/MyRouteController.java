@@ -194,6 +194,7 @@ public class MyRouteController extends HxController {
         invoice.invoiceNo = SalesInvoice.draftReference(invoice.id);
         invoice.persist();
 
-        return Response.seeOther(URI.create("/invoices?open=" + invoice.id)).build();
+        // Renarde routes the index() action to /invoices/index (see the Sales nav link).
+        return Response.seeOther(URI.create("/invoices/index?open=" + invoice.id)).build();
     }
 }
