@@ -59,6 +59,20 @@
     }
     .brand-icon-wrap i { font-size: 1.1rem; color: white; line-height: 1; }
 
+    /* Keep every top-nav link on a single line: icon + label stay inline and
+       never wrap under the floated icon when the row gets tight. */
+    .nav-wrapper ul.right > li > a {
+      display: inline-flex !important;
+      align-items: center;
+      white-space: nowrap;
+      padding: 0 12px !important;
+    }
+    .nav-wrapper ul.right > li > a > i.material-icons.left {
+      float: none !important;
+      margin: 0 6px 0 0 !important;
+      line-height: 1;
+    }
+
     /* Nav links */
     nav ul li a {
       color: rgba(255,255,255,0.7) !important;
@@ -272,7 +286,7 @@
           {#if inject:nav.showProduction}<li><a href="/production/batch"><i class="material-icons left" style="font-size:1rem;">precision_manufacturing</i>Production</a></li>{/if}
           {#if inject:nav.showSales}<li><a href="/invoices/index"><i class="material-icons left" style="font-size:1rem;">receipt_long</i>Sales</a></li>{/if}
           {#if inject:nav.showCustomers}<li><a href="/customers/index"><i class="material-icons left" style="font-size:1rem;">group</i>Customers</a></li>{/if}
-          {#if inject:nav.showJourneyPlans}<li><a href="/journey-plans"><i class="material-icons left" style="font-size:1rem;">route</i>Journey Plans</a></li>{/if}
+          {#if inject:nav.showJourneyPlans}<li><a href="/journey-plans"><i class="material-icons left" style="font-size:1rem;">route</i>Journey</a></li>{/if}
           {#if inject:nav.showReports}<li>
             <a class="dropdown-trigger" href="#!" data-target="dropdown-reports">
               <i class="material-icons left" style="font-size:1rem;">bar_chart</i>Reports
