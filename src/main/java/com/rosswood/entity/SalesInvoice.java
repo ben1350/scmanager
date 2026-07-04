@@ -130,6 +130,32 @@ public class SalesInvoice extends AuditableEntity {
         return this.status == InvoiceStatus.DRAFT;
     }
 
+    /** True once the invoice carries an official Rosswood invoice number. */
+    public boolean hasOfficialNumber() {
+        return this.invoiceNo != null && this.invoiceNo.startsWith("RW-INV-");
+    }
+
+    // ── Invoice numbering ─────────────────────────────────────────────────
+
+    /**
+     * Placeholder reference for a DRAFT that has not been confirmed yet.
+     * Drafts do not consume an official invoice number, so cancelled or
+     * abandoned drafts never leave gaps in the RW-INV sequence.
+     */
+    public static String draftReference(Long id) {
+        return "DRAFT-" + String.format("%05d", id);
+    }
+
+    /**
+     * Issues the next sequential official invoice number (RW-INV-#####).
+     * Counts only invoices that already carry an official number, so the
+     * sequence stays contiguous regardless of how many drafts exist.
+     */
+    public static String nextOfficialInvoiceNo() {
+        long issued = count("invoiceNo like ?1", "RW-INV-%");
+        return "RW-INV-" + String.format("%05d", issued + 1);
+    }
+
     // ── Queries ───────────────────────────────────────────────────────────
 
     public static List<SalesInvoice> findByCustomer(Long customerId) {

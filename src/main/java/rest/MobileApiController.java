@@ -189,7 +189,6 @@ public class MobileApiController {
         if (username == null) return unauthorized();
 
         List<SyncResult> results = new ArrayList<>();
-        long baseCount = SalesInvoice.count();
 
         for (int i = 0; i < payload.size(); i++) {
             OfflineInvoice o = payload.get(i);
@@ -201,7 +200,9 @@ public class MobileApiController {
                 }
 
                 SalesInvoice inv = new SalesInvoice();
-                inv.invoiceNo       = "RW-INV-" + String.format("%05d", baseCount + i + 1);
+                // Synced records land as DRAFTs — the official RW-INV number is
+                // only issued when the invoice is confirmed.
+                inv.invoiceNo       = "TMP-" + java.util.UUID.randomUUID();
                 inv.customerBranch  = branch;
                 inv.invoiceDate     = LocalDate.parse(o.invoiceDate());
                 inv.paymentMethod   = SalesInvoice.PaymentMethod.valueOf(o.paymentMethod());
@@ -212,6 +213,7 @@ public class MobileApiController {
                 inv.totalAmount      = BigDecimal.ZERO;
                 inv.createdBy        = username;
                 inv.persistAndFlush();
+                inv.invoiceNo       = SalesInvoice.draftReference(inv.id);
 
                 for (OfflineInvoice.LineItem li : o.items()) {
                     Item item   = Item.findById(li.itemId());
@@ -286,9 +288,13 @@ public class MobileApiController {
         }
         // Post stock OUT for each line (mirrors web confirm behaviour)
         inv.items.forEach(line -> stockService.postSale(inv, line));
+        // Issue the official invoice number now that the sale is real.
+        if (!inv.hasOfficialNumber()) {
+            inv.invoiceNo = SalesInvoice.nextOfficialInvoiceNo();
+        }
         inv.status = SalesInvoice.InvoiceStatus.CONFIRMED;
         inv.persist();
-        return Response.ok(Map.of("status", inv.status.name())).build();
+        return Response.ok(Map.of("status", inv.status.name(), "invoiceNo", inv.invoiceNo)).build();
     }
 
     // ── Mark delivered / payment received ────────────────────────────────
