@@ -59,18 +59,39 @@
     }
     .brand-icon-wrap i { font-size: 1.1rem; color: white; line-height: 1; }
 
+    /* Give the nav more room than Materialize's default 70% container so all
+       the top-level links fit on one row before collapsing to the mobile menu. */
+    .navbar-fixed .nav-wrapper.container {
+      width: 96% !important;
+      max-width: 1600px !important;
+    }
+
     /* Keep every top-nav link on a single line: icon + label stay inline and
        never wrap under the floated icon when the row gets tight. */
+    .nav-wrapper ul.right {
+      flex-wrap: nowrap !important;
+    }
+    .nav-wrapper ul.right > li {
+      flex: 0 0 auto !important;
+    }
     .nav-wrapper ul.right > li > a {
       display: inline-flex !important;
-      align-items: center;
-      white-space: nowrap;
-      padding: 0 12px !important;
+      flex-direction: row !important;
+      align-items: center !important;
+      white-space: nowrap !important;
+      padding: 0 10px !important;
     }
+    /* Materialize forces nav icons to height:64px (full bar height); with a
+       small line-height the glyph pins to the top of that box and only LOOKS
+       like it is stacked above the label. Collapse the icon box to its glyph
+       so align-items:center lines the icon up with the text. */
     .nav-wrapper ul.right > li > a > i.material-icons.left {
       float: none !important;
       margin: 0 6px 0 0 !important;
-      line-height: 1;
+      line-height: 1 !important;
+      height: auto !important;
+      display: inline-flex !important;
+      align-items: center !important;
     }
 
     /* Nav links */
