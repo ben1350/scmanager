@@ -1,0 +1,22 @@
+quarkus.datasource.db-kind=postgresql
+
+quarkus.flyway.migrate-at-start=true
+%dev.quarkus.flyway.clean-at-start=true
+%dev.quarkus.datasource.dev-ui.allow-sql=true
+
+quarkus.http.auth.proactive=false
+quarkus.rest-csrf.require-form-url-encoded=false
+
+# After logout (and unauthenticated access), redirect to the custom login page
+quarkus.renarde.security.login-page=/Login/login
+
+# QuickBooks Online OAuth2 integration
+# Register your app at https://developer.intuit.com/ to obtain client credentials.
+# Set sandbox=false and point redirect-uri to your production domain when going live.
+quickbooks.client-id=${QUICKBOOKS_CLIENT_ID:ABoHoHiLhoSmJv2BoXjibfjFg66xXs8ok9b1AWCPkmI6LvIfIs}
+quickbooks.client-secret=${QUICKBOOKS_CLIENT_SECRET:NMagbuiHbqc7LYm9UKHrQpIbXywJLLH397EBAnKU}
+quickbooks.redirect-uri=${QUICKBOOKS_REDIRECT_URI:http://localhost:8080/quickbooks/callback}
+quickbooks.sandbox=${QUICKBOOKS_SANDBOX:true}
+
+
+
