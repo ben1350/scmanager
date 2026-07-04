@@ -1,0 +1,109 @@
+{#include "layout.html"}
+{#title}My Route{/title}
+
+{#body}
+<div class="container" style="margin-top: 2rem; width: 95%; max-width: 900px;">
+    <div class="row">
+        <div class="col s12" style="margin-bottom: 1.5rem;">
+            <h4 class="blue-text text-darken-4" style="font-weight: 200; margin: 0;">My Route</h4>
+            <p class="grey-text" style="margin: 5px 0 0 0;">{dateLabel}</p>
+        </div>
+    </div>
+
+    <div id="routeListContainer">
+        {#fragment id="routeList"}
+        {#if routes.isEmpty()}
+        <div class="center-align grey-text" style="padding: 3rem 1rem;">
+            <i class="material-icons" style="font-size: 3rem; opacity: 0.3;">event_available</i>
+            <p>No route scheduled for today. Enjoy the day!</p>
+        </div>
+        {#else}
+        {#for route in routes}
+        <div class="card" style="border-radius: 16px; margin-bottom: 1.5rem; border: none !important; box-shadow: 0 2px 12px rgba(0,0,0,0.05); overflow: hidden;">
+            <div class="card-content" style="padding: 1.3rem 1.6rem; display: flex; align-items: center; gap: 1rem;">
+                <div style="background: #e3f2fd; color: #1565c0; padding: 10px; border-radius: 12px;">
+                    <i class="material-icons">route</i>
+                </div>
+                <div style="flex-grow: 1;">
+                    <div style="font-weight: 700; color: #37474f; font-size: 1.05rem;">{route.plan.name}</div>
+                    <div class="grey-text" style="font-size: 0.85rem; margin-top: 2px;">
+                        {route.stops.size()} stop{#if route.stops.size() != 1}s{/if}
+                    </div>
+                </div>
+                <span style="padding: 4px 14px; border-radius: 50px; font-size: 0.75rem; font-weight: 800;
+                             background: #e8f5e9; color: #2e7d32;">
+                    {route.visitedCount} / {route.stops.size()} visited
+                </span>
+            </div>
+
+            <ul class="collection" style="border: none; margin: 0;">
+                {#for sv in route.stops}
+                <li class="collection-item" style="padding: 14px 1.6rem; border-bottom: 1px solid #f5f5f5;">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="width: 30px; height: 30px; border-radius: 50%; flex-shrink: 0;
+                                    display: flex; align-items: center; justify-content: center;
+                                    font-weight: 700; font-size: 0.82rem; color: #fff;
+                                    background: {sv.visited ? '#16a34a' : '#1565c0'};">
+                            {sv.stop.visitOrder}
+                        </div>
+                        <div style="flex-grow: 1;">
+                            <div style="font-weight: 600; color: #37474f;">
+                                {sv.stop.customerBranch.customer.name} &mdash; {sv.stop.customerBranch.branchName}
+                            </div>
+                            <div class="grey-text" style="font-size: 0.8rem;">
+                                {#if sv.stop.customerBranch.contactPerson}
+                                    <i class="material-icons tiny" style="vertical-align: middle;">person_outline</i> {sv.stop.customerBranch.contactPerson}
+                                {/if}
+                                {#if sv.stop.customerBranch.contactPhone}
+                                    <span style="margin: 0 6px; opacity: 0.4;">|</span>
+                                    <i class="material-icons tiny" style="vertical-align: middle;">phone</i> {sv.stop.customerBranch.contactPhone}
+                                {/if}
+                            </div>
+                        </div>
+                        <span style="padding: 3px 12px; border-radius: 50px; font-size: 0.65rem; font-weight: 800;
+                                     text-transform: uppercase; letter-spacing: .05em;
+                                     background: {sv.visited ? '#e8f5e9' : (sv.skipped ? '#fff3e0' : '#eceff1')};
+                                     color: {sv.visited ? '#2e7d32' : (sv.skipped ? '#e65100' : '#78909c')};">
+                            {sv.visited ? 'Visited' : (sv.skipped ? 'Skipped' : 'Pending')}
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 10px; padding-left: calc(30px + 1rem);">
+                        <form hx-post="{uri:MyRouteController.markVisit(sv.stop.id, 'VISITED')}"
+                              hx-target="#routeListContainer" style="margin: 0;">
+                            {#authenticityToken/}
+                            <button type="submit" class="btn-small {sv.visited ? 'green darken-1' : 'grey lighten-3 green-text text-darken-1'} z-depth-0"
+                                    style="border-radius: 50px; text-transform: none;">
+                                <i class="material-icons left">check</i>Visited
+                            </button>
+                        </form>
+                        <form hx-post="{uri:MyRouteController.markVisit(sv.stop.id, 'SKIPPED')}"
+                              hx-target="#routeListContainer" style="margin: 0;">
+                            {#authenticityToken/}
+                            <button type="submit" class="btn-small {sv.skipped ? 'orange darken-2' : 'grey lighten-3 orange-text text-darken-2'} z-depth-0"
+                                    style="border-radius: 50px; text-transform: none;">
+                                <i class="material-icons left">block</i>Skip
+                            </button>
+                        </form>
+                        {#if !sv.pending}
+                        <form hx-post="{uri:MyRouteController.markVisit(sv.stop.id, 'PENDING')}"
+                              hx-target="#routeListContainer" style="margin: 0;">
+                            {#authenticityToken/}
+                            <button type="submit" class="btn-small grey lighten-3 grey-text text-darken-1 z-depth-0"
+                                    style="border-radius: 50px; text-transform: none;">
+                                Clear
+                            </button>
+                        </form>
+                        {/if}
+                    </div>
+                </li>
+                {/for}
+            </ul>
+        </div>
+        {/for}
+        {/if}
+        {/fragment}
+    </div>
+</div>
+{/body}
+{/include}
