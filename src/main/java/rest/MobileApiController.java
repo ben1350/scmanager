@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -355,6 +356,87 @@ public class MobileApiController {
         )).build();
     }
 
+    // ── My route for today ────────────────────────────────────────────────
+    @GET
+    @Path("/route/today")
+    @Transactional
+    public Response routeToday() {
+        String username = tokenUser();
+        if (username == null) return unauthorized();
+        User user = User.findByUserName(username);
+        if (user == null) return unauthorized();
+
+        LocalDate date  = LocalDate.now();
+        DayOfWeek today = date.getDayOfWeek();
+
+        List<RouteDto> routes = JourneyPlan.findByRepAndDay(user.id, today).stream()
+                .map(plan -> {
+                    List<JourneyStop> stops =
+                            JourneyStop.list("journeyPlan.id = ?1 order by visitOrder", plan.id);
+                    List<RouteStopDto> stopDtos = stops.stream().map(s -> {
+                        JourneyVisit v = JourneyVisit.forStopOnDate(s.id, date);
+                        return new RouteStopDto(
+                                s.id, s.visitOrder,
+                                s.customerBranch.id,
+                                s.customerBranch.customer.name,
+                                s.customerBranch.branchName,
+                                s.customerBranch.branchAddress,
+                                s.customerBranch.contactPerson,
+                                s.customerBranch.contactPhone,
+                                v != null ? v.status.name() : null,
+                                v != null ? v.remarks : null
+                        );
+                    }).toList();
+                    return new RouteDto(plan.id, plan.name, plan.weekday.name(), stopDtos);
+                })
+                .toList();
+
+        return Response.ok(new RouteTodayResponse(date.toString(), today.name(), routes)).build();
+    }
+
+    // ── Check a stop off (visited / skipped) or clear it ──────────────────
+    @POST
+    @Path("/route/visit")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Transactional
+    public Response markVisit(VisitRequest req) {
+        String username = tokenUser();
+        if (username == null) return unauthorized();
+        if (req == null || req.stopId == null)
+            return Response.status(400).entity(Map.of("error", "stopId is required")).type(MediaType.APPLICATION_JSON).build();
+
+        JourneyStop stop = JourneyStop.findById(req.stopId);
+        if (stop == null)
+            return Response.status(404).entity(Map.of("error", "Stop not found")).type(MediaType.APPLICATION_JSON).build();
+
+        LocalDate date  = LocalDate.now();
+        JourneyVisit visit = JourneyVisit.forStopOnDate(req.stopId, date);
+
+        // A blank / "PENDING" status clears the visit for today.
+        if (req.status == null || req.status.isBlank() || "PENDING".equalsIgnoreCase(req.status)) {
+            if (visit != null) visit.delete();
+            return Response.ok(Map.of("stopId", req.stopId, "status", "PENDING")).build();
+        }
+
+        JourneyVisit.VisitStatus status;
+        try {
+            status = JourneyVisit.VisitStatus.valueOf(req.status.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return Response.status(400).entity(Map.of("error", "Invalid status")).type(MediaType.APPLICATION_JSON).build();
+        }
+
+        if (visit == null) {
+            visit = new JourneyVisit();
+            visit.journeyStop = stop;
+            visit.visitDate = date;
+        }
+        visit.status  = status;
+        visit.remarks = (req.remarks != null && !req.remarks.isBlank()) ? req.remarks.trim() : null;
+        visit.persist();
+
+        return Response.ok(Map.of("stopId", req.stopId, "status", visit.status.name())).build();
+    }
+
     // ── DTOs ──────────────────────────────────────────────────────────────
 
     public static class LoginRequest {
@@ -406,6 +488,22 @@ public class MobileApiController {
     }
 
     public record SyncResult(String localId, String invoiceNo, String error) {}
+
+    public record RouteTodayResponse(String date, String weekday, List<RouteDto> routes) {}
+
+    public record RouteDto(Long planId, String name, String weekday, List<RouteStopDto> stops) {}
+
+    public record RouteStopDto(
+            Long stopId, Integer visitOrder,
+            Long branchId, String customerName, String branchName,
+            String branchAddress, String contactPerson, String contactPhone,
+            String visitStatus, String remarks) {}
+
+    public static class VisitRequest {
+        public Long stopId;
+        public String status;   // VISITED, SKIPPED, or blank/PENDING to clear
+        public String remarks;  // optional note
+    }
 
     public static class ConfirmRequest {
         public String vatInvoiceNo;    // official GRA VAT invoice number, optional
