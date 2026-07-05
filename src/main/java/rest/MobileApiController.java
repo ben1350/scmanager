@@ -232,6 +232,27 @@ public class MobileApiController {
                     line.calculate();
                     inv.addItem(line);
                 }
+
+                // Option B: link this sale to the route visit it was raised from.
+                // Upsert the stop's visit as VISITED for the invoice date, so the
+                // rep's route reflects the visit even if they were offline when
+                // they raised it. Resolving by stopId (not visitId) is offline-safe
+                // because the visit may not exist yet at sync time.
+                if (o.stopId() != null) {
+                    JourneyStop stop = JourneyStop.findById(o.stopId());
+                    if (stop != null) {
+                        JourneyVisit visit = JourneyVisit.forStopOnDate(stop.id, inv.invoiceDate);
+                        if (visit == null) {
+                            visit = new JourneyVisit();
+                            visit.journeyStop = stop;
+                            visit.visitDate = inv.invoiceDate;
+                        }
+                        visit.status = JourneyVisit.VisitStatus.VISITED;
+                        visit.persistAndFlush();
+                        inv.journeyVisit = visit;
+                    }
+                }
+
                 inv.persist();
                 results.add(new SyncResult(o.localId(), inv.invoiceNo, null));
 
@@ -375,6 +396,18 @@ public class MobileApiController {
                             JourneyStop.list("journeyPlan.id = ?1 order by visitOrder", plan.id);
                     List<RouteStopDto> stopDtos = stops.stream().map(s -> {
                         JourneyVisit v = JourneyVisit.forStopOnDate(s.id, date);
+
+                        // Sales raised from this visit today (Option B link).
+                        long saleCount = 0;
+                        BigDecimal saleTotal = BigDecimal.ZERO;
+                        if (v != null) {
+                            List<SalesInvoice> linked = SalesInvoice.findByVisit(v.id);
+                            saleCount = linked.size();
+                            for (SalesInvoice inv : linked) {
+                                if (inv.totalAmount != null) saleTotal = saleTotal.add(inv.totalAmount);
+                            }
+                        }
+
                         return new RouteStopDto(
                                 s.id, s.visitOrder,
                                 s.customerBranch.id,
@@ -384,7 +417,8 @@ public class MobileApiController {
                                 s.customerBranch.contactPerson,
                                 s.customerBranch.contactPhone,
                                 v != null ? v.status.name() : null,
-                                v != null ? v.remarks : null
+                                v != null ? v.remarks : null,
+                                saleCount, saleTotal
                         );
                     }).toList();
                     return new RouteDto(plan.id, plan.name, plan.weekday.name(), stopDtos);
@@ -478,6 +512,7 @@ public class MobileApiController {
     public record OfflineInvoice(
             String localId, Long customerBranchId, String invoiceDate,
             String paymentMethod, String remarks,
+            Long stopId,   // route stop this sale was raised from (Option B); null if off-route
             List<LineItem> items
     ) {
         public record LineItem(
@@ -497,7 +532,8 @@ public class MobileApiController {
             Long stopId, Integer visitOrder,
             Long branchId, String customerName, String branchName,
             String branchAddress, String contactPerson, String contactPhone,
-            String visitStatus, String remarks) {}
+            String visitStatus, String remarks,
+            long saleCount, BigDecimal saleTotal) {}
 
     public static class VisitRequest {
         public Long stopId;
